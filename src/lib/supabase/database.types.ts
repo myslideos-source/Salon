@@ -752,6 +752,7 @@ export type Database = {
           phone_number: string | null
           provider: string
           provider_agent_id: string | null
+          provider_llm_id: string | null
           respect_employee_preference: boolean
           salon_id: string
           updated_at: string
@@ -768,6 +769,7 @@ export type Database = {
           phone_number?: string | null
           provider?: string
           provider_agent_id?: string | null
+          provider_llm_id?: string | null
           respect_employee_preference?: boolean
           salon_id: string
           updated_at?: string
@@ -784,6 +786,7 @@ export type Database = {
           phone_number?: string | null
           provider?: string
           provider_agent_id?: string | null
+          provider_llm_id?: string | null
           respect_employee_preference?: boolean
           salon_id?: string
           updated_at?: string

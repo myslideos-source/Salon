@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePlatformAdmin } from "@/lib/auth/session";
 import { retellProvider } from "@/lib/voice/providers/retell";
 
-export type SyncResult = { ok: true; agentId: string } | { ok: false; error: string };
+export type SyncResult = { ok: true; agentId: string; llmId: string } | { ok: false; error: string };
 
 export async function syncRetellAgentAction(salonId: string): Promise<SyncResult> {
   await requirePlatformAdmin();
@@ -38,13 +38,13 @@ export async function syncRetellAgentAction(salonId: string): Promise<SyncResult
       detectNewCustomers: settings.detect_new_customers,
     },
     webhookUrl: `${appUrl}/api/voice/webhook`,
-  });
+  }, { agentId: settings.provider_agent_id, llmId: settings.provider_llm_id });
 
   if (!result.ok) return result;
 
   await supabase
     .from("voice_settings")
-    .update({ provider_agent_id: result.agentId, updated_at: new Date().toISOString() })
+    .update({ provider_agent_id: result.agentId, provider_llm_id: result.llmId, updated_at: new Date().toISOString() })
     .eq("salon_id", salonId);
 
   revalidatePath(`/admin/salons/${salonId}/ai`);

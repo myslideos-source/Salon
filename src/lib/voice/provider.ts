@@ -27,8 +27,13 @@ export interface VoiceProvider {
   readonly name: string;
   /** Whether this provider is fully configured (API key present etc.). */
   isConfigured(): boolean;
-  /** Push/update the agent configuration with the provider. */
-  syncAgent(config: VoiceAgentConfig): Promise<{ ok: true; agentId: string } | { ok: false; error: string }>;
+  /** Push/update the agent configuration with the provider. Pass the
+   * previously-stored ids (if any) so this updates in place instead of
+   * creating duplicates on every sync. */
+  syncAgent(
+    config: VoiceAgentConfig,
+    existing?: { agentId?: string | null; llmId?: string | null }
+  ): Promise<{ ok: true; agentId: string; llmId: string } | { ok: false; error: string }>;
   /** Verify an inbound webhook actually came from this provider. */
   verifyWebhookSignature(payload: string, signatureHeader: string | null): boolean;
 }

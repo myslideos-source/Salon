@@ -30,28 +30,69 @@ export class RetellProvider implements VoiceProvider {
     return Boolean(process.env.RETELL_API_KEY);
   }
 
-  async syncAgent(config: VoiceAgentConfig) {
+  async syncAgent(config: VoiceAgentConfig, existing?: { agentId?: string | null; llmId?: string | null }) {
     const apiKey = process.env.RETELL_API_KEY;
     if (!apiKey) {
       return { ok: false as const, error: "RETELL_API_KEY ist nicht gesetzt. Siehe .env.example." };
     }
+    const headers = { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" };
 
     try {
-      const response = await fetch(`${RETELL_API_BASE}/create-agent`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          agent_name: `saloncall-${config.salonId}`,
-          voice_id: config.voiceId || "11labs-Anna",
-          webhook_url: config.webhookUrl,
-          general_prompt: buildPromptFromConfig(config),
-        }),
-      });
-      if (!response.ok) {
-        return { ok: false as const, error: `Retell API Fehler (${response.status}): ${await response.text()}` };
+      // 1) Retell LLM — the "response engine" that owns the conversation
+      // logic/prompt. Agents reference one by id rather than embedding the
+      // prompt directly.
+      const llmBody = {
+        general_prompt: buildPromptFromConfig(config),
+        begin_message: config.greeting,
+      };
+      const llmResponse = existing?.llmId
+        ? await fetch(`${RETELL_API_BASE}/update-retell-llm/${existing.llmId}`, {
+            method: "PATCH",
+            headers,
+            body: JSON.stringify(llmBody),
+          })
+        : await fetch(`${RETELL_API_BASE}/create-retell-llm`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(llmBody),
+          });
+      if (!llmResponse.ok) {
+        return { ok: false as const, error: `Retell LLM Fehler (${llmResponse.status}): ${await llmResponse.text()}` };
       }
-      const json = (await response.json()) as { agent_id: string };
-      return { ok: true as const, agentId: json.agent_id };
+      const llmJson = (await llmResponse.json()) as { llm_id: string };
+      const llmId = llmJson.llm_id ?? existing?.llmId;
+      if (!llmId) {
+        return { ok: false as const, error: "Retell hat keine llm_id zurückgegeben." };
+      }
+
+      // 2) Agent — voice, webhook and which Retell LLM to use.
+      const agentBody = {
+        agent_name: `saloncall-${config.salonId}`,
+        voice_id: config.voiceId || "11labs-Anna",
+        webhook_url: config.webhookUrl,
+        response_engine: { type: "retell-llm", llm_id: llmId },
+      };
+      const agentResponse = existing?.agentId
+        ? await fetch(`${RETELL_API_BASE}/update-agent/${existing.agentId}`, {
+            method: "PATCH",
+            headers,
+            body: JSON.stringify(agentBody),
+          })
+        : await fetch(`${RETELL_API_BASE}/create-agent`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(agentBody),
+          });
+      if (!agentResponse.ok) {
+        return { ok: false as const, error: `Retell Agent Fehler (${agentResponse.status}): ${await agentResponse.text()}` };
+      }
+      const agentJson = (await agentResponse.json()) as { agent_id: string };
+      const agentId = agentJson.agent_id ?? existing?.agentId;
+      if (!agentId) {
+        return { ok: false as const, error: "Retell hat keine agent_id zurückgegeben." };
+      }
+
+      return { ok: true as const, agentId, llmId };
     } catch (e) {
       return { ok: false as const, error: e instanceof Error ? e.message : "Unbekannter Fehler bei der Retell-Synchronisation." };
     }
