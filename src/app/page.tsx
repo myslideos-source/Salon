@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Phone, Calendar, Users, Sparkles } from "lucide-react";
+import { Phone, Calendar, Users, Sparkles, PhoneMissed, Clock3, Moon, HeartHandshake, ChevronDown } from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { DemoAnimation } from "@/components/marketing/demo-animation";
 import { VoiceDemoPlayer } from "@/components/marketing/voice-demo-player";
@@ -32,6 +32,57 @@ const FEATURES = [
   },
 ];
 
+const BENEFITS = [
+  {
+    icon: PhoneMissed,
+    title: "Nie wieder verpasste Anrufe",
+    description: "Auch beim Schneiden, in der Mittagspause oder nach Feierabend nimmt HalloMia ab — kein Kunde landet mehr auf der Mailbox.",
+  },
+  {
+    icon: Clock3,
+    title: "Mehr Zeit für deine Kund:innen",
+    description: "Weniger Unterbrechungen während der Arbeit am Kunden, weil das Telefon nicht mehr ständig dazwischenfunkt.",
+  },
+  {
+    icon: Moon,
+    title: "Rund um die Uhr erreichbar",
+    description: "Auch abends und am Wochenende können Kund:innen anrufen und einen Termin buchen — ganz ohne dass jemand ran muss.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "Weniger Stress im Salon-Alltag",
+    description: "Keine Zettelwirtschaft, keine Doppelbuchungen, keine hektischen Rückrufe zwischen zwei Kundenterminen.",
+  },
+];
+
+const FAQS = [
+  {
+    question: "Muss ich meine bisherige Telefonnummer wechseln?",
+    answer:
+      "Nein. In der Regel richten wir eine Rufumleitung von deiner bestehenden Nummer auf HalloMia ein — ohne Anbieterwechsel. Eine vollständige Portierung ist später jederzeit möglich.",
+  },
+  {
+    question: "Was passiert, wenn die KI eine Frage nicht beantworten kann?",
+    answer:
+      "Dann sagt sie das offen und bietet einen Rückruf an, statt etwas zu erfinden. Du siehst offene Rückrufwünsche direkt im Dashboard.",
+  },
+  {
+    question: "Bucht die KI wirklich echte, freie Termine?",
+    answer:
+      "Ja. HalloMia prüft in Echtzeit den tatsächlichen Kalender deines Salons — inklusive Arbeitszeiten, Pausen und Abwesenheiten. Keine Doppelbuchungen.",
+  },
+  {
+    question: "Wie schnell ist HalloMia eingerichtet?",
+    answer:
+      "Nach deiner Anfrage richte ich deinen Assistenten persönlich ein — Stimme, Begrüßung und Kalenderanbindung inklusive. Details dazu bei der einmaligen Einrichtungsgebühr.",
+  },
+  {
+    question: "Sind die Daten meiner Kund:innen sicher?",
+    answer:
+      "Ja. Termin- und Kundendaten werden in der EU (Frankfurt) gespeichert. Details zu allen eingesetzten Diensten findest du in der Datenschutzerklärung.",
+  },
+];
+
 export default function LandingPage() {
   return (
     <div className="theme-landing flex min-h-screen flex-col bg-cream text-ink">
@@ -40,8 +91,10 @@ export default function LandingPage() {
           <Logo size="lg" />
           <nav className="hidden items-center gap-8 text-sm text-ink-soft sm:flex">
             <a href="#funktionen" className="hover:text-ink">Funktionen</a>
-            <a href="#so-funktionierts" className="hover:text-ink">So funktioniert&apos;s</a>
+            <a href="#vorteile" className="hover:text-ink">Vorteile</a>
             <a href="#preise" className="hover:text-ink">Preise</a>
+            <a href="#so-funktionierts" className="hover:text-ink">So funktioniert&apos;s</a>
+            <a href="#faq" className="hover:text-ink">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
             <Link href="/app/login" className="hidden text-sm text-ink-soft hover:text-ink sm:block">
@@ -123,9 +176,52 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section id="vorteile" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="font-display text-3xl text-ink sm:text-4xl">Warum Salons HalloMia lieben</h2>
+          <p className="mt-3 text-ink-soft">Nicht nur ein Feature mehr — spürbar mehr Ruhe im Salon-Alltag.</p>
+        </div>
+        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {BENEFITS.map((b) => (
+            <div key={b.title} className="flex gap-4 rounded-2xl border border-border bg-white/[0.03] p-6 backdrop-blur-sm">
+              <div className="brand-gradient-bg flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white">
+                <b.icon className="h-5 w-5" strokeWidth={1.8} />
+              </div>
+              <div>
+                <h3 className="font-display text-lg text-ink">{b.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{b.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <Pricing />
 
-      <section className="mx-auto max-w-4xl px-4 pb-24 sm:px-6 lg:px-8">
+      <section id="faq" className="border-t border-border/70 bg-cream-soft/50">
+        <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-display text-3xl text-ink sm:text-4xl">Häufige Fragen</h2>
+            <p className="mt-3 text-ink-soft">Was Salon-Inhaber:innen uns am häufigsten fragen.</p>
+          </div>
+          <div className="mt-10 space-y-3">
+            {FAQS.map((f) => (
+              <details
+                key={f.question}
+                className="group rounded-2xl border border-border bg-white/[0.03] px-5 py-4 backdrop-blur-sm"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base text-ink marker:content-none">
+                  {f.question}
+                  <ChevronDown className="h-4 w-4 shrink-0 text-ink-faint transition-transform group-open:rotate-180" />
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-ink-soft">{f.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-4xl px-4 pb-24 pt-24 sm:px-6 lg:px-8">
         <div className="rounded-3xl border border-border bg-ink px-8 py-14 text-center text-cream sm:px-16">
           <h2 className="font-display text-3xl sm:text-4xl">Bereit, dass dein Salon ans Telefon geht?</h2>
           <p className="mx-auto mt-3 max-w-md text-cream/70">
