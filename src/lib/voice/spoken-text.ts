@@ -2,9 +2,11 @@ import "server-only";
 
 // Some salon names use English connector words (e.g. "Isi by Schnittpunkt")
 // that German TTS engines mispronounce when read as if they were German.
-// Respelling them phonetically before they reach the prompt/begin_message
-// fixes this the same way the digit-spelling rule fixes number
-// mispronunciation - by changing what gets *written*, not the voice engine.
+// The first fix (phonetic respelling "by" -> "bai") apparently still didn't
+// read right, so this now substitutes the real German word "bei" instead -
+// same meaning in context ("Isi bei Schnittpunkt"), and since it's an actual
+// German word rather than an invented phonetic spelling, every German voice
+// engine already knows how to pronounce it correctly.
 export function toSpokenGerman(text: string): string {
-  return text.replace(/\bby\b/gi, "bai");
+  return text.replace(/\bby\b/gi, "bei");
 }

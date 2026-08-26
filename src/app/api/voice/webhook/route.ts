@@ -101,6 +101,19 @@ export async function POST(req: Request) {
     if (!salonId) return NextResponse.json({ error: "salon not found for this number" }, { status: 404 });
     if (!(name in toolSchemas)) return NextResponse.json({ error: `unknown tool: ${name}` }, { status: 400 });
 
+    // Caller ID: for any tool that takes a `phone` argument, prefer the
+    // number Retell actually connected the call from over whatever the LLM
+    // supplied (or omitted - the prompt now tells it not to bother asking).
+    // That's how the agent "recognizes" a returning customer automatically,
+    // and it's also just more reliable than a transcribed/spoken number.
+    // Falls back to the LLM's value when there's no real caller number (e.g.
+    // Retell's in-dashboard "Test Audio" mode).
+    const PHONE_TOOLS = new Set(["findCustomer", "createCustomer", "findAppointment", "createCallbackRequest"]);
+    const callerNumber = asString(call.from_number) ?? asString(call.fromNumber);
+    if (callerNumber && PHONE_TOOLS.has(name)) {
+      args.phone = callerNumber;
+    }
+
     const result = await runTool(supabase, salonId, name as keyof typeof toolSchemas, args);
     return NextResponse.json(result);
   }

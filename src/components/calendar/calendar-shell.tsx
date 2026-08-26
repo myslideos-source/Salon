@@ -61,7 +61,6 @@ export function CalendarShell({
     <div>
       <Topbar
         title="Kalender"
-        subtitle={view === "day" ? formatDayLabel(date) : formatWeekRange(weekStart)}
         avatarLabel={avatarLabel}
         right={
           canEdit && (
@@ -73,22 +72,34 @@ export function CalendarShell({
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setDate((d) => addDaysStr(d, view === "day" ? -1 : -7))}
-            className="rounded-lg p-1.5 text-ink-soft hover:bg-sand"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button onClick={() => setDate(todayStr())} className="rounded-lg border border-border-strong px-3 py-1.5 text-sm text-ink-soft hover:bg-sand">
-            Heute
-          </button>
-          <button
-            onClick={() => setDate((d) => addDaysStr(d, view === "day" ? 1 : 7))}
-            className="rounded-lg p-1.5 text-ink-soft hover:bg-sand"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setDate((d) => addDaysStr(d, view === "day" ? -1 : -7))}
+              aria-label="Vorheriger Zeitraum"
+              className="rounded-lg p-1.5 text-ink-soft hover:bg-sand"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setDate((d) => addDaysStr(d, view === "day" ? 1 : 7))}
+              aria-label="Nächster Zeitraum"
+              className="rounded-lg p-1.5 text-ink-soft hover:bg-sand"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+          <span className="font-display text-base text-ink sm:text-lg">
+            {view === "day" ? formatDayLabel(date) : formatWeekRange(weekStart)}
+          </span>
+          {date !== todayStr() && (
+            <button
+              onClick={() => setDate(todayStr())}
+              className="rounded-lg border border-border-strong px-2.5 py-1 text-xs font-medium text-ink-soft hover:bg-sand"
+            >
+              Heute
+            </button>
+          )}
         </div>
         <div className="flex rounded-lg border border-border-strong p-0.5">
           {(["week", "day"] as const).map((v) => (
