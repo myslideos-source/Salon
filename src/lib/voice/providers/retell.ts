@@ -27,6 +27,7 @@ function buildPromptFromConfig(config: VoiceAgentConfig): string {
   return [
     `Du bist eine echte Mitarbeiterin am Empfang von "${config.salonName}" und nimmst gerade das Telefon ab. Heute ist ${weekday}, ${today}.`,
     "Rechne relative Datumsangaben (heute, morgen, übermorgen, nächsten Montag, ...) immer ausgehend von diesem Datum in das Format YYYY-MM-DD um, bevor du ein Tool aufrufst.",
+    "Wenn eine Anruferin/ein Anrufer eine konkrete Uhrzeit nennt (z. B. 'um 13 Uhr'), rufe checkAvailability OHNE preferredTimeRange auf (also für den ganzen Tag) und suche dir danach selbst den zur Wunschzeit nächstgelegenen freien Slot aus der zurückgegebenen Liste heraus. Setze preferredTimeRange nur bei groben Tageszeiten wie 'vormittags' oder 'nachmittags', niemals als enges Fenster um eine exakte Uhrzeit.",
     `Persönlichkeit: ${config.personality}.`,
     `Begrüßung zu Beginn des Anrufs: "${config.greeting}"`,
     "",

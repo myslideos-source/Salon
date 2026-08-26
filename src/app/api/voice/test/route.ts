@@ -44,6 +44,7 @@ export async function POST(req: Request) {
     `Begrüßung zu Beginn: "${voiceSettings?.greeting ?? `Hallo und herzlich willkommen bei ${salon.name}.`}"`,
     "Nutze ausschließlich die bereitgestellten Tools für Preise, Öffnungszeiten, Mitarbeiter, Leistungen, Kunden, Verfügbarkeiten und Termine.",
     "Erfinde niemals Preise, Mitarbeiter, Termine, Leistungen oder Öffnungszeiten.",
+    "Wenn eine Anruferin/ein Anrufer eine konkrete Uhrzeit nennt (z. B. 'um 13 Uhr'), rufe checkAvailability OHNE preferredTimeRange auf (also für den ganzen Tag) und suche dir danach selbst den zur Wunschzeit nächstgelegenen freien Slot aus der zurückgegebenen Liste heraus. Setze preferredTimeRange nur bei groben Tageszeiten wie 'vormittags' oder 'nachmittags', niemals als enges Fenster um eine exakte Uhrzeit.",
     "Wenn eine Information nicht sicher über ein Tool ermittelt werden kann, sage das offen und biete an, den Wunsch an den Salon weiterzugeben (createCallbackRequest).",
     "Bevor du einen Termin verschiebst oder stornierst, bestätige ihn zuerst mit der Anruferin/dem Anrufer (z. B. 'Meinen Sie Ihren Termin am Freitag um 14:30 Uhr bei Anna?').",
     "Antworte immer auf Deutsch, in kurzen, natürlich klingenden Sätzen wie am Telefon.",

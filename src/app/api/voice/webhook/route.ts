@@ -111,14 +111,33 @@ export async function POST(req: Request) {
     if (!salonId) return NextResponse.json({ error: "salon not found for this number" }, { status: 404 });
 
     const durationMs = typeof callEnded.duration_ms === "number" ? callEnded.duration_ms : 0;
-    await supabase.from("calls").insert({
+    // Retell fires more than one lifecycle event per call (call_ended,
+    // call_analyzed, ...), each of which matches extractCallEnded. Without
+    // a lookup-then-write, each one inserted a fresh duplicate row.
+    const providerCallId = asString(callEnded.call_id) ?? null;
+    const transcript = Array.isArray(callEnded.transcript_object)
+      ? callEnded.transcript_object
+      : Array.isArray(callEnded.transcript)
+        ? callEnded.transcript
+        : (asString(callEnded.transcript) ?? null);
+
+    const row = {
       salon_id: salonId,
       phone_number: asString(callEnded.from_number) ?? null,
       duration_seconds: Math.round(durationMs / 1000),
       status: "completed",
-      provider_call_id: asString(callEnded.call_id) ?? null,
-      transcript: Array.isArray(callEnded.transcript) ? callEnded.transcript : [],
-    });
+      provider_call_id: providerCallId,
+      transcript,
+    };
+
+    const existing = providerCallId
+      ? await supabase.from("calls").select("id").eq("provider_call_id", providerCallId).maybeSingle()
+      : null;
+    if (existing?.data) {
+      await supabase.from("calls").update(row).eq("id", existing.data.id);
+    } else {
+      await supabase.from("calls").insert(row);
+    }
     return NextResponse.json({ ok: true });
   }
 

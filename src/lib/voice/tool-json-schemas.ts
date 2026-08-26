@@ -37,7 +37,8 @@ export const toolJsonSchemas: Record<ToolName, Record<string, unknown>> = {
       preferredTimeRange: {
         type: ["object", "null"],
         properties: { fromTime: { type: "string" }, toTime: { type: "string" } },
-        description: "z. B. Nachmittag = 12:00 bis 18:00",
+        description:
+          "Nur für grobe Tageszeiten verwenden, z. B. Nachmittag = 12:00 bis 18:00. NIEMALS ein enges oder Null-breites Fenster um eine exakte Uhrzeit setzen (z. B. NICHT 13:00 bis 13:00 für 'um 13 Uhr') - das liefert fälschlich keine Treffer. Bei einer konkreten Wunschuhrzeit dieses Feld stattdessen weglassen (null) und aus der vollständigen Ergebnisliste den nächstgelegenen Slot auswählen.",
       },
     },
     required: ["serviceIds", "date"],
@@ -100,7 +101,7 @@ export const toolDescriptions: Record<ToolName, string> = {
   findCustomer: "Sucht eine Kundin/einen Kunden anhand der Telefonnummer, um sie/ihn zu erkennen.",
   createCustomer: "Legt eine neue Kundin/einen neuen Kunden mit Namen und Telefonnummer an.",
   checkAvailability:
-    "Prüft echte freie Termine für eine Kombination aus Leistung(en), Mitarbeiter und Datum. Muss vor jedem Terminvorschlag aufgerufen werden.",
+    "Prüft echte freie Termine für eine Kombination aus Leistung(en), Mitarbeiter und Datum. Muss vor jedem Terminvorschlag aufgerufen werden. Liefert alle freien Slots des Tages zurück - bei einer konkreten Wunschuhrzeit (z. B. 'um 13 Uhr') preferredTimeRange weglassen und selbst den nächstgelegenen Slot aus der Ergebnisliste auswählen, statt das Zeitfenster künstlich einzuengen.",
   createAppointment:
     "Bucht verbindlich einen zuvor über checkAvailability bestätigten freien Termin. Nur mit einer echten, gerade geprüften Startzeit aufrufen.",
   findAppointment: "Findet die anstehenden Termine einer Anruferin/eines Anrufers anhand der Telefonnummer, z. B. zum Verschieben oder Stornieren.",
