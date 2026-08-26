@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type NavItem = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  // A pre-rendered icon element, not the component reference — passing a
+  // raw component function from a Server Component into this Client
+  // Component isn't serializable across the RSC boundary.
+  icon: React.ReactNode;
 };
 
 export function Sidebar({
@@ -34,7 +36,6 @@ export function Sidebar({
         {navItems.map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(item.href + "/");
-          const Icon = item.icon;
           return (
             <Link
               key={item.href}
@@ -46,7 +47,7 @@ export function Sidebar({
                   : "text-ink-soft hover:bg-sand hover:text-ink"
               )}
             >
-              <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+              {item.icon}
               {item.label}
             </Link>
           );

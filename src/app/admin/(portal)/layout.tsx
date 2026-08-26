@@ -3,12 +3,14 @@ import { requirePlatformAdmin } from "@/lib/auth/session";
 import { Sidebar, type NavItem } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 
+const iconProps = { className: "h-5 w-5", strokeWidth: 1.8 };
+
 const navItems: NavItem[] = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutGrid },
-  { href: "/admin/salons", label: "Salons", icon: Building2 },
-  { href: "/admin/calls", label: "Anrufe", icon: Phone },
-  { href: "/admin/appointments", label: "Termine", icon: CalendarClock },
-  { href: "/admin/system", label: "Systemstatus", icon: Activity },
+  { href: "/admin/dashboard", label: "Dashboard", icon: <LayoutGrid {...iconProps} /> },
+  { href: "/admin/salons", label: "Salons", icon: <Building2 {...iconProps} /> },
+  { href: "/admin/calls", label: "Anrufe", icon: <Phone {...iconProps} /> },
+  { href: "/admin/appointments", label: "Termine", icon: <CalendarClock {...iconProps} /> },
+  { href: "/admin/system", label: "Systemstatus", icon: <Activity {...iconProps} /> },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -7,13 +7,15 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { SalonProvider } from "@/components/layout/salon-context";
 import { AiToggle } from "@/components/layout/ai-toggle";
 
+const iconProps = { className: "h-5 w-5", strokeWidth: 1.8 };
+
 const navItems: NavItem[] = [
-  { href: "/app/dashboard", label: "Übersicht", icon: LayoutGrid },
-  { href: "/app/calendar", label: "Kalender", icon: Calendar },
-  { href: "/app/appointments", label: "Termine", icon: Clock },
-  { href: "/app/customers", label: "Kunden", icon: Users },
-  { href: "/app/calls", label: "Anrufe", icon: Phone },
-  { href: "/app/absences", label: "Abwesenheiten", icon: CalendarOff },
+  { href: "/app/dashboard", label: "Übersicht", icon: <LayoutGrid {...iconProps} /> },
+  { href: "/app/calendar", label: "Kalender", icon: <Calendar {...iconProps} /> },
+  { href: "/app/appointments", label: "Termine", icon: <Clock {...iconProps} /> },
+  { href: "/app/customers", label: "Kunden", icon: <Users {...iconProps} /> },
+  { href: "/app/calls", label: "Anrufe", icon: <Phone {...iconProps} /> },
+  { href: "/app/absences", label: "Abwesenheiten", icon: <CalendarOff {...iconProps} /> },
 ];
 
 export default async function SalonAppLayout({ children }: { children: React.ReactNode }) {
