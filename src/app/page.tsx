@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Phone, Calendar, Users, Sparkles, ArrowRight } from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { DemoAnimation } from "@/components/marketing/demo-animation";
+import { ProductShowcase } from "@/components/marketing/product-showcase";
 import { Pricing } from "@/components/marketing/pricing";
 
 const FEATURES = [
@@ -81,6 +82,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <ProductShowcase />
 
       <section id="funktionen" className="border-y border-border/70 bg-cream-soft/50">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
