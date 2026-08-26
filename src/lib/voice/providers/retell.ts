@@ -56,7 +56,7 @@ function buildPromptFromConfig(config: VoiceAgentConfig): string {
     config.rules.respectEmployeePreference ? "- Beachte Mitarbeiterwünsche der Anruferin/des Anrufers." : "",
     config.rules.offerCallback ? "- Biete einen Rückruf an, wenn du nicht weiterhelfen kannst." : "",
     config.rules.detectNewCustomers
-      ? "- Die Telefonnummer der Anruferin/des Anrufers wird automatisch erkannt, du musst nie danach fragen. Rufe früh im Gespräch findCustomer auf (ohne die Nummer zu erfragen - die wird automatisch übergeben). Ist die Person bekannt: sprich sie ab sofort mit ihrem Vornamen an. Ist sie unbekannt: frag freundlich nach Vor- und Nachnamen, sobald ein Termin gebucht werden soll."
+      ? "- Bei einem echten Telefonanruf wird die Nummer der Anruferin/des Anrufers automatisch erkannt und an findCustomer übergeben, auch wenn du dort keine Nummer angibst - ruf es deshalb früh im Gespräch auf, ohne aktiv danach zu fragen. Ist die Person bekannt: sprich sie ab sofort mit ihrem Vornamen an. WICHTIG: Erfinde niemals selbst eine Telefonnummer. Wenn du beim Anlegen einer neuen Kundin/eines neuen Kunden (createCustomer) keine echte Nummer sicher kennst, frag kurz danach, statt eine zu raten oder eine Platzhalter-Nummer zu benutzen."
       : "",
     config.rules.sendConfirmationSms
       ? "- Nach jeder erfolgreichen Buchung verschickt das System automatisch eine Bestätigungs-SMS an die hinterlegte Telefonnummer - das passiert von selbst, du musst dafür nichts tun und hast dafür kein eigenes Tool. Du darfst der Anruferin/dem Anrufer sagen, dass sie/er gleich eine SMS-Bestätigung bekommt. Wenn danach gefragt wird, ob du selbst jetzt eine SMS schicken kannst: Nein, aber nach der Buchung kommt automatisch eine."
