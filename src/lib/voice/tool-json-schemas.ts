@@ -89,3 +89,22 @@ export const toolJsonSchemas: Record<ToolName, Record<string, unknown>> = {
     additionalProperties: false,
   },
 };
+
+// Short descriptions so the LLM knows *when* to call each tool. Used by the
+// Retell sync (general_tools) and could equally back the OpenAI test route.
+export const toolDescriptions: Record<ToolName, string> = {
+  getSalonInformation: "Liefert Name, Adresse, Telefonnummer und Zeitzone des Salons.",
+  getOpeningHours: "Liefert die tatsächlichen Öffnungszeiten des Salons je Wochentag.",
+  getEmployees: "Liefert die Liste der aktiven Mitarbeiter des Salons.",
+  getServices: "Liefert die Liste der buchbaren Leistungen mit Dauer und Preis.",
+  findCustomer: "Sucht eine Kundin/einen Kunden anhand der Telefonnummer, um sie/ihn zu erkennen.",
+  createCustomer: "Legt eine neue Kundin/einen neuen Kunden mit Namen und Telefonnummer an.",
+  checkAvailability:
+    "Prüft echte freie Termine für eine Kombination aus Leistung(en), Mitarbeiter und Datum. Muss vor jedem Terminvorschlag aufgerufen werden.",
+  createAppointment:
+    "Bucht verbindlich einen zuvor über checkAvailability bestätigten freien Termin. Nur mit einer echten, gerade geprüften Startzeit aufrufen.",
+  findAppointment: "Findet die anstehenden Termine einer Anruferin/eines Anrufers anhand der Telefonnummer, z. B. zum Verschieben oder Stornieren.",
+  rescheduleAppointment: "Verschiebt einen bestehenden, zuvor bestätigten Termin auf eine neue, über checkAvailability geprüfte Zeit.",
+  cancelAppointment: "Storniert einen bestehenden, zuvor mit der Anruferin/dem Anrufer bestätigten Termin.",
+  createCallbackRequest: "Speichert einen Rückrufwunsch, wenn die Anfrage nicht direkt gelöst werden kann.",
+};

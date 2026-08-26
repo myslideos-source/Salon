@@ -1,8 +1,24 @@
 import "server-only";
 import crypto from "node:crypto";
 import type { VoiceAgentConfig, VoiceProvider } from "../provider";
+import { toolJsonSchemas, toolDescriptions } from "../tool-json-schemas";
+import type { ToolName } from "../tools";
 
 const RETELL_API_BASE = "https://api.retellai.com";
+
+function buildGeneralTools(config: VoiceAgentConfig) {
+  return (Object.keys(toolJsonSchemas) as ToolName[]).map((name) => ({
+    type: "custom",
+    name,
+    description: toolDescriptions[name],
+    // Retell posts here with { name, args, call: { call_id, metadata, ... } }
+    // on invocation — matches the shape our webhook route already parses.
+    url: config.webhookUrl,
+    parameters: toolJsonSchemas[name],
+    speak_during_execution: name === "checkAvailability" || name === "createAppointment",
+    speak_after_execution: true,
+  }));
+}
 
 function buildPromptFromConfig(config: VoiceAgentConfig): string {
   return [
@@ -44,6 +60,7 @@ export class RetellProvider implements VoiceProvider {
       const llmBody = {
         general_prompt: buildPromptFromConfig(config),
         begin_message: config.greeting,
+        general_tools: buildGeneralTools(config),
       };
       const llmResponse = existing?.llmId
         ? await fetch(`${RETELL_API_BASE}/update-retell-llm/${existing.llmId}`, {
@@ -74,6 +91,10 @@ export class RetellProvider implements VoiceProvider {
         language: "de-DE",
         webhook_url: config.webhookUrl,
         response_engine: { type: "retell-llm", llm_id: llmId },
+        // If Retell merges this into every call's metadata, our webhook can
+        // resolve the salon directly instead of falling back to a
+        // to_number -> voice_settings.phone_number lookup.
+        metadata: { salonId: config.salonId },
       };
       const agentResponse = existing?.agentId
         ? await fetch(`${RETELL_API_BASE}/update-agent/${existing.agentId}`, {
