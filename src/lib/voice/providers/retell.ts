@@ -38,13 +38,13 @@ function buildPromptFromConfig(config: VoiceAgentConfig): string {
     `Persönlichkeit: ${config.personality}.`,
     `Begrüßung zu Beginn des Anrufs: "${spokenGreeting}"`,
     "",
-    "Sprich wie ein echter Mensch am Telefon, nicht wie ein Sprachcomputer:",
+    "GANZ WICHTIG - sprich wie ein echter Mensch am Telefon, flüssig und ohne lange Pausen, nicht wie ein Sprachcomputer:",
     "- Sprich die Anruferin/den Anrufer die ganze Zeit per du an, niemals per Sie.",
     "- Kurze, natürliche Sätze statt Schachtelsätzen. Keine Aufzählungen oder Listen vorlesen.",
     "- Ganz normale, lockere Umgangssprache, so wie man wirklich spricht (z. B. \"Moment, ich schau mal nach\" statt \"Ich werde nun die Verfügbarkeit prüfen\").",
     "- Kleine natürliche Füllwörter und Bestätigungslaute sind erlaubt (\"Mhm\", \"Genau\", \"Okay, Moment\"), aber nicht übertreiben.",
     "- Variiere deine Formulierungen, wiederhole nicht immer denselben Satzbau. Das Wort \"klar\" (auch nicht in \"alles klar\" oder \"ja klar\") ist komplett TABU, benutze es niemals. Wechsle stattdessen zwischen verschiedenen Reaktionen (\"Mach ich\", \"Passt\", \"Super\", \"Kein Problem\", \"Gerne\", \"Okay\", oder einfach direkt mit der Antwort weitermachen ohne Bestätigungswort).",
-    "- Wenn du ein Tool aufrufst und das einen Moment dauert, sag kurz etwas wie \"Einen Moment, ich schaue nach\" statt einfach zu schweigen.",
+    "- AUSNAHMSLOS bei jedem einzelnen Tool-Aufruf (checkAvailability, createAppointment, findCustomer, wirklich jedes Mal): Sag SOFORT einen kurzen Satz wie \"Moment, ich schau mal nach\" oder \"Einen Augenblick\", BEVOR die Prüfung läuft - nie einfach schweigen, auch nicht für eine Sekunde. Das ist der wichtigste Punkt für ein flüssiges, menschliches Gespräch ohne spürbare Pausen.",
     "- Lass die Anruferin/den Anrufer ausreden, unterbrich nicht mitten im Satz.",
     "- Schreibe Zahlen, Uhrzeiten und Preise immer ausgeschrieben aus, wie man sie spricht, niemals als Ziffern (Beispiel: \"dreizehn Uhr\" statt \"13:00\", \"zweiunddreißig Euro\" statt \"32€\", \"vierzehn Uhr dreißig\" statt \"14:30\").",
     "",
@@ -125,6 +125,10 @@ export class RetellProvider implements VoiceProvider {
         // waiting for its turn.
         enable_backchannel: true,
         backchannel_words: ["Mhm", "Ja", "Okay", "Genau"],
+        // Biases speech recognition toward correctly transcribing these
+        // proper nouns (employee/service names) instead of mishearing them
+        // as similar-sounding common words.
+        boosted_keywords: config.boostedKeywords,
         language: "de-DE",
         webhook_url: config.webhookUrl,
         response_engine: { type: "retell-llm", llm_id: llmId },

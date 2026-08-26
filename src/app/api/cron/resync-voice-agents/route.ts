@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { retellProvider } from "@/lib/voice/providers/retell";
+import { computeBoostedKeywords } from "@/lib/voice/boosted-keywords";
 
 // Runs once a day via Vercel Cron (see vercel.json). The Retell agent's
 // general_prompt is static text set at sync time — it opens with "Heute ist
@@ -43,6 +44,8 @@ export async function GET(req: Request) {
       continue;
     }
 
+    const boostedKeywords = await computeBoostedKeywords(supabase, row.salon_id);
+
     const result = await retellProvider.syncAgent(
       {
         salonId: row.salon_id,
@@ -62,6 +65,7 @@ export async function GET(req: Request) {
           sendConfirmationSms: row.send_confirmation_sms,
         },
         webhookUrl: `${appUrl}/api/voice/webhook`,
+        boostedKeywords,
       },
       { agentId: row.provider_agent_id, llmId: row.provider_llm_id }
     );

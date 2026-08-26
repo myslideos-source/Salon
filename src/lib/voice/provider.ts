@@ -23,6 +23,10 @@ export interface VoiceAgentConfig {
     sendConfirmationSms: boolean;
   };
   webhookUrl: string;
+  /** Proper nouns worth biasing speech recognition toward (employee names,
+   * service names) - helps the provider transcribe them correctly instead
+   * of mishearing them as similar-sounding common words. */
+  boostedKeywords: string[];
 }
 
 export interface VoiceProvider {

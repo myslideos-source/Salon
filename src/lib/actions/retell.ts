@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePlatformAdmin } from "@/lib/auth/session";
 import { retellProvider } from "@/lib/voice/providers/retell";
+import { computeBoostedKeywords } from "@/lib/voice/boosted-keywords";
 
 export type SyncResult = { ok: true; agentId: string; llmId: string } | { ok: false; error: string };
 
@@ -21,6 +22,8 @@ export async function syncRetellAgentAction(salonId: string): Promise<SyncResult
 
   const appUrl = process.env.APP_URL;
   if (!appUrl) return { ok: false, error: "APP_URL ist nicht gesetzt (siehe .env.example)." };
+
+  const boostedKeywords = await computeBoostedKeywords(supabase, salonId);
 
   const result = await retellProvider.syncAgent({
     salonId,
@@ -40,6 +43,7 @@ export async function syncRetellAgentAction(salonId: string): Promise<SyncResult
       sendConfirmationSms: settings.send_confirmation_sms,
     },
     webhookUrl: `${appUrl}/api/voice/webhook`,
+    boostedKeywords,
   }, { agentId: settings.provider_agent_id, llmId: settings.provider_llm_id });
 
   if (!result.ok) return result;
