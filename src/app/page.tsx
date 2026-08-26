@@ -98,10 +98,10 @@ export default function LandingPage() {
           </nav>
           <div className="flex items-center gap-2">
             <Link href="/app/login" className="hidden text-sm text-ink-soft hover:text-ink sm:block">
-              Salon-Login
+              Kunden Login
             </Link>
-            <LinkButton href="#preise" variant="bronze" size="sm">
-              Jetzt starten
+            <LinkButton href="/admin/login" variant="bronze" size="sm">
+              Admin Bereich
             </LinkButton>
           </div>
         </div>
