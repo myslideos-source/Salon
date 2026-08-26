@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Phone, Calendar, Users, Sparkles, ArrowRight } from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { DemoAnimation } from "@/components/marketing/demo-animation";
+import { VoiceDemoPlayer } from "@/components/marketing/voice-demo-player";
 import { ProductShowcase } from "@/components/marketing/product-showcase";
 import { Pricing } from "@/components/marketing/pricing";
 import { Logo } from "@/components/brand/logo";
@@ -77,7 +78,8 @@ export default function LandingPage() {
               </LinkButton>
             </div>
           </div>
-          <div id="so-funktionierts">
+          <div id="so-funktionierts" className="space-y-4">
+            <VoiceDemoPlayer />
             <DemoAnimation />
           </div>
         </div>
