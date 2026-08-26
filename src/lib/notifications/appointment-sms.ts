@@ -7,6 +7,19 @@ function firstOrSelf<T>(value: T | T[] | null): T | null {
   return value;
 }
 
+// Twilio requires E.164 (+49...), but customer.phone is often stored in
+// local German format (e.g. "0151...") - typed by staff, or spoken and
+// transcribed by the voice AI before caller-ID override existed. Confirmed
+// live that this silently broke every SMS: Twilio just rejects a number
+// without a country code.
+function toE164German(phone: string): string | null {
+  const trimmed = phone.replace(/[\s()-]/g, "");
+  if (/^\+\d{8,15}$/.test(trimmed)) return trimmed;
+  if (/^00\d{8,15}$/.test(trimmed)) return `+${trimmed.slice(2)}`;
+  if (/^0\d{7,14}$/.test(trimmed)) return `+49${trimmed.slice(1)}`;
+  return null;
+}
+
 /**
  * Sends a booking-confirmation SMS to the customer, if the salon has it
  * enabled (voice_settings.send_confirmation_sms) and Twilio is configured.
@@ -35,6 +48,8 @@ export async function sendAppointmentConfirmationSms(supabase: DbClient, salonId
 
     const customer = firstOrSelf(appt.customers);
     if (!customer?.phone) return;
+    const phone = toE164German(customer.phone);
+    if (!phone) return;
     const employee = firstOrSelf(appt.employees);
 
     const { data: salon } = await supabase.from("salons").select("name, timezone").eq("id", salonId).single();
@@ -60,7 +75,7 @@ export async function sendAppointmentConfirmationSms(supabase: DbClient, salonId
       "Bis bald!",
     ].join(" ");
 
-    await twilioProvider.send(customer.phone, message);
+    await twilioProvider.send(phone, message);
   } catch {
     // Best-effort - never let a notification failure fail the booking.
   }
