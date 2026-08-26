@@ -1,13 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { getWeekOverviewAction } from "@/lib/actions/calendar-data";
 import { formatTime, todayStr } from "@/lib/date";
 
 type Entry = { id: string; startAt: string; employeeColor: string; customerName: string; serviceName: string; source: string };
 
-export function TodayAppointmentsCard({ salonId, timezone, refreshKey }: { salonId: string; timezone: string; refreshKey?: number }) {
+export function TodayAppointmentsCard({
+  salonId,
+  timezone,
+  refreshKey,
+  appointmentsHref,
+}: {
+  salonId: string;
+  timezone: string;
+  refreshKey?: number;
+  appointmentsHref: string;
+}) {
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const today = todayStr();
 
@@ -35,6 +46,12 @@ export function TodayAppointmentsCard({ salonId, timezone, refreshKey }: { salon
           </div>
         ))}
       </div>
+      <Link
+        href={appointmentsHref}
+        className="mt-3 block rounded-lg py-1.5 text-center text-xs font-medium text-bronze-dark hover:bg-sand"
+      >
+        Alle Termine anzeigen →
+      </Link>
     </div>
   );
 }

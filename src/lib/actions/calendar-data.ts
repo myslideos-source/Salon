@@ -246,7 +246,7 @@ export async function getWeekStatsAction(salonId: string, dates: string[]) {
 
   const { data: appointments } = await supabase
     .from("appointments")
-    .select("id, customer_id, total_price_cents")
+    .select("id, start_at, customer_id, total_price_cents")
     .eq("salon_id", salonId)
     .neq("status", "cancelled")
     .gte("start_at", first.start.toISOString())
@@ -256,5 +256,15 @@ export async function getWeekStatsAction(salonId: string, dates: string[]) {
   const uniqueCustomers = new Set(rows.map((r) => r.customer_id)).size;
   const revenueCents = rows.reduce((sum, r) => sum + r.total_price_cents, 0);
 
-  return { appointmentCount: rows.length, customerCount: uniqueCustomers, revenueCents };
+  const countByDate = new Map<string, number>();
+  for (const date of dates) countByDate.set(date, 0);
+  for (const row of rows) {
+    const localDate = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(
+      new Date(row.start_at)
+    );
+    if (countByDate.has(localDate)) countByDate.set(localDate, (countByDate.get(localDate) ?? 0) + 1);
+  }
+  const daily = dates.map((d) => countByDate.get(d) ?? 0);
+
+  return { appointmentCount: rows.length, customerCount: uniqueCustomers, revenueCents, daily };
 }

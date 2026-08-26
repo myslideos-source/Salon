@@ -29,6 +29,7 @@ type View = "day" | "week" | "month";
 export function CalendarShell({
   salonId,
   basePath,
+  appointmentsHref,
   services,
   slotGranularity,
   canEdit,
@@ -37,6 +38,7 @@ export function CalendarShell({
 }: {
   salonId: string;
   basePath: string;
+  appointmentsHref: string;
   services: Service[];
   slotGranularity: number;
   canEdit: boolean;
@@ -291,7 +293,12 @@ export function CalendarShell({
               setMobileDate(d);
             }}
           />
-          <TodayAppointmentsCard salonId={salonId} timezone={dayData?.timezone ?? "Europe/Berlin"} refreshKey={weekRefreshKey} />
+          <TodayAppointmentsCard
+            salonId={salonId}
+            timezone={dayData?.timezone ?? "Europe/Berlin"}
+            refreshKey={weekRefreshKey}
+            appointmentsHref={appointmentsHref}
+          />
           <WeekStatsCard salonId={salonId} dates={weekDates} refreshKey={weekRefreshKey} />
         </aside>
       </div>

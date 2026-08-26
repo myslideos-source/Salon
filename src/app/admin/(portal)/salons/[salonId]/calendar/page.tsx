@@ -22,6 +22,7 @@ export default async function AdminSalonCalendarPage({
     <CalendarShell
       salonId={salonId}
       basePath={`/admin/salons/${salonId}/calendar`}
+      appointmentsHref="/admin/appointments"
       services={services ?? []}
       slotGranularity={salon?.slot_granularity_minutes ?? 15}
       canEdit

@@ -20,6 +20,7 @@ export default async function SalonCalendarPage() {
     <CalendarShell
       salonId={salonId}
       basePath="/app/calendar"
+      appointmentsHref="/app/appointments"
       services={services ?? []}
       slotGranularity={salon?.slot_granularity_minutes ?? 15}
       canEdit
