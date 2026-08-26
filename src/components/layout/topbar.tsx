@@ -88,11 +88,11 @@ function NotificationsBell() {
           </div>
           {notifications.length > 0 && (
             <Link
-              href="/app/calls"
+              href={notifications[0]!.id.startsWith("signup-") ? "/admin/signups" : "/app/calls"}
               onClick={() => setOpen(false)}
               className="block border-t border-border px-4 py-2.5 text-center text-sm text-bronze-dark hover:bg-sand"
             >
-              Alle Rückrufe ansehen
+              Alle ansehen
             </Link>
           )}
         </div>

@@ -9,6 +9,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.17"
   }
@@ -740,6 +742,48 @@ export type Database = {
           },
         ]
       }
+      signup_requests: {
+        Row: {
+          contact_name: string
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          phone: string | null
+          plan: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          salon_name: string
+          status: string
+        }
+        Insert: {
+          contact_name: string
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          phone?: string | null
+          plan: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salon_name: string
+          status?: string
+        }
+        Update: {
+          contact_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          phone?: string | null
+          plan?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salon_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       voice_settings: {
         Row: {
           detect_new_customers: boolean
@@ -835,6 +879,12 @@ export type Database = {
           status: string
           total_price_cents: number
           updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "appointments"
+          isOneToOne: true
+          isSetofReturn: false
         }
       }
       is_platform_admin: { Args: never; Returns: boolean }
