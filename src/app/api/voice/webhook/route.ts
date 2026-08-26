@@ -59,6 +59,16 @@ async function resolveSalonId(supabase: ReturnType<typeof createAdminClient>, ca
   const metaSalonId = asString(metadata.salonId);
   if (metaSalonId) return metaSalonId;
 
+  // Every call — including Retell's in-dashboard "Test Audio" mode, which
+  // has no real phone number at all — is tied to a specific agent. Each
+  // salon gets its own agent (syncAgent stores the id in
+  // voice_settings.provider_agent_id), so this works even without a call.
+  const agentId = asString(call.agent_id) ?? asString(call.agentId);
+  if (agentId) {
+    const { data } = await supabase.from("voice_settings").select("salon_id").eq("provider_agent_id", agentId).maybeSingle();
+    if (data?.salon_id) return data.salon_id;
+  }
+
   const toNumber = asString(call.to_number) ?? asString(call.toNumber);
   if (!toNumber) return null;
   const { data } = await supabase.from("voice_settings").select("salon_id").eq("phone_number", toNumber).maybeSingle();
