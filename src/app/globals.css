@@ -41,16 +41,9 @@
   --background: var(--color-cream);
   --foreground: var(--color-ink);
 
-  /* Self-referential so `.theme-landing` below can override it via the
-     cascade - see the note on @theme inline's font-display entry. */
-  --font-display: var(--font-fraunces);
-  --font-marketing-display: var(--font-poppins);
-}
-
-/* The public marketing site (landing page, Impressum, Datenschutz) additionally
-   swaps in a bold rounded display font over the app-wide dark palette above. */
-.theme-landing {
-  --font-display: var(--font-marketing-display);
+  /* Poppins app-wide (was only on the marketing site, now the one display
+     font everywhere so the portal matches the landing page). */
+  --font-display: var(--font-poppins);
 }
 
 @theme inline {
