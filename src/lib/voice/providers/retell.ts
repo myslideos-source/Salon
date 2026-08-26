@@ -65,10 +65,13 @@ export class RetellProvider implements VoiceProvider {
         return { ok: false as const, error: "Retell hat keine llm_id zurückgegeben." };
       }
 
-      // 2) Agent — voice, webhook and which Retell LLM to use.
+      // 2) Agent — voice, language, webhook and which Retell LLM to use.
+      // language controls STT/TTS; it's independent of the prompt's text
+      // language and defaults to en-US on Retell if left unset.
       const agentBody = {
         agent_name: `saloncall-${config.salonId}`,
         voice_id: config.voiceId || "11labs-Anna",
+        language: "de-DE",
         webhook_url: config.webhookUrl,
         response_engine: { type: "retell-llm", llm_id: llmId },
       };
