@@ -25,13 +25,24 @@ export default async function SalonDashboardPage() {
   todayStart.setHours(0, 0, 0, 0);
   const todayEnd = new Date();
   todayEnd.setHours(23, 59, 59, 999);
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
 
-  const [{ data: callsToday }, { data: appointmentsToday }, { data: newCustomersToday }, { data: recentCalls }, { data: callbacks }, { data: nextAppointments }] =
-    await Promise.all([
+  const [
+    { data: callsToday },
+    { data: appointmentsToday },
+    { data: newCustomersToday },
+    { data: recentCalls },
+    { data: callbacks },
+    { data: nextAppointments },
+    { data: callsYesterday },
+    { data: appointmentsYesterday },
+    { data: newCustomersYesterday },
+  ] = await Promise.all([
       supabase.from("calls").select("id").eq("salon_id", salonId).gte("started_at", todayStart.toISOString()),
       supabase
         .from("appointments")
-        .select("id, start_at, status, total_price_cents, customers(first_name, last_name), employees(first_name), appointment_services(services(name))")
+        .select("id, start_at, status, total_price_cents, customers(first_name, last_name), employees(first_name, color), appointment_services(services(name))")
         .eq("salon_id", salonId)
         .neq("status", "cancelled")
         .gte("start_at", todayStart.toISOString())
@@ -53,16 +64,32 @@ export default async function SalonDashboardPage() {
         .limit(5),
       supabase
         .from("appointments")
-        .select("id, start_at, customers(first_name, last_name), employees(first_name), appointment_services(services(name))")
+        .select("id, start_at, customers(first_name, last_name), employees(first_name, color), appointment_services(services(name))")
         .eq("salon_id", salonId)
         .eq("status", "booked")
         .gt("start_at", new Date().toISOString())
         .order("start_at")
         .limit(5),
+      supabase.from("calls").select("id").eq("salon_id", salonId).gte("started_at", yesterdayStart.toISOString()).lt("started_at", todayStart.toISOString()),
+      supabase
+        .from("appointments")
+        .select("id, status, total_price_cents")
+        .eq("salon_id", salonId)
+        .eq("status", "booked")
+        .gte("start_at", yesterdayStart.toISOString())
+        .lt("start_at", todayStart.toISOString()),
+      supabase.from("customers").select("id").eq("salon_id", salonId).gte("created_at", yesterdayStart.toISOString()).lt("created_at", todayStart.toISOString()),
     ]);
 
   const bookedToday = (appointmentsToday ?? []).filter((a) => a.status === "booked");
   const totalValue = bookedToday.reduce((sum, a) => sum + a.total_price_cents, 0);
+  const yesterdayValue = (appointmentsYesterday ?? []).reduce((sum, a) => sum + a.total_price_cents, 0);
+
+  const trend = (current: number, previous: number): string | undefined => {
+    if (previous === 0) return current > 0 ? "neu" : undefined;
+    const pct = Math.round(((current - previous) / previous) * 100);
+    return `${pct >= 0 ? "+" : ""}${pct}% vs. gestern`;
+  };
 
   const fmtTime = (iso: string) => new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
   const fmtDay = (iso: string) => new Intl.DateTimeFormat("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
@@ -77,10 +104,30 @@ export default async function SalonDashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <StatCard icon={Phone} label="Anrufe heute" value={String((callsToday ?? []).length)} />
-        <StatCard icon={CalendarCheck} label="Termine gebucht" value={String(bookedToday.length)} />
-        <StatCard icon={UserPlus} label="Neukunden" value={String((newCustomersToday ?? []).length)} />
-        <StatCard icon={Euro} label="Gebuchter Terminwert" value={formatPrice(totalValue)} />
+        <StatCard
+          icon={Phone}
+          label="Anrufe heute"
+          value={String((callsToday ?? []).length)}
+          deltaLabel={trend((callsToday ?? []).length, (callsYesterday ?? []).length)}
+        />
+        <StatCard
+          icon={CalendarCheck}
+          label="Termine gebucht"
+          value={String(bookedToday.length)}
+          deltaLabel={trend(bookedToday.length, (appointmentsYesterday ?? []).length)}
+        />
+        <StatCard
+          icon={UserPlus}
+          label="Neukunden"
+          value={String((newCustomersToday ?? []).length)}
+          deltaLabel={trend((newCustomersToday ?? []).length, (newCustomersYesterday ?? []).length)}
+        />
+        <StatCard
+          icon={Euro}
+          label="Gebuchter Terminwert"
+          value={formatPrice(totalValue)}
+          deltaLabel={trend(totalValue, yesterdayValue)}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -90,20 +137,19 @@ export default async function SalonDashboardPage() {
             <div className="divide-y divide-border">
               {bookedToday.map((a) => {
                 const customer = a.customers as unknown as { first_name: string; last_name: string } | null;
-                const employee = a.employees as unknown as { first_name: string } | null;
+                const employee = a.employees as unknown as { first_name: string; color: string | null } | null;
                 const services = (a.appointment_services ?? []) as unknown as { services: { name: string } | null }[];
                 return (
-                  <div key={a.id} className="flex items-center justify-between gap-3 px-5 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="w-14 text-sm font-medium text-ink">{fmtTime(a.start_at)}</span>
-                      <div>
-                        <p className="text-sm text-ink">{customer ? `${customer.first_name} ${customer.last_name}`.trim() : "Kunde"}</p>
-                        <p className="text-xs text-ink-soft">
-                          {services.map((s) => s.services?.name).filter(Boolean).join(", ")} · {employee?.first_name}
-                        </p>
-                      </div>
+                  <div key={a.id} className="flex items-center gap-3 px-5 py-3">
+                    <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: employee?.color ?? "var(--color-bronze)" }} />
+                    <span className="w-14 shrink-0 text-sm font-medium text-ink">{fmtTime(a.start_at)}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm text-ink">{customer ? `${customer.first_name} ${customer.last_name}`.trim() : "Kunde"}</p>
+                      <p className="truncate text-xs text-ink-soft">
+                        {services.map((s) => s.services?.name).filter(Boolean).join(", ")} · {employee?.first_name}
+                      </p>
                     </div>
-                    <span className="text-sm text-ink-soft">{formatPrice(a.total_price_cents)}</span>
+                    <span className="shrink-0 text-sm text-ink-soft">{formatPrice(a.total_price_cents)}</span>
                   </div>
                 );
               })}
@@ -116,16 +162,16 @@ export default async function SalonDashboardPage() {
             <div className="divide-y divide-border">
               {(nextAppointments ?? []).map((a) => {
                 const customer = a.customers as unknown as { first_name: string; last_name: string } | null;
-                const employee = a.employees as unknown as { first_name: string } | null;
+                const employee = a.employees as unknown as { first_name: string; color: string | null } | null;
                 const services = (a.appointment_services ?? []) as unknown as { services: { name: string } | null }[];
                 return (
                   <div key={a.id} className="flex items-center gap-3 px-5 py-3">
-                    <Clock className="h-4 w-4 text-ink-faint" />
-                    <div>
-                      <p className="text-sm text-ink">
+                    <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: employee?.color ?? "var(--color-bronze)" }} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm text-ink">
                         {fmtDay(a.start_at)} · {customer ? `${customer.first_name} ${customer.last_name}`.trim() : "Kunde"}
                       </p>
-                      <p className="text-xs text-ink-soft">
+                      <p className="truncate text-xs text-ink-soft">
                         {services.map((s) => s.services?.name).filter(Boolean).join(", ")} · {employee?.first_name}
                       </p>
                     </div>
@@ -144,12 +190,15 @@ export default async function SalonDashboardPage() {
               {(recentCalls ?? []).map((c) => {
                 const customer = c.customers as unknown as { first_name: string; last_name: string } | null;
                 return (
-                  <div key={c.id} className="flex items-center justify-between gap-2 px-5 py-3">
-                    <div>
-                      <p className="text-sm text-ink">{customer ? `${customer.first_name} ${customer.last_name}`.trim() : c.phone_number}</p>
-                      <p className="text-xs text-ink-soft">{fmtTime(c.started_at)}{c.topic ? ` · ${c.topic}` : ""}</p>
+                  <div key={c.id} className="flex items-center gap-3 px-5 py-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-bronze-soft text-bronze-dark">
+                      <Phone className="h-4 w-4" strokeWidth={1.8} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm text-ink">{customer ? `${customer.first_name} ${customer.last_name}`.trim() : c.phone_number}</p>
+                      <p className="truncate text-xs text-ink-soft">{fmtTime(c.started_at)}{c.topic ? ` · ${c.topic}` : ""}</p>
                     </div>
-                    {c.outcome === "appointment_booked" && <Badge tone="success">Termin gebucht</Badge>}
+                    {c.outcome === "appointment_booked" && <Badge tone="success" className="shrink-0">Termin gebucht</Badge>}
                   </div>
                 );
               })}
@@ -163,9 +212,14 @@ export default async function SalonDashboardPage() {
               {(callbacks ?? []).map((cb) => {
                 const customer = cb.customers as unknown as { first_name: string; last_name: string } | null;
                 return (
-                  <div key={cb.id} className="px-5 py-3">
-                    <p className="text-sm text-ink">{customer ? `${customer.first_name} ${customer.last_name}`.trim() : cb.phone_number}</p>
-                    <p className="text-xs text-ink-soft">{fmtTime(cb.requested_at)}{cb.reason ? ` · ${cb.reason}` : ""}</p>
+                  <div key={cb.id} className="flex items-center gap-3 px-5 py-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning">
+                      <Clock className="h-4 w-4" strokeWidth={1.8} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm text-ink">{customer ? `${customer.first_name} ${customer.last_name}`.trim() : cb.phone_number}</p>
+                      <p className="truncate text-xs text-ink-soft">{fmtTime(cb.requested_at)}{cb.reason ? ` · ${cb.reason}` : ""}</p>
+                    </div>
                   </div>
                 );
               })}
