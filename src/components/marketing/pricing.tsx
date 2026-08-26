@@ -30,7 +30,7 @@ export function Pricing() {
     <section id="preise" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-2xl text-center">
         <h2 className="font-display text-3xl text-ink sm:text-4xl">Einfache, faire Preise</h2>
-        <p className="mt-3 text-ink-soft">Ich richte deinen SalonCall-Assistenten persönlich ein — du musst dich um nichts Technisches kümmern.</p>
+        <p className="mt-3 text-ink-soft">Ich richte deinen HalloMia-Assistenten persönlich ein — du musst dich um nichts Technisches kümmern.</p>
       </div>
 
       <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">

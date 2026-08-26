@@ -14,7 +14,7 @@ const FEATURES = [
   {
     icon: Calendar,
     title: "Eigener Salon-Kalender",
-    description: "Alle Termine landen in deinem SalonCall-Kalender — Mitarbeiter, Arbeitszeiten und Pausen inklusive.",
+    description: "Alle Termine landen in deinem HalloMia-Kalender — Mitarbeiter, Arbeitszeiten und Pausen inklusive.",
   },
   {
     icon: Sparkles,
@@ -34,7 +34,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-30 border-b border-border/70 bg-cream/85 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <span className="font-display text-lg text-ink">
-            SalonCall <span className="text-bronze">AI</span>
+            Hallo<span className="text-bronze">Mia</span>
           </span>
           <nav className="hidden items-center gap-8 text-sm text-ink-soft sm:flex">
             <a href="#funktionen" className="hover:text-ink">Funktionen</a>
@@ -65,7 +65,7 @@ export default function LandingPage() {
               <span className="text-bronze-dark">Auch wenn du gerade keine Hand frei hast.</span>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink-soft">
-              SalonCall AI nimmt Anrufe entgegen, beantwortet Fragen und trägt Termine automatisch in deinen
+              HalloMia nimmt Anrufe entgegen, beantwortet Fragen und trägt Termine automatisch in deinen
               Salon-Kalender ein — in Echtzeit geprüft, ohne Doppelbuchungen.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -90,7 +90,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-display text-3xl text-ink sm:text-4xl">Kalender + Telefon + Termin + Kunde</h2>
             <p className="mt-3 text-ink-soft">
-              Keine überladene Salon-Software. SalonCall AI konzentriert sich auf das, was im Alltag wirklich zählt.
+              Keine überladene Salon-Software. HalloMia konzentriert sich auf das, was im Alltag wirklich zählt.
             </p>
           </div>
           <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -113,7 +113,7 @@ export default function LandingPage() {
         <div className="rounded-3xl border border-border bg-ink px-8 py-14 text-center text-cream sm:px-16">
           <h2 className="font-display text-3xl sm:text-4xl">Bereit, dass dein Salon ans Telefon geht?</h2>
           <p className="mx-auto mt-3 max-w-md text-cream/70">
-            Ich richte deinen SalonCall-Assistenten persönlich ein. Melde dich, und wir starten gemeinsam.
+            Ich richte deinen HalloMia-Assistenten persönlich ein. Melde dich, und wir starten gemeinsam.
           </p>
           <div className="mt-8 flex justify-center">
             <Button variant="bronze" size="lg" className="pointer-events-none opacity-90">
@@ -126,9 +126,9 @@ export default function LandingPage() {
       <footer className="border-t border-border/70 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-ink-faint sm:flex-row sm:px-6 lg:px-8">
           <span className="font-display text-ink-soft">
-            SalonCall <span className="text-bronze">AI</span>
+            Hallo<span className="text-bronze">Mia</span>
           </span>
-          <p>© {new Date().getFullYear()} SalonCall AI. Alle Rechte vorbehalten.</p>
+          <p>© {new Date().getFullYear()} HalloMia. Alle Rechte vorbehalten.</p>
         </div>
       </footer>
     </div>

@@ -50,7 +50,7 @@ export function VoiceSettingsForm({ salonId, settings }: { salonId: string; sett
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="phone_number">Telefonnummer (SalonCall)</Label>
+          <Label htmlFor="phone_number">Telefonnummer (HalloMia)</Label>
           <Input id="phone_number" name="phone_number" defaultValue={settings?.phone_number ?? ""} placeholder="+49 30 1234567" />
         </div>
         <div>

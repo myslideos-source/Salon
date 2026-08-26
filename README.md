@@ -1,6 +1,6 @@
-# SalonCall AI
+# HalloMia
 
-A focused platform for hairdressing salons: SalonCall's own calendar, an
+A focused platform for hairdressing salons: HalloMia's own calendar, an
 AI phone assistant that books real appointments against it, and just enough
 customer/call management to run the front desk — nothing more. See the
 product brief in the repo history for the full spec; this README covers
@@ -62,7 +62,7 @@ nothing). Run it after seeding.
 ## Architecture
 
 ```
-Kunde → Voice AI (Retell/OpenAI) → SalonCall Termin-Engine → Postgres → SalonCall Kalender
+Kunde → Voice AI (Retell/OpenAI) → HalloMia Termin-Engine → Postgres → HalloMia Kalender
 ```
 
 - **`src/lib/scheduling/availability.ts`** — the pure slot-calculation
@@ -118,5 +118,5 @@ npx tsc --noEmit
   Next 16) `middleware` convention rather than `proxy.ts`; a future pass
   can run `npx @next/codemod@canary middleware-to-proxy .`.
 - Google Calendar sync is intentionally out of scope for this MVP (see
-  product brief) — SalonCall stays the single source of truth for
+  product brief) — HalloMia stays the single source of truth for
   availability.

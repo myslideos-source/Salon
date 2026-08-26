@@ -1,4 +1,4 @@
-// The SalonCall Termin-Engine — pure, DB-free slot calculation.
+// The HalloMia Termin-Engine — pure, DB-free slot calculation.
 //
 // This is intentionally isolated from Supabase so it can be unit tested in
 // full (buffers, breaks, absences, overlapping appointments, lead time,

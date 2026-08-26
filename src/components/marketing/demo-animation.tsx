@@ -9,7 +9,7 @@ const STEPS = [
   { icon: Sparkles, label: "Anfrage verstanden", detail: "Die KI erkennt Anliegen, Kundin und Wunschzeit." },
   { icon: Scissors, label: "Damen Schnitt", detail: "Leistung wird erkannt · 60 Minuten" },
   { icon: User, label: "Anna", detail: "Bevorzugter Mitarbeiter wird berücksichtigt" },
-  { icon: Search, label: "Kalender wird geprüft", detail: "SalonCall prüft Annas echten Terminkalender" },
+  { icon: Search, label: "Kalender wird geprüft", detail: "HalloMia prüft Annas echten Terminkalender" },
   { icon: Calendar, label: "15:30 Uhr verfügbar", detail: "Freitag, 15:30–16:30 Uhr" },
   { icon: CheckCircle2, label: "Termin gebucht ✓", detail: "Erscheint sofort im Salon-Kalender" },
 ];

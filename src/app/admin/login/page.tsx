@@ -17,7 +17,7 @@ export default async function AdminLoginPage({
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <p className="font-display text-2xl text-ink">
-            SalonCall <span className="text-bronze">AI</span>
+            Hallo<span className="text-bronze">Mia</span>
           </p>
           <p className="mt-1 text-sm text-ink-soft">Betreiber-Login</p>
         </div>
@@ -30,7 +30,7 @@ export default async function AdminLoginPage({
           <LoginForm action={adminLoginAction} submitLabel="Anmelden" />
         </div>
         <p className="mt-6 text-center text-xs text-ink-faint">
-          Nur für Betreiber-Konten von SalonCall AI.
+          Nur für Betreiber-Konten von HalloMia.
         </p>
       </div>
     </div>

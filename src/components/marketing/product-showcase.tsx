@@ -6,14 +6,14 @@ export function ProductShowcase() {
       <div className="mx-auto max-w-2xl text-center">
         <h2 className="font-display text-3xl text-ink sm:text-4xl">Dein Dashboard auf einen Blick</h2>
         <p className="mt-3 text-ink-soft">
-          Kalender, Anrufe und Termine an einem Ort — so sieht SalonCall AI im Salon-Alltag aus.
+          Kalender, Anrufe und Termine an einem Ort — so sieht HalloMia im Salon-Alltag aus.
         </p>
       </div>
 
       <div className="mt-12 overflow-hidden rounded-3xl border border-border bg-white/70 shadow-[0_1px_2px_rgba(38,34,29,0.04)]">
         <Image
           src="/marketing/dashboard-stats.png"
-          alt="SalonCall AI Dashboard-Kopfzeile mit Tagesübersicht: Anrufe, Termine, Neukunden und Terminwert"
+          alt="HalloMia Dashboard-Kopfzeile mit Tagesübersicht: Anrufe, Termine, Neukunden und Terminwert"
           width={1150}
           height={260}
           className="w-full"
@@ -25,7 +25,7 @@ export function ProductShowcase() {
         <div className="overflow-hidden rounded-3xl border border-border bg-white/70 shadow-[0_1px_2px_rgba(38,34,29,0.04)] lg:col-span-3">
           <Image
             src="/marketing/dashboard-calendar.png"
-            alt="SalonCall AI Wochenkalender mit farbcodierten Terminen je Mitarbeiterin"
+            alt="HalloMia Wochenkalender mit farbcodierten Terminen je Mitarbeiterin"
             width={730}
             height={660}
             className="w-full"

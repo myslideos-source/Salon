@@ -32,7 +32,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="flex min-h-screen flex-1 flex-col pb-16 lg:pb-0">
         <div className="flex items-center justify-between gap-3 border-b border-border bg-cream/80 px-4 py-3 lg:hidden">
           <span className="font-display text-lg text-ink">
-            SalonCall <span className="text-bronze">AI</span>
+            Hallo<span className="text-bronze">Mia</span>
           </span>
         </div>
         <main className="flex-1">{children}</main>

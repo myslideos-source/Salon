@@ -14,9 +14,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SalonCall AI",
+  title: "HalloMia",
   description:
-    "SalonCall AI übernimmt Telefonanrufe für Friseursalons – Termine werden automatisch erkannt, geprüft und im eigenen Salon-Kalender gebucht.",
+    "HalloMia übernimmt Telefonanrufe für Friseursalons – Termine werden automatisch erkannt, geprüft und im eigenen Salon-Kalender gebucht.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

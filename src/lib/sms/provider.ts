@@ -1,6 +1,6 @@
 import "server-only";
 
-// Provider pattern (same shape as lib/voice/provider.ts): SalonCall talks to
+// Provider pattern (same shape as lib/voice/provider.ts): HalloMia talks to
 // whichever SMS vendor is configured through this interface, so swapping
 // providers later never touches the booking engine that calls it.
 export interface SmsProvider {

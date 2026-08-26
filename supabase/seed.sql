@@ -1,4 +1,4 @@
--- SalonCall AI demo seed: Hair Lounge Milano
+-- HalloMia demo seed: Hair Lounge Milano
 --
 -- Creates one fully-populated demo salon (employees, services, business
 -- hours, customers, today's appointments, calls, callbacks) plus two login

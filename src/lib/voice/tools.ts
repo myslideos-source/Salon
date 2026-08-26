@@ -13,7 +13,7 @@ import {
 // The structured Voice Tools (section 28). These are the ONLY way the voice
 // agent may touch salon data — it never invents prices, employees, services
 // or availability. Every tool is scoped to a single salonId and returns
-// plain, already-verified data straight from SalonCall's own database.
+// plain, already-verified data straight from HalloMia's own database.
 // ─────────────────────────────────────────────────────────────────────────
 
 export type ToolResult<T> = { ok: true; data: T } | { ok: false; error: string };

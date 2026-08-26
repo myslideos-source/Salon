@@ -1,6 +1,6 @@
 import "server-only";
 
-// Provider pattern (section 54): SalonCall talks to whichever Voice-AI
+// Provider pattern (section 54): HalloMia talks to whichever Voice-AI
 // vendor is configured through this interface, so swapping Retell for
 // another provider later never touches the tool implementations in
 // `lib/voice/tools.ts` or the booking engine.

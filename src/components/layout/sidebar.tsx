@@ -28,7 +28,7 @@ export function Sidebar({
     <aside className="hidden lg:flex h-screen w-64 shrink-0 flex-col border-r border-border bg-cream-soft/60 px-4 py-6">
       <Link href={brandHref} className="flex items-center gap-2 px-2">
         <span className="font-display text-xl text-ink">
-          SalonCall <span className="text-bronze">AI</span>
+          Hallo<span className="text-bronze">Mia</span>
         </span>
       </Link>
 
