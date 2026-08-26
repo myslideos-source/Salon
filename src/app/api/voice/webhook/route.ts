@@ -1,43 +1,65 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { runTool, toolSchemas } from "@/lib/voice/tools";
 import { retellProvider } from "@/lib/voice/providers/retell";
 
 // Webhook entry point for the configured Voice-AI provider (Retell by
-// default). NOTE: the exact payload shape below follows Retell's documented
-// "custom function" + call-lifecycle webhook conventions, but must be
-// double-checked against the live Retell account once RETELL_API_KEY /
-// RETELL_WEBHOOK_SECRET are configured — adjust the zod schemas below to
-// match exactly rather than guessing further at runtime.
+// default). Retell posts to this same URL for two different things: (a)
+// each custom tool invocation (one per `general_tools` entry configured in
+// syncAgent) and (b) agent-level call lifecycle events (call_started,
+// call_ended, ...). Their exact payload shapes aren't documented anywhere
+// we could check from this environment, so parsing below is deliberately
+// permissive — it tries several plausible field names for each shape
+// rather than committing to one — and on total failure echoes back what it
+// actually received (visible in the Retell dashboard's tool-call inspector)
+// so a live payload can be used to tighten this up precisely.
 
-const functionCallSchema = z.object({
-  event: z.literal("function_call"),
-  name: z.string(),
-  args: z.record(z.string(), z.unknown()).optional(),
-  call: z.object({
-    call_id: z.string(),
-    from_number: z.string().optional(),
-    to_number: z.string().optional(),
-    metadata: z.record(z.string(), z.unknown()).optional(),
-  }),
-});
+type Json = Record<string, unknown>;
 
-const callEndedSchema = z.object({
-  event: z.literal("call_ended"),
-  call: z.object({
-    call_id: z.string(),
-    from_number: z.string().optional(),
-    to_number: z.string().optional(),
-    duration_ms: z.number().optional(),
-    metadata: z.record(z.string(), z.unknown()).optional(),
-    transcript: z.array(z.object({ role: z.string(), content: z.string() })).optional(),
-  }),
-});
+function asObject(value: unknown): Json {
+  return value && typeof value === "object" ? (value as Json) : {};
+}
+function asString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
 
-async function resolveSalonId(supabase: ReturnType<typeof createAdminClient>, metadata: Record<string, unknown> | undefined, toNumber: string | undefined) {
-  const metaSalonId = metadata?.salonId;
-  if (typeof metaSalonId === "string") return metaSalonId;
+function extractFunctionCall(body: Json): { name: string; args: Json; call: Json } | null {
+  const toolCall = asObject(body.tool_call);
+  const name = asString(body.name) ?? asString(body.function_name) ?? asString(body.tool_name) ?? asString(toolCall.name);
+  if (!name) return null;
+
+  const rawArgs = body.args ?? body.arguments ?? body.parameters ?? toolCall.arguments ?? toolCall.args;
+  let args: Json = {};
+  if (typeof rawArgs === "string") {
+    try {
+      args = JSON.parse(rawArgs);
+    } catch {
+      args = {};
+    }
+  } else {
+    args = asObject(rawArgs);
+  }
+
+  const call = asObject(body.call) ?? asObject(body.call_details);
+  return { name, args, call };
+}
+
+function extractCallEnded(body: Json): Json | null {
+  const call = asObject(body.call);
+  const event = asString(body.event);
+  const callStatus = asString(call.call_status) ?? asString(body.call_status);
+  if (event === "call_ended" || event === "call_analyzed" || callStatus === "ended") {
+    return Object.keys(call).length > 0 ? call : body;
+  }
+  return null;
+}
+
+async function resolveSalonId(supabase: ReturnType<typeof createAdminClient>, call: Json) {
+  const metadata = asObject(call.metadata) ?? asObject(call.retell_llm_dynamic_variables);
+  const metaSalonId = asString(metadata.salonId);
+  if (metaSalonId) return metaSalonId;
+
+  const toNumber = asString(call.to_number) ?? asString(call.toNumber);
   if (!toNumber) return null;
   const { data } = await supabase.from("voice_settings").select("salon_id").eq("phone_number", toNumber).maybeSingle();
   return data?.salon_id ?? null;
@@ -53,42 +75,51 @@ export async function POST(req: Request) {
     }
   }
 
-  let body: unknown;
+  let body: Json;
   try {
-    body = JSON.parse(rawBody);
+    body = JSON.parse(rawBody) as Json;
   } catch {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
 
   const supabase = createAdminClient();
 
-  const functionCall = functionCallSchema.safeParse(body);
-  if (functionCall.success) {
-    const { name, args, call } = functionCall.data;
-    const salonId = await resolveSalonId(supabase, call.metadata, call.to_number);
+  const functionCall = extractFunctionCall(body);
+  if (functionCall) {
+    const { name, args, call } = functionCall;
+    const salonId = await resolveSalonId(supabase, call);
     if (!salonId) return NextResponse.json({ error: "salon not found for this number" }, { status: 404 });
     if (!(name in toolSchemas)) return NextResponse.json({ error: `unknown tool: ${name}` }, { status: 400 });
 
-    const result = await runTool(supabase, salonId, name as keyof typeof toolSchemas, args ?? {});
-    return NextResponse.json({ result });
+    const result = await runTool(supabase, salonId, name as keyof typeof toolSchemas, args);
+    return NextResponse.json(result);
   }
 
-  const callEnded = callEndedSchema.safeParse(body);
-  if (callEnded.success) {
-    const { call } = callEnded.data;
-    const salonId = await resolveSalonId(supabase, call.metadata, call.to_number);
+  const callEnded = extractCallEnded(body);
+  if (callEnded) {
+    const salonId = await resolveSalonId(supabase, callEnded);
     if (!salonId) return NextResponse.json({ error: "salon not found for this number" }, { status: 404 });
 
+    const durationMs = typeof callEnded.duration_ms === "number" ? callEnded.duration_ms : 0;
     await supabase.from("calls").insert({
       salon_id: salonId,
-      phone_number: call.from_number ?? null,
-      duration_seconds: Math.round((call.duration_ms ?? 0) / 1000),
+      phone_number: asString(callEnded.from_number) ?? null,
+      duration_seconds: Math.round(durationMs / 1000),
       status: "completed",
-      provider_call_id: call.call_id,
-      transcript: call.transcript ?? [],
+      provider_call_id: asString(callEnded.call_id) ?? null,
+      transcript: Array.isArray(callEnded.transcript) ? callEnded.transcript : [],
     });
     return NextResponse.json({ ok: true });
   }
 
-  return NextResponse.json({ error: "unrecognized payload" }, { status: 400 });
+  return NextResponse.json(
+    {
+      error: "unrecognized payload",
+      // Deliberately echoed back so it shows up in Retell's dashboard —
+      // the fastest way to see the real shape without live doc access.
+      receivedKeys: Object.keys(body),
+      received: body,
+    },
+    { status: 400 }
+  );
 }
