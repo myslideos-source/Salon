@@ -20,7 +20,7 @@ export default async function AdminLoginPage({
           <Logo size="2xl" />
           <p className="mt-1 text-sm text-ink-soft">Betreiber-Login</p>
         </div>
-        <div className="rounded-2xl border border-border bg-white/70 p-6 shadow-sm">
+        <div className="rounded-2xl border border-border bg-white/[0.03] p-6 shadow-sm backdrop-blur-sm">
           {error && (
             <p className="mb-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">
               {ERROR_MESSAGES[error] ?? "Anmeldung fehlgeschlagen. Bitte erneut versuchen."}

@@ -55,7 +55,7 @@ export function ServiceEmployeeMatrix({
                       onClick={() => toggle(e.id, s.id)}
                       className={cn(
                         "h-5 w-5 rounded-md border transition-colors",
-                        active ? "border-bronze bg-bronze" : "border-border-strong bg-white"
+                        active ? "border-bronze bg-bronze" : "border-border-strong bg-sand"
                       )}
                       aria-label={`${e.first_name} – ${s.name}`}
                     />

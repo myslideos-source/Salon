@@ -13,7 +13,7 @@ export function Card({
     <div
       onClick={onClick}
       className={cn(
-        "rounded-2xl border border-border bg-white/70 backdrop-blur-sm shadow-[0_1px_2px_rgba(38,34,29,0.04)]",
+        "rounded-2xl border border-border bg-white/[0.03] backdrop-blur-sm shadow-[0_4px_20px_rgba(0,0,0,0.25)]",
         className
       )}
     >

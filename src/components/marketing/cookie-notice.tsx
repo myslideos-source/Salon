@@ -34,7 +34,7 @@ export function CookieNotice() {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-cream/95 px-4 py-4 shadow-[0_-2px_12px_rgba(11,20,54,0.08)] backdrop-blur-sm sm:px-6">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-cream/95 px-4 py-4 shadow-[0_-2px_16px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:px-6">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 sm:flex-row sm:justify-between">
         <p className="text-sm text-ink-soft">
           Diese Website verwendet ausschließlich technisch notwendige Cookies (z. B. für den Login) - keine Tracking-

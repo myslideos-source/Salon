@@ -1,59 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  /* Rebranded to HalloMia's purple-to-pink logo (values sampled directly
-     from the logo artwork). Token *names* were kept (bronze/gold/cream)
-     to avoid rewriting every className across the app - only the values
-     changed, so `bg-bronze` etc. still work everywhere but now render the
-     new brand colors. */
-  --color-cream: #faf9fd;
-  --color-cream-soft: #f3f0fa;
-  --color-sand: #ece6f7;
-  --color-beige: #ded2f2;
-  --color-border: #e4ddf5;
-  --color-border-strong: #cbb9ea;
-
-  --color-ink: #0b1436;
-  --color-ink-soft: #4b4f72;
-  --color-ink-faint: #8a8cae;
-
-  --color-bronze: #7c1fe0;
-  --color-bronze-dark: #57139c;
-  --color-bronze-soft: #f1e5fd;
-
-  --color-gold: #ec2a9c;
-
-  /* Gradient stops sampled from the logo's heart/wordmark for the few
-     spots that should show the actual gradient, not a flat color. */
-  --color-brand-from: #6b15fb;
-  --color-brand-via: #b026d6;
-  --color-brand-to: #fc3598;
-
-  --color-success: #4f7d5c;
-  --color-success-soft: #e5f0e6;
-  --color-warning: #b8873f;
-  --color-warning-soft: #f8ecd9;
-  --color-danger: #b1533f;
-  --color-danger-soft: #f7e5e0;
-  --color-info: #4f6f8f;
-  --color-info-soft: #e6edf3;
-
-  --background: var(--color-cream);
-  --foreground: var(--color-ink);
-
-  /* Self-referential so `.theme-landing` below can override it via the
-     cascade - see the note on @theme inline's font-display entry. */
-  --font-display: var(--font-fraunces);
-  --font-marketing-display: var(--font-poppins);
-}
-
-/* Dark theme for the public marketing site (landing page, Impressum,
-   Datenschutz) to match the HalloMia mockup - near-black background with
-   glowing purple/pink accents. Scoped to a wrapper class (not :root) so the
-   authenticated app/admin portal keeps its light theme untouched: every
-   existing bg-cream/text-ink/etc. className throughout those marketing
-   pages picks up these values automatically via the same token names. */
-.theme-landing {
+  /* HalloMia dark theme (near-black with glowing purple/pink accents),
+     rolled out app-wide. Token *names* were kept (bronze/gold/cream) from
+     the earlier light rebrand to avoid rewriting every className - only
+     the values changed, so `bg-cream`/`text-ink`/etc. still work
+     everywhere but now render dark-theme colors. */
   --color-cream: #0c0814;
   --color-cream-soft: #12101c;
   --color-sand: #1a1626;
@@ -71,6 +23,12 @@
 
   --color-gold: #ff5fb8;
 
+  /* Gradient stops sampled from the logo's heart/wordmark for the few
+     spots that should show the actual gradient, not a flat color. */
+  --color-brand-from: #6b15fb;
+  --color-brand-via: #b026d6;
+  --color-brand-to: #fc3598;
+
   --color-success: #6fcf87;
   --color-success-soft: #16281c;
   --color-warning: #f0b955;
@@ -80,6 +38,18 @@
   --color-info: #7fb0e0;
   --color-info-soft: #16232e;
 
+  --background: var(--color-cream);
+  --foreground: var(--color-ink);
+
+  /* Self-referential so `.theme-landing` below can override it via the
+     cascade - see the note on @theme inline's font-display entry. */
+  --font-display: var(--font-fraunces);
+  --font-marketing-display: var(--font-poppins);
+}
+
+/* The public marketing site (landing page, Impressum, Datenschutz) additionally
+   swaps in a bold rounded display font over the app-wide dark palette above. */
+.theme-landing {
   --font-display: var(--font-marketing-display);
 }
 

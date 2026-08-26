@@ -9,7 +9,7 @@ const variants = {
   bronze:
     "bg-bronze text-white hover:bg-bronze-dark shadow-sm shadow-bronze/20",
   outline:
-    "border border-border-strong bg-white/60 text-ink hover:bg-sand",
+    "border border-border-strong bg-white/5 text-ink hover:bg-sand",
   ghost: "text-ink-soft hover:bg-sand hover:text-ink",
   danger: "bg-danger text-white hover:bg-danger/90",
 };
