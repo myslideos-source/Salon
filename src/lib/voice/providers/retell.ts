@@ -16,7 +16,11 @@ function buildGeneralTools(config: VoiceAgentConfig) {
     // on invocation — matches the shape our webhook route already parses.
     url: config.webhookUrl,
     parameters: toolJsonSchemas[name],
-    speak_during_execution: name === "checkAvailability" || name === "createAppointment",
+    // Every tool here is a network round trip to our backend, so any of
+    // them can produce a noticeable silent gap - not just the two originally
+    // flagged. Was especially bad for findCustomer, which the prompt now
+    // calls proactively at the start of nearly every call.
+    speak_during_execution: true,
     speak_after_execution: true,
   }));
 }
