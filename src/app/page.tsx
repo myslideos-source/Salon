@@ -135,11 +135,8 @@ export default function LandingPage() {
             <a href="#faq" className="hover:text-ink">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Link href="/app/login" className="hidden text-sm text-ink-soft hover:text-ink sm:block">
+            <LinkButton href="/app/login" variant="bronze" size="sm">
               Kunden Login
-            </Link>
-            <LinkButton href="/admin/login" variant="bronze" size="sm">
-              Admin Bereich
             </LinkButton>
           </div>
         </div>
