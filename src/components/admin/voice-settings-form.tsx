@@ -7,12 +7,13 @@ import { updateVoiceSettingsAction } from "@/lib/actions/voice-settings";
 import type { ActionState } from "@/lib/actions/admin";
 import type { Tables } from "@/lib/supabase/database.types";
 
-const RULES: { key: keyof Pick<Tables<"voice_settings">, "mention_prices" | "offer_alternatives" | "respect_employee_preference" | "offer_callback" | "detect_new_customers">; label: string }[] = [
+const RULES: { key: keyof Pick<Tables<"voice_settings">, "mention_prices" | "offer_alternatives" | "respect_employee_preference" | "offer_callback" | "detect_new_customers" | "send_confirmation_sms">; label: string }[] = [
   { key: "mention_prices", label: "Preise nennen" },
   { key: "offer_alternatives", label: "Alternativtermine anbieten" },
   { key: "respect_employee_preference", label: "Mitarbeiterwunsch beachten" },
   { key: "offer_callback", label: "Rückruf anbieten" },
   { key: "detect_new_customers", label: "Neukunden erkennen" },
+  { key: "send_confirmation_sms", label: "Terminbestätigung per SMS" },
 ];
 
 export function VoiceSettingsForm({ salonId, settings }: { salonId: string; settings: Tables<"voice_settings"> | null }) {

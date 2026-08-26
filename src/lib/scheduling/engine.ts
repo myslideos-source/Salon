@@ -6,6 +6,7 @@ import {
   type BusinessHoursForDay,
   type PreferredTimeRange,
 } from "./availability";
+import { sendAppointmentConfirmationSms } from "@/lib/notifications/appointment-sms";
 
 export type DbClient = SupabaseClient<Database>;
 
@@ -209,6 +210,8 @@ export async function createAppointment(supabase: DbClient, params: CreateAppoin
     }
     throw new SchedulingError("invalid_input", error.message);
   }
+
+  await sendAppointmentConfirmationSms(supabase, salonId, data.id);
 
   return data;
 }

@@ -755,6 +755,7 @@ export type Database = {
           provider_llm_id: string | null
           respect_employee_preference: boolean
           salon_id: string
+          send_confirmation_sms: boolean
           updated_at: string
           voice_id: string
         }
@@ -772,6 +773,7 @@ export type Database = {
           provider_llm_id?: string | null
           respect_employee_preference?: boolean
           salon_id: string
+          send_confirmation_sms?: boolean
           updated_at?: string
           voice_id?: string
         }
@@ -789,6 +791,7 @@ export type Database = {
           provider_llm_id?: string | null
           respect_employee_preference?: boolean
           salon_id?: string
+          send_confirmation_sms?: boolean
           updated_at?: string
           voice_id?: string
         }

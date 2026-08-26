@@ -17,6 +17,7 @@ const schema = z.object({
   respect_employee_preference: z.coerce.boolean(),
   offer_callback: z.coerce.boolean(),
   detect_new_customers: z.coerce.boolean(),
+  send_confirmation_sms: z.coerce.boolean(),
 });
 
 export async function updateVoiceSettingsAction(salonId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -39,6 +40,7 @@ export async function updateVoiceSettingsAction(salonId: string, _prev: ActionSt
       respect_employee_preference: parsed.data.respect_employee_preference,
       offer_callback: parsed.data.offer_callback,
       detect_new_customers: parsed.data.detect_new_customers,
+      send_confirmation_sms: parsed.data.send_confirmation_sms,
       updated_at: new Date().toISOString(),
     });
   if (error) return { error: error.message };

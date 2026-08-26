@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import type { VoiceAgentConfig, VoiceProvider } from "../provider";
 import { toolJsonSchemas, toolDescriptions } from "../tool-json-schemas";
 import type { ToolName } from "../tools";
+import { toSpokenGerman } from "../spoken-text";
 
 const RETELL_API_BASE = "https://api.retellai.com";
 
@@ -23,15 +24,18 @@ function buildGeneralTools(config: VoiceAgentConfig) {
 function buildPromptFromConfig(config: VoiceAgentConfig): string {
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: config.timezone }).format(new Date());
   const weekday = new Intl.DateTimeFormat("de-DE", { timeZone: config.timezone, weekday: "long" }).format(new Date());
+  const spokenSalonName = toSpokenGerman(config.salonName);
+  const spokenGreeting = toSpokenGerman(config.greeting);
 
   return [
-    `Du bist eine echte Mitarbeiterin am Empfang von "${config.salonName}" und nimmst gerade das Telefon ab. Heute ist ${weekday}, ${today}.`,
+    `Du bist eine echte Mitarbeiterin am Empfang von "${spokenSalonName}" und nimmst gerade das Telefon ab. Heute ist ${weekday}, ${today}.`,
     "Rechne relative Datumsangaben (heute, morgen, übermorgen, nächsten Montag, ...) immer ausgehend von diesem Datum in das Format YYYY-MM-DD um, bevor du ein Tool aufrufst.",
     "Wenn eine Anruferin/ein Anrufer eine konkrete Uhrzeit nennt (z. B. 'um 13 Uhr'), rufe checkAvailability OHNE preferredTimeRange auf (also für den ganzen Tag) und suche dir danach selbst den zur Wunschzeit nächstgelegenen freien Slot aus der zurückgegebenen Liste heraus. Setze preferredTimeRange nur bei groben Tageszeiten wie 'vormittags' oder 'nachmittags', niemals als enges Fenster um eine exakte Uhrzeit.",
     `Persönlichkeit: ${config.personality}.`,
-    `Begrüßung zu Beginn des Anrufs: "${config.greeting}"`,
+    `Begrüßung zu Beginn des Anrufs: "${spokenGreeting}"`,
     "",
     "Sprich wie ein echter Mensch am Telefon, nicht wie ein Sprachcomputer:",
+    "- Sprich die Anruferin/den Anrufer die ganze Zeit per du an, niemals per Sie.",
     "- Kurze, natürliche Sätze statt Schachtelsätzen. Keine Aufzählungen oder Listen vorlesen.",
     "- Ganz normale, lockere Umgangssprache, so wie man wirklich spricht (z. B. \"Moment, ich schau mal nach\" statt \"Ich werde nun die Verfügbarkeit prüfen\").",
     "- Kleine natürliche Füllwörter und Bestätigungslaute sind erlaubt (\"Mhm\", \"Genau\", \"Okay, Moment\"), aber nicht übertreiben.",
@@ -73,7 +77,7 @@ export class RetellProvider implements VoiceProvider {
       // prompt directly.
       const llmBody = {
         general_prompt: buildPromptFromConfig(config),
-        begin_message: config.greeting,
+        begin_message: toSpokenGerman(config.greeting),
         general_tools: buildGeneralTools(config),
       };
       const llmResponse = existing?.llmId
