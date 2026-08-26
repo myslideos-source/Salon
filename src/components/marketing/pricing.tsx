@@ -11,7 +11,7 @@ const PLANS = [
   },
   {
     name: "Salon",
-    price: "129",
+    price: "99",
     description: "Der Standard für die meisten Salons.",
     features: ["Bis zu 5 Mitarbeiter", "KI-Telefonassistent", "Anrufhistorie & Rückrufe", "Prioritäts-Support"],
     highlighted: true,
@@ -65,7 +65,7 @@ export function Pricing() {
       </div>
 
       <p className="mt-8 text-center text-sm text-ink-faint">
-        Einmalige Einrichtung: <span className="font-medium text-ink-soft">299 €</span> — ich übernehme die komplette technische Ersteinrichtung.
+        Einmalige Einrichtung: <span className="font-medium text-ink-soft">249 €</span> — ich übernehme die komplette technische Ersteinrichtung.
       </p>
     </section>
   );
