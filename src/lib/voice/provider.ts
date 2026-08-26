@@ -8,6 +8,7 @@ import "server-only";
 export interface VoiceAgentConfig {
   salonId: string;
   salonName: string;
+  timezone: string;
   greeting: string;
   personality: string;
   voiceId: string;

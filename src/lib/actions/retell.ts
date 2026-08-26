@@ -12,7 +12,7 @@ export async function syncRetellAgentAction(salonId: string): Promise<SyncResult
   const supabase = await createClient();
 
   const [{ data: salon }, { data: settings }] = await Promise.all([
-    supabase.from("salons").select("name").eq("id", salonId).single(),
+    supabase.from("salons").select("name, timezone").eq("id", salonId).single(),
     supabase.from("voice_settings").select("*").eq("salon_id", salonId).maybeSingle(),
   ]);
 
@@ -25,6 +25,7 @@ export async function syncRetellAgentAction(salonId: string): Promise<SyncResult
   const result = await retellProvider.syncAgent({
     salonId,
     salonName: salon.name,
+    timezone: salon.timezone,
     greeting: settings.greeting,
     personality: settings.personality,
     voiceId: settings.voice_id,

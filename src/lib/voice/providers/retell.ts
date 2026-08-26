@@ -21,8 +21,12 @@ function buildGeneralTools(config: VoiceAgentConfig) {
 }
 
 function buildPromptFromConfig(config: VoiceAgentConfig): string {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: config.timezone }).format(new Date());
+  const weekday = new Intl.DateTimeFormat("de-DE", { timeZone: config.timezone, weekday: "long" }).format(new Date());
+
   return [
-    `Du bist die digitale Telefonassistenz von "${config.salonName}".`,
+    `Du bist die digitale Telefonassistenz von "${config.salonName}". Heute ist ${weekday}, ${today}.`,
+    "Rechne relative Datumsangaben (heute, morgen, übermorgen, nächsten Montag, ...) immer ausgehend von diesem Datum in das Format YYYY-MM-DD um, bevor du ein Tool aufrufst.",
     `Persönlichkeit: ${config.personality}.`,
     `Begrüßung: "${config.greeting}"`,
     "",
