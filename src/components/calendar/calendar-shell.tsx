@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Topbar } from "@/components/layout/topbar";
 import { DayView } from "./day-view";
@@ -10,6 +10,7 @@ import { NewAppointmentModal } from "./new-appointment-modal";
 import { getDayCalendarDataAction, type CalendarAppointment, type CalendarEmployee } from "@/lib/actions/calendar-data";
 import { addDaysStr, formatDayLabel, formatWeekRange, startOfWeekStr, todayStr, weekDatesFrom } from "@/lib/date";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
 type Service = { id: string; name: string; duration_minutes: number; price_cents: number; color: string };
 
@@ -40,6 +41,8 @@ export function CalendarShell({
     businessHours: { isClosed: boolean; startTime: string | null; endTime: string | null } | null;
   } | null>(null);
   const [showNew, setShowNew] = useState(false);
+  const [weekRefreshKey, setWeekRefreshKey] = useState(0);
+  const [liveNotice, setLiveNotice] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -53,6 +56,39 @@ export function CalendarShell({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetch on view/date change
     if (view === "day") load();
   }, [view, load]);
+
+  // Kept in refs so the realtime subscription below (which only needs to be
+  // opened once per salon) always sees the current view/loader without
+  // having to tear down and reopen the channel on every date/view change.
+  const viewRef = useRef(view);
+  const loadRef = useRef(load);
+  useEffect(() => {
+    viewRef.current = view;
+    loadRef.current = load;
+  }, [view, load]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`appointments-${salonId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "appointments", filter: `salon_id=eq.${salonId}` },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setLiveNotice("Neuer Termin eingegangen");
+            setTimeout(() => setLiveNotice(null), 5000);
+          }
+          if (viewRef.current === "day") loadRef.current();
+          setWeekRefreshKey((k) => k + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [salonId]);
 
   const weekStart = startOfWeekStr(date);
   const weekDates = weekDatesFrom(weekStart);
@@ -117,11 +153,19 @@ export function CalendarShell({
         </div>
       </div>
 
+      {liveNotice && (
+        <div className="mx-4 mt-3 flex items-center gap-2 rounded-lg border border-bronze/30 bg-bronze-soft px-3 py-2 text-sm text-bronze-dark sm:mx-6 lg:mx-8">
+          <BellRing className="h-4 w-4 shrink-0" />
+          {liveNotice}
+        </div>
+      )}
+
       {view === "week" ? (
         <WeekView
           salonId={salonId}
           dates={weekDates}
           timezone={dayData?.timezone ?? "Europe/Berlin"}
+          refreshKey={weekRefreshKey}
           onSelectDay={(d) => {
             setDate(d);
             setView("day");
