@@ -233,6 +233,7 @@ export function DayView({
           timezone={timezone}
           canEdit={canEdit}
           revalidatePath={revalidatePath}
+          employees={employees}
           onClose={() => setDetail(null)}
           onChanged={onChanged}
         />

@@ -1,5 +1,6 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/date";
 import type { CalendarAppointment } from "@/lib/actions/calendar-data";
@@ -11,6 +12,8 @@ export function AppointmentCard({
   onPointerDown,
   dragging,
   timezone,
+  colorOverride,
+  showEmployeeName,
 }: {
   appointment: CalendarAppointment;
   style: React.CSSProperties;
@@ -18,8 +21,12 @@ export function AppointmentCard({
   onPointerDown?: (e: React.PointerEvent) => void;
   dragging?: boolean;
   timezone: string;
+  /** Week view colors by employee instead of by service - the column no
+   * longer implies who the appointment belongs to. */
+  colorOverride?: string;
+  showEmployeeName?: string;
 }) {
-  const color = appointment.services[0]?.color ?? "#B08968";
+  const color = colorOverride ?? appointment.services[0]?.color ?? "#B08968";
   const customerName = appointment.customer
     ? `${appointment.customer.firstName} ${appointment.customer.lastName}`.trim()
     : "Kunde";
@@ -27,7 +34,7 @@ export function AppointmentCard({
 
   return (
     <div
-      style={{ ...style, borderLeftColor: color, background: `${color}14` }}
+      style={{ ...style, borderLeftColor: color, background: `${color}1c` }}
       onClick={onClick}
       onPointerDown={onPointerDown}
       className={cn(
@@ -40,10 +47,17 @@ export function AppointmentCard({
         {formatTime(appointment.startAt, timezone)}–{formatTime(appointment.endAt, timezone)}
       </p>
       <p className="truncate text-xs font-medium text-ink leading-tight">{customerName}</p>
-      <p className="truncate text-[11px] text-ink-soft leading-tight">{serviceNames}</p>
+      <p className="truncate text-[11px] text-ink-soft leading-tight">
+        {serviceNames}
+        {showEmployeeName ? ` · ${showEmployeeName}` : ""}
+      </p>
       {appointment.source === "voice_ai" && (
-        <span className="absolute right-1 top-1 text-[9px] text-bronze-dark" title="Von der KI gebucht">
-          ✦
+        <span
+          className="absolute right-1 top-1 text-gold"
+          title="Automatisch von HalloMia gebucht"
+          aria-label="Automatisch von HalloMia gebucht"
+        >
+          <Sparkles className="h-3 w-3" />
         </span>
       )}
     </div>

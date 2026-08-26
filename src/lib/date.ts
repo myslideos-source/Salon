@@ -1,4 +1,4 @@
-import { addDays, startOfWeek, format, parseISO } from "date-fns";
+import { addDays, startOfWeek, startOfMonth, endOfMonth, format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 
 export function todayStr(): string {
@@ -32,4 +32,44 @@ export function formatWeekRange(startDate: string): string {
 
 export function formatTime(iso: string, timezone = "Europe/Berlin"): string {
   return new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: timezone }).format(new Date(iso));
+}
+
+export function formatWeekdayShort(date: string): string {
+  return format(parseISO(date), "EE", { locale: de }).toUpperCase();
+}
+
+export function formatDayNum(date: string): string {
+  return format(parseISO(date), "d");
+}
+
+export function formatMonthLabel(date: string): string {
+  return format(parseISO(date), "MMMM yyyy", { locale: de });
+}
+
+export function isSameMonth(date: string, referenceDate: string): boolean {
+  return date.slice(0, 7) === referenceDate.slice(0, 7);
+}
+
+/** 6-week (42 day) grid for a month view, starting the Monday on/before the
+ * 1st and ending the Sunday on/after the month's last day. */
+export function monthGridDates(anyDateInMonth: string): string[] {
+  const first = format(startOfMonth(parseISO(anyDateInMonth)), "yyyy-MM-dd");
+  const last = format(endOfMonth(parseISO(anyDateInMonth)), "yyyy-MM-dd");
+  const gridStart = startOfWeekStr(first);
+  const gridEndExclusive = addDaysStr(startOfWeekStr(last), 7);
+  const dates: string[] = [];
+  let d = gridStart;
+  while (d < gridEndExclusive) {
+    dates.push(d);
+    d = addDaysStr(d, 1);
+  }
+  // Always exactly 6 weeks so the grid height never jumps between months.
+  while (dates.length < 42) dates.push(addDaysStr(dates[dates.length - 1], 1));
+  return dates.slice(0, 42);
+}
+
+export function addMonthsStr(date: string, n: number): string {
+  const d = parseISO(date);
+  d.setMonth(d.getMonth() + n);
+  return format(d, "yyyy-MM-dd");
 }

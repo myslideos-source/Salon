@@ -28,6 +28,17 @@ export type CalendarEmployee = {
   workingHours: { startTime: string; endTime: string }[];
 };
 
+export async function getSalonEmployeesAction(salonId: string): Promise<CalendarEmployee[]> {
+  const supabase = await createClient();
+  const { data: employees } = await supabase
+    .from("employees")
+    .select("id, first_name, last_name, color")
+    .eq("salon_id", salonId)
+    .eq("active", true)
+    .order("sort_order");
+  return (employees ?? []).map((e) => ({ id: e.id, firstName: e.first_name, lastName: e.last_name, color: e.color, workingHours: [] }));
+}
+
 export async function getDayCalendarDataAction(salonId: string, date: string) {
   const supabase = await createClient();
   const weekday = weekdayOf(date);
@@ -93,6 +104,80 @@ export async function getDayCalendarDataAction(salonId: string, date: string) {
   };
 }
 
+export type CalendarBusinessHours = { isClosed: boolean; startTime: string | null; endTime: string | null };
+
+// Full week grid data (real day-columns week view) - same appointment/
+// employee shape as the day view so AppointmentCard/AppointmentDetailModal
+// work unchanged, just spanning a date range instead of one day.
+export async function getWeekCalendarDataAction(salonId: string, dates: string[]) {
+  const supabase = await createClient();
+  const { data: salon } = await supabase.from("salons").select("timezone").eq("id", salonId).single();
+  const timezone = salon?.timezone ?? "Europe/Berlin";
+
+  const first = localDayBoundsUtc(dates[0], timezone);
+  const last = localDayBoundsUtc(dates[dates.length - 1], timezone);
+  const weekdays = dates.map((d) => weekdayOf(d));
+
+  const [{ data: employees }, { data: businessHoursRows }, { data: appointments }] = await Promise.all([
+    supabase.from("employees").select("id, first_name, last_name, color").eq("salon_id", salonId).eq("active", true).order("sort_order"),
+    supabase.from("business_hours").select("weekday, is_closed, start_time, end_time").eq("salon_id", salonId).in("weekday", weekdays),
+    supabase
+      .from("appointments")
+      .select(
+        "id, start_at, end_at, status, source, total_price_cents, notes, employee_id, customers(id, first_name, last_name, phone), appointment_services(sort_order, services(id, name, color))"
+      )
+      .eq("salon_id", salonId)
+      .neq("status", "cancelled")
+      .lt("start_at", last.end.toISOString())
+      .gt("end_at", first.start.toISOString())
+      .order("start_at"),
+  ]);
+
+  const calendarEmployees: CalendarEmployee[] = (employees ?? []).map((e) => ({
+    id: e.id,
+    firstName: e.first_name,
+    lastName: e.last_name,
+    color: e.color,
+    workingHours: [],
+  }));
+
+  const calendarAppointments: CalendarAppointment[] = (appointments ?? []).map((a) => {
+    const customer = a.customers as unknown as { id: string; first_name: string; last_name: string; phone: string } | null;
+    const services = ((a.appointment_services ?? []) as unknown as { sort_order: number; services: { id: string; name: string; color: string } | null }[])
+      .sort((x, y) => x.sort_order - y.sort_order)
+      .map((s) => s.services)
+      .filter(Boolean) as { id: string; name: string; color: string }[];
+    return {
+      id: a.id,
+      startAt: a.start_at,
+      endAt: a.end_at,
+      status: a.status,
+      source: a.source,
+      totalPriceCents: a.total_price_cents,
+      notes: a.notes,
+      employeeId: a.employee_id,
+      customer: customer ? { id: customer.id, firstName: customer.first_name, lastName: customer.last_name, phone: customer.phone } : null,
+      services,
+    };
+  });
+
+  const businessHoursByWeekday: Record<number, CalendarBusinessHours> = {};
+  for (const row of businessHoursRows ?? []) {
+    businessHoursByWeekday[row.weekday] = { isClosed: row.is_closed, startTime: row.start_time, endTime: row.end_time };
+  }
+  const businessHoursByDate: Record<string, CalendarBusinessHours | null> = {};
+  dates.forEach((d, i) => {
+    businessHoursByDate[d] = businessHoursByWeekday[weekdays[i]] ?? null;
+  });
+
+  return {
+    timezone,
+    employees: calendarEmployees,
+    appointments: calendarAppointments,
+    businessHoursByDate,
+  };
+}
+
 export async function getWeekOverviewAction(salonId: string, dates: string[]) {
   const supabase = await createClient();
   const { data: salon } = await supabase.from("salons").select("timezone").eq("id", salonId).single();
@@ -103,19 +188,34 @@ export async function getWeekOverviewAction(salonId: string, dates: string[]) {
 
   const { data: appointments } = await supabase
     .from("appointments")
-    .select("id, start_at, status, employees(first_name, color), customers(first_name, last_name)")
+    .select(
+      "id, start_at, status, source, employees(first_name, color), customers(first_name, last_name), appointment_services(sort_order, services(name))"
+    )
     .eq("salon_id", salonId)
     .neq("status", "cancelled")
     .gte("start_at", first.start.toISOString())
     .lt("start_at", last.end.toISOString())
     .order("start_at");
 
-  const byDate = new Map<string, { id: string; startAt: string; employeeName: string; employeeColor: string; customerName: string }[]>();
+  type Entry = {
+    id: string;
+    startAt: string;
+    employeeName: string;
+    employeeColor: string;
+    customerName: string;
+    serviceName: string;
+    source: string;
+  };
+  const byDate = new Map<string, Entry[]>();
   for (const date of dates) byDate.set(date, []);
 
   for (const a of appointments ?? []) {
     const employee = a.employees as unknown as { first_name: string; color: string } | null;
     const customer = a.customers as unknown as { first_name: string; last_name: string } | null;
+    const services = ((a.appointment_services ?? []) as unknown as { sort_order: number; services: { name: string } | null }[])
+      .sort((x, y) => x.sort_order - y.sort_order)
+      .map((s) => s.services?.name)
+      .filter(Boolean) as string[];
     const localDate = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(
       new Date(a.start_at)
     );
@@ -127,9 +227,34 @@ export async function getWeekOverviewAction(salonId: string, dates: string[]) {
         employeeName: employee?.first_name ?? "",
         employeeColor: employee?.color ?? "#B08968",
         customerName: `${customer?.first_name ?? ""} ${customer?.last_name ?? ""}`.trim(),
+        serviceName: services[0] ?? "",
+        source: a.source,
       });
     }
   }
 
   return Object.fromEntries(byDate.entries());
+}
+
+export async function getWeekStatsAction(salonId: string, dates: string[]) {
+  const supabase = await createClient();
+  const { data: salon } = await supabase.from("salons").select("timezone").eq("id", salonId).single();
+  const timezone = salon?.timezone ?? "Europe/Berlin";
+
+  const first = localDayBoundsUtc(dates[0], timezone);
+  const last = localDayBoundsUtc(dates[dates.length - 1], timezone);
+
+  const { data: appointments } = await supabase
+    .from("appointments")
+    .select("id, customer_id, total_price_cents")
+    .eq("salon_id", salonId)
+    .neq("status", "cancelled")
+    .gte("start_at", first.start.toISOString())
+    .lt("start_at", last.end.toISOString());
+
+  const rows = appointments ?? [];
+  const uniqueCustomers = new Set(rows.map((r) => r.customer_id)).size;
+  const revenueCents = rows.reduce((sum, r) => sum + r.total_price_cents, 0);
+
+  return { appointmentCount: rows.length, customerCount: uniqueCustomers, revenueCents };
 }
