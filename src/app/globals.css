@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+:root {
+  --color-cream: #fbf8f3;
+  --color-cream-soft: #f6f1e9;
+  --color-sand: #efe6d8;
+  --color-beige: #e6d9c4;
+  --color-border: #e6ddcd;
+  --color-border-strong: #d8cbb2;
+
+  --color-ink: #26221d;
+  --color-ink-soft: #5c554c;
+  --color-ink-faint: #8c8377;
+
+  --color-bronze: #a97e50;
+  --color-bronze-dark: #8a6640;
+  --color-bronze-soft: #f1e3d0;
+
+  --color-gold: #c9a15a;
+
+  --color-success: #4f7d5c;
+  --color-success-soft: #e5f0e6;
+  --color-warning: #b8873f;
+  --color-warning-soft: #f8ecd9;
+  --color-danger: #b1533f;
+  --color-danger-soft: #f7e5e0;
+  --color-info: #4f6f8f;
+  --color-info-soft: #e6edf3;
+
+  --background: var(--color-cream);
+  --foreground: var(--color-ink);
+}
+
+@theme inline {
+  --color-cream: var(--color-cream);
+  --color-cream-soft: var(--color-cream-soft);
+  --color-sand: var(--color-sand);
+  --color-beige: var(--color-beige);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-ink-faint: var(--color-ink-faint);
+
+  --color-bronze: var(--color-bronze);
+  --color-bronze-dark: var(--color-bronze-dark);
+  --color-bronze-soft: var(--color-bronze-soft);
+  --color-gold: var(--color-gold);
+
+  --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
+  --color-warning: var(--color-warning);
+  --color-warning-soft: var(--color-warning-soft);
+  --color-danger: var(--color-danger);
+  --color-danger-soft: var(--color-danger-soft);
+  --color-info: var(--color-info);
+  --color-info-soft: var(--color-info-soft);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+
+  --animate-fade-in: fade-in 0.4s ease-out;
+  --animate-rise: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), ui-serif, Georgia, serif;
+}
+
+::selection {
+  background: var(--color-bronze-soft);
+  color: var(--color-ink);
+}
+
+/* Thin, unobtrusive scrollbars for the calendar and side panels */
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
