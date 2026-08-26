@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Phone, Calendar, Users, Sparkles, ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { Phone, Calendar, Users, Sparkles } from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { DemoAnimation } from "@/components/marketing/demo-animation";
 import { VoiceDemoPlayer } from "@/components/marketing/voice-demo-player";
@@ -46,43 +47,55 @@ export default function LandingPage() {
             <Link href="/app/login" className="hidden text-sm text-ink-soft hover:text-ink sm:block">
               Salon-Login
             </Link>
-            <LinkButton href="#so-funktionierts" variant="bronze" size="sm">
-              Demo testen
+            <LinkButton href="#preise" variant="bronze" size="sm">
+              Jetzt starten
             </LinkButton>
           </div>
         </div>
       </header>
 
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute -top-24 right-[-10%] h-96 w-96 rounded-full bg-bronze/25 blur-[110px]" />
-        <div className="pointer-events-none absolute -bottom-32 left-[-10%] h-96 w-96 rounded-full bg-gold/15 blur-[110px]" />
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-28">
-          <div className="animate-rise">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-bronze-soft px-3 py-1 text-xs font-medium text-bronze-dark">
-              <Sparkles className="h-3 w-3" /> Für Friseursalons gemacht
-            </span>
-            <h1 className="mt-5 font-display text-4xl leading-[1.1] text-ink sm:text-5xl">
-              Dein Salon geht ans Telefon.
-              <br />
-              <span className="text-bronze-dark">Auch wenn du gerade keine Hand frei hast.</span>
-            </h1>
-            <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink-soft">
-              HalloMia nimmt Anrufe entgegen, beantwortet Fragen und trägt Termine automatisch in deinen
-              Salon-Kalender ein — in Echtzeit geprüft, ohne Doppelbuchungen.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <LinkButton href="#so-funktionierts" variant="bronze" size="lg">
-                Demo testen <ArrowRight className="h-4 w-4" />
-              </LinkButton>
-              <LinkButton href="#funktionen" variant="outline" size="lg">
-                So funktioniert&apos;s
-              </LinkButton>
-            </div>
-          </div>
-          <div id="so-funktionierts" className="space-y-4">
-            <VoiceDemoPlayer />
-            <DemoAnimation />
-          </div>
+      <section className="relative overflow-hidden bg-cream">
+        {/* Baked into the mockup image - kept for accessibility/SEO since the
+            visible headline below is a picture, not real text. */}
+        <h1 className="sr-only">
+          Deine Anrufe. Unsere Mia. Die KI-Telefonassistenz für Friseursalons — nimmt Anrufe entgegen, bucht Termine
+          und beantwortet Fragen rund um die Uhr.
+        </h1>
+        <div className="relative">
+          <Image
+            src="/marketing/hero-desktop.png"
+            alt="HalloMia: Deine Anrufe, unsere Mia. Nimmt Anrufe freundlich entgegen, bucht Termine automatisch, beantwortet Fragen rund um die Uhr."
+            width={1983}
+            height={618}
+            priority
+            className="hidden w-full md:block"
+            sizes="100vw"
+          />
+          <Image
+            src="/marketing/hero-mobile.png"
+            alt="HalloMia: Deine Anrufe, unsere Mia. Nimmt Anrufe freundlich entgegen, bucht Termine automatisch, beantwortet Fragen rund um die Uhr."
+            width={864}
+            height={1626}
+            priority
+            className="block w-full md:hidden"
+            sizes="100vw"
+          />
+          {/* Real, clickable hit-area over the "Jetzt starten" button baked
+              into the mobile image (the desktop crop has its own real button
+              in the header nav above, so no overlay needed there). */}
+          <a
+            href="#preise"
+            aria-label="Jetzt starten"
+            className="absolute inset-x-[18%] md:hidden"
+            style={{ top: "79%", bottom: "11%" }}
+          />
+        </div>
+      </section>
+
+      <section id="so-funktionierts" className="bg-cream-soft/30">
+        <div className="mx-auto max-w-3xl space-y-4 px-4 py-16 sm:px-6 lg:px-8">
+          <VoiceDemoPlayer />
+          <DemoAnimation />
         </div>
       </section>
 
