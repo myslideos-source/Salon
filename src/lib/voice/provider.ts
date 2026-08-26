@@ -20,6 +20,7 @@ export interface VoiceAgentConfig {
     respectEmployeePreference: boolean;
     offerCallback: boolean;
     detectNewCustomers: boolean;
+    sendConfirmationSms: boolean;
   };
   webhookUrl: string;
 }

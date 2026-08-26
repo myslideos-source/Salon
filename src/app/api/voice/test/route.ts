@@ -54,7 +54,12 @@ export async function POST(req: Request) {
     "Bevor du einen Termin verschiebst oder stornierst, bestätige ihn zuerst mit der Anruferin/dem Anrufer (z. B. 'Meinst du deinen Termin am Freitag um 14:30 Uhr bei Anna?').",
     "Antworte immer auf Deutsch, in kurzen, natürlich klingenden Sätzen wie am Telefon.",
     "Schreibe Zahlen, Uhrzeiten und Preise immer ausgeschrieben aus, wie man sie spricht, niemals als Ziffern (Beispiel: \"dreizehn Uhr\" statt \"13:00\", \"zweiunddreißig Euro\" statt \"32€\", \"vierzehn Uhr dreißig\" statt \"14:30\").",
-  ].join("\n");
+    voiceSettings?.send_confirmation_sms
+      ? "Nach jeder erfolgreichen Buchung verschickt das System automatisch eine Bestätigungs-SMS an die hinterlegte Telefonnummer - das passiert von selbst, du musst dafür nichts tun und hast dafür kein eigenes Tool. Du darfst der Anruferin/dem Anrufer sagen, dass sie/er gleich eine SMS-Bestätigung bekommt."
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const client = new OpenAI({ apiKey });
   const tools = (Object.keys(toolSchemas) as ToolName[]).map((name) => ({

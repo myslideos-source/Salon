@@ -22,7 +22,7 @@ export async function GET(req: Request) {
   const supabase = createAdminClient();
   const { data: rows, error } = await supabase
     .from("voice_settings")
-    .select("salon_id, provider_agent_id, provider_llm_id, greeting, personality, voice_id, phone_number, forwarding_number, mention_prices, offer_alternatives, respect_employee_preference, offer_callback, detect_new_customers, salons(name, timezone)")
+    .select("salon_id, provider_agent_id, provider_llm_id, greeting, personality, voice_id, phone_number, forwarding_number, mention_prices, offer_alternatives, respect_employee_preference, offer_callback, detect_new_customers, send_confirmation_sms, salons(name, timezone)")
     .not("provider_agent_id", "is", null);
 
   if (error) {
@@ -59,6 +59,7 @@ export async function GET(req: Request) {
           respectEmployeePreference: row.respect_employee_preference,
           offerCallback: row.offer_callback,
           detectNewCustomers: row.detect_new_customers,
+          sendConfirmationSms: row.send_confirmation_sms,
         },
         webhookUrl: `${appUrl}/api/voice/webhook`,
       },

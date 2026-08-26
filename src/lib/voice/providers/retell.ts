@@ -52,6 +52,9 @@ function buildPromptFromConfig(config: VoiceAgentConfig): string {
     config.rules.respectEmployeePreference ? "- Beachte Mitarbeiterwünsche der Anruferin/des Anrufers." : "",
     config.rules.offerCallback ? "- Biete einen Rückruf an, wenn du nicht weiterhelfen kannst." : "",
     config.rules.detectNewCustomers ? "- Erkenne Neukunden anhand der Telefonnummer und begrüße sie entsprechend." : "",
+    config.rules.sendConfirmationSms
+      ? "- Nach jeder erfolgreichen Buchung verschickt das System automatisch eine Bestätigungs-SMS an die hinterlegte Telefonnummer - das passiert von selbst, du musst dafür nichts tun und hast dafür kein eigenes Tool. Du darfst der Anruferin/dem Anrufer sagen, dass sie/er gleich eine SMS-Bestätigung bekommt. Wenn danach gefragt wird, ob du selbst jetzt eine SMS schicken kannst: Nein, aber nach der Buchung kommt automatisch eine."
+      : "",
   ]
     .filter(Boolean)
     .join("\n");

@@ -37,6 +37,7 @@ export async function syncRetellAgentAction(salonId: string): Promise<SyncResult
       respectEmployeePreference: settings.respect_employee_preference,
       offerCallback: settings.offer_callback,
       detectNewCustomers: settings.detect_new_customers,
+      sendConfirmationSms: settings.send_confirmation_sms,
     },
     webhookUrl: `${appUrl}/api/voice/webhook`,
   }, { agentId: settings.provider_agent_id, llmId: settings.provider_llm_id });
