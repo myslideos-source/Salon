@@ -1,13 +1,28 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Phone, Calendar, Users, Sparkles, PhoneMissed, Clock3, Moon, HeartHandshake, ChevronDown, ShieldCheck, MapPin, UserCheck } from "lucide-react";
-import { Button, LinkButton } from "@/components/ui/button";
+import {
+  Phone,
+  Calendar,
+  Users,
+  Sparkles,
+  ChevronDown,
+  ShieldCheck,
+  MapPin,
+  UserCheck,
+  RotateCw,
+  UsersRound,
+  CalendarCheck,
+  PhoneCall,
+  Heart,
+} from "lucide-react";
+import { LinkButton } from "@/components/ui/button";
 import { DemoAnimation } from "@/components/marketing/demo-animation";
 import { VoiceDemoPlayer } from "@/components/marketing/voice-demo-player";
 import { ProductShowcase } from "@/components/marketing/product-showcase";
 import { Pricing } from "@/components/marketing/pricing";
 import { Logo } from "@/components/brand/logo";
 import { CookieNotice } from "@/components/marketing/cookie-notice";
+import { Reveal } from "@/components/marketing/reveal";
 
 const FEATURES = [
   {
@@ -34,24 +49,47 @@ const FEATURES = [
 
 const BENEFITS = [
   {
-    icon: PhoneMissed,
-    title: "Nie wieder verpasste Anrufe",
-    description: "Auch beim Schneiden, in der Mittagspause oder nach Feierabend nimmt HalloMia ab — kein Kunde landet mehr auf der Mailbox.",
-  },
-  {
-    icon: Clock3,
-    title: "Mehr Zeit für deine Kund:innen",
-    description: "Weniger Unterbrechungen während der Arbeit am Kunden, weil das Telefon nicht mehr ständig dazwischenfunkt.",
-  },
-  {
-    icon: Moon,
+    icon: RotateCw,
     title: "Rund um die Uhr erreichbar",
-    description: "Auch abends und am Wochenende können Kund:innen anrufen und einen Termin buchen — ganz ohne dass jemand ran muss.",
+    description: "Kein Anruf geht mehr verloren.",
   },
   {
-    icon: HeartHandshake,
-    title: "Weniger Stress im Salon-Alltag",
-    description: "Keine Zettelwirtschaft, keine Doppelbuchungen, keine hektischen Rückrufe zwischen zwei Kundenterminen.",
+    icon: UsersRound,
+    title: "Mehr Zeit für dein Team",
+    description: "Weniger Telefonstress, mehr Fokus auf Kund:innen.",
+  },
+  {
+    icon: CalendarCheck,
+    title: "Automatische Terminbuchung",
+    description: "Direkt beim Anruf — einfach & zuverlässig.",
+  },
+  {
+    icon: PhoneCall,
+    title: "Professionell & freundlich",
+    description: "Jeder Anruf wird professionell beantwortet.",
+  },
+];
+
+const HOW_IT_WORKS = [
+  {
+    icon: Phone,
+    title: "Anruf",
+    description: "Kund:innen rufen deinen Salon an.",
+  },
+  {
+    icon: Heart,
+    title: "HalloMia übernimmt",
+    description: "Begrüßt, versteht das Anliegen und hilft sofort.",
+  },
+  {
+    icon: CalendarCheck,
+    title: "Termin buchen",
+    description: "Passenden Termin finden und direkt im Kalender eintragen.",
+  },
+  {
+    icon: Sparkles,
+    title: "Du hast mehr Zeit",
+    description: "Weniger Telefonstress, mehr Zeit für das, was wirklich zählt.",
   },
 ];
 
@@ -145,15 +183,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="border-y border-border/70 bg-cream-soft/40">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-8 px-4 py-10 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div className="flex items-center gap-4 text-left">
-            <span className="brand-gradient-text font-display text-4xl leading-none sm:text-5xl">24/7</span>
-            <p className="max-w-xs text-sm leading-relaxed text-ink-soft">
-              HalloMia arbeitet automatisch rund um die Uhr für dich — mehr Zeit für andere Dinge oder deine Kund:innen.
-            </p>
+      <section className="bg-cream-soft/30 px-4 py-12 sm:px-6 lg:px-8">
+        <Reveal className="mx-auto max-w-6xl">
+          <div className="flex flex-col gap-6 rounded-2xl border border-bronze/30 bg-white/[0.03] p-6 backdrop-blur-sm sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-4">
+              <Heart className="h-8 w-8 shrink-0 text-gold" strokeWidth={1.5} />
+              <p className="text-sm leading-relaxed text-ink-soft sm:text-base">
+                HalloMia arbeitet automatisch rund um die Uhr für dich — damit du{" "}
+                <span className="text-gold">mehr Zeit für deine Kund:innen</span> und andere wichtige Dinge hast.
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-4 border-t border-border pt-6 lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0">
+              <div>
+                <p className="brand-gradient-text font-display text-3xl leading-none">24/7</p>
+                <p className="mt-1 text-xs text-ink-faint">für dich im Einsatz</p>
+              </div>
+              <span className="flex items-center gap-1.5 rounded-full border border-success/30 bg-success-soft px-2.5 py-1 text-xs text-success">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/60" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+                </span>
+                Immer erreichbar
+              </span>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-ink-soft">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-ink-soft">
             <span className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-bronze" /> Made in Germany
             </span>
@@ -164,7 +218,7 @@ export default function LandingPage() {
               <UserCheck className="h-4 w-4 text-bronze" /> Persönliche Einrichtung
             </span>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <section id="so-funktionierts" className="bg-cream-soft/30">
@@ -203,18 +257,44 @@ export default function LandingPage() {
           <h2 className="font-display text-3xl text-ink sm:text-4xl">Warum Salons HalloMia lieben</h2>
           <p className="mt-3 text-ink-soft">Nicht nur ein Feature mehr — spürbar mehr Ruhe im Salon-Alltag.</p>
         </div>
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {BENEFITS.map((b) => (
-            <div key={b.title} className="flex gap-4 rounded-2xl border border-border bg-white/[0.03] p-6 backdrop-blur-sm">
-              <div className="brand-gradient-bg flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white">
-                <b.icon className="h-5 w-5" strokeWidth={1.8} />
-              </div>
-              <div>
-                <h3 className="font-display text-lg text-ink">{b.title}</h3>
+        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {BENEFITS.map((b, i) => (
+            <Reveal key={b.title} delayMs={i * 80}>
+              <div className="h-full rounded-2xl border border-border bg-white/[0.03] p-6 text-center backdrop-blur-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-bronze/30 bg-bronze-soft text-bronze-dark">
+                  <b.icon className="h-6 w-6" strokeWidth={1.6} />
+                </div>
+                <h3 className="mt-4 font-display text-base text-ink">{b.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{b.description}</p>
               </div>
-            </div>
+            </Reveal>
           ))}
+        </div>
+      </section>
+
+      <section className="border-y border-border/70 bg-cream-soft/40">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-display text-3xl text-ink sm:text-4xl">So einfach funktioniert HalloMia</h2>
+            <p className="mt-3 text-ink-soft">Vom Anruf bis zum gebuchten Termin — ohne dass du etwas tun musst.</p>
+          </div>
+          <div className="relative mt-14 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+            {HOW_IT_WORKS.map((step, i) => (
+              <Reveal key={step.title} delayMs={i * 120} className="relative text-center">
+                {i < HOW_IT_WORKS.length - 1 && (
+                  <div className="pointer-events-none absolute top-8 left-[calc(50%+2.5rem)] hidden h-px w-[calc(100%-5rem)] border-t-2 border-dashed border-bronze/30 lg:block" />
+                )}
+                <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-bronze/30 bg-bronze-soft text-bronze-dark">
+                  <step.icon className="h-6 w-6" strokeWidth={1.6} />
+                  <span className="brand-gradient-bg absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold text-white">
+                    {i + 1}
+                  </span>
+                </div>
+                <h3 className="mt-4 font-display text-base text-ink">{step.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{step.description}</p>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -244,18 +324,31 @@ export default function LandingPage() {
       </section>
 
       <section className="mx-auto max-w-4xl px-4 pb-24 pt-24 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-border bg-ink px-8 py-14 text-center text-cream sm:px-16">
-          <h2 className="font-display text-3xl sm:text-4xl">Bereit, dass dein Salon ans Telefon geht?</h2>
-          <p className="mx-auto mt-3 max-w-md text-cream/70">
-            Ich richte deinen HalloMia-Assistenten persönlich ein. Melde dich, und wir starten gemeinsam.
-          </p>
-          <div className="mt-8 flex justify-center">
-            <Button variant="bronze" size="lg" className="pointer-events-none opacity-90">
-              Demo anfragen
-            </Button>
+        <Reveal>
+          <div className="rounded-3xl border border-border bg-ink px-8 py-14 text-center text-cream sm:px-16">
+            <p className="flex items-center justify-center gap-2 font-display text-2xl sm:text-3xl">
+              Klingt gut? <span className="brand-gradient-text">Ist es auch!</span>
+              <Sparkles className="h-5 w-5 text-gold" />
+            </p>
+            <p className="mx-auto mt-3 max-w-md text-cream/70">
+              Teste HalloMia jetzt risikofrei und überzeuge dich selbst — ich richte deinen Assistenten persönlich
+              ein.
+            </p>
+            <div className="mt-8 flex justify-center">
+              <LinkButton href="#preise" variant="bronze" size="lg">
+                Demo anfragen
+              </LinkButton>
+            </div>
           </div>
-        </div>
+        </Reveal>
       </section>
+
+      <div className="border-t border-border/70 bg-cream-soft/40 px-4 py-4 text-center text-sm text-ink-soft sm:px-6 lg:px-8">
+        <span className="inline-flex items-center gap-2">
+          <Heart className="h-4 w-4 text-gold" strokeWidth={1.5} />
+          HalloMia — deine KI-Telefonassistenz für glückliche Kund:innen und entspannte Salons.
+        </span>
+      </div>
 
       <footer className="border-t border-border/70 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-ink-faint sm:flex-row sm:px-6 lg:px-8">
