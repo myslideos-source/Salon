@@ -94,7 +94,7 @@ begin
   insert into salon_users (salon_id, user_id, role) values (v_salon_id, v_salon_user_id, 'owner');
 
   insert into voice_settings (salon_id, voice_id, greeting, personality, phone_number)
-  values (v_salon_id, '11labs-Carola', 'Hallo und herzlich willkommen bei Hair Lounge Milano. Sie sprechen mit unserer digitalen Telefonassistenz. Wie kann ich Ihnen helfen?', 'freundlich', '+49 30 1234567');
+  values (v_salon_id, 'cartesia-Eva', 'Hallo und herzlich willkommen bei Hair Lounge Milano. Sie sprechen mit unserer digitalen Telefonassistenz. Wie kann ich Ihnen helfen?', 'freundlich', '+49 30 1234567');
 
   -- ── Business hours: Mo closed, Tue-Fri 09-18, Thu 09-20, Sat 08-14, Sun closed.
   -- Today's weekday gets a wider 09:00-20:00 window so the seeded demo day fits.
