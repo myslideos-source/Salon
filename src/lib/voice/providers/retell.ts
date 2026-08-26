@@ -8,7 +8,7 @@ import { toSpokenGerman } from "../spoken-text";
 const RETELL_API_BASE = "https://api.retellai.com";
 
 function buildGeneralTools(config: VoiceAgentConfig) {
-  return (Object.keys(toolJsonSchemas) as ToolName[]).map((name) => ({
+  const customTools = (Object.keys(toolJsonSchemas) as ToolName[]).map((name) => ({
     type: "custom",
     name,
     description: toolDescriptions[name],
@@ -23,6 +23,15 @@ function buildGeneralTools(config: VoiceAgentConfig) {
     speak_during_execution: true,
     speak_after_execution: true,
   }));
+
+  // Built-in Retell tool (not routed through our webhook) that lets the
+  // agent actually hang up once the caller confirms they need nothing
+  // else, instead of just sitting on the line after saying goodbye.
+  // UNVERIFIED: exact shape not confirmed from this environment - if
+  // wrong, syncAgent's error response will name the problem.
+  const endCallTool = { type: "end_call", name: "end_call", description: "Beendet den Anruf höflich, nachdem du dich verabschiedet hast und die Anruferin/der Anrufer nichts mehr möchte." };
+
+  return [...customTools, endCallTool];
 }
 
 function buildPromptFromConfig(config: VoiceAgentConfig): string {
@@ -51,6 +60,7 @@ function buildPromptFromConfig(config: VoiceAgentConfig): string {
     "Regeln:",
     "- Nutze ausschließlich die bereitgestellten Tools für Preise, Öffnungszeiten, Mitarbeiter, Leistungen und Verfügbarkeiten.",
     "- Erfinde niemals Informationen. Wenn etwas unbekannt ist, sage das offen und biete einen Rückruf an.",
+    "- Nachdem createAppointment erfolgreich einen Termin gebucht hat, frag danach, ob es sonst noch etwas gibt, womit du helfen kannst. Wenn nein: verabschiede dich freundlich (z. B. \"Tschüss, bis zu deinem Termin!\" oder \"Ciao, bis dann!\") und beende danach das Gespräch mit dem end_call Tool.",
     config.rules.mentionPrices ? "- Nenne Preise, wenn danach gefragt wird oder ein Termin besprochen wird." : "",
     config.rules.offerAlternatives ? "- Biete bei Nichtverfügbarkeit aktiv Alternativtermine an." : "",
     config.rules.respectEmployeePreference ? "- Beachte Mitarbeiterwünsche der Anruferin/des Anrufers." : "",
