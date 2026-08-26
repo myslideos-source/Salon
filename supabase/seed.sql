@@ -46,15 +46,23 @@ declare
   salon_password text := 'change-me-too';
 begin
   -- ── Auth users (email/password login via Supabase Auth) ────────────────
+  -- The token columns must be '' rather than their NULL default: GoTrue's
+  -- Go code scans them as non-nullable strings, and a NULL here makes every
+  -- subsequent login fail with "error finding user: ... converting NULL to
+  -- string is unsupported" — a well-known gotcha when inserting auth.users
+  -- directly via SQL instead of through the Auth API.
   insert into auth.users (
     instance_id, id, aud, role, email, encrypted_password,
     email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
-    created_at, updated_at, is_sso_user, is_anonymous
+    created_at, updated_at, is_sso_user, is_anonymous,
+    confirmation_token, recovery_token, email_change_token_new, email_change,
+    email_change_token_current, phone_change, phone_change_token, reauthentication_token
   ) values (
     '00000000-0000-0000-0000-000000000000', v_admin_user_id, 'authenticated', 'authenticated',
     admin_email, crypt(admin_password, gen_salt('bf')),
     now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb,
-    now(), now(), false, false
+    now(), now(), false, false,
+    '', '', '', '', '', '', '', ''
   );
   insert into auth.identities (id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
   values (gen_random_uuid(), v_admin_user_id::text, v_admin_user_id,
@@ -64,12 +72,15 @@ begin
   insert into auth.users (
     instance_id, id, aud, role, email, encrypted_password,
     email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
-    created_at, updated_at, is_sso_user, is_anonymous
+    created_at, updated_at, is_sso_user, is_anonymous,
+    confirmation_token, recovery_token, email_change_token_new, email_change,
+    email_change_token_current, phone_change, phone_change_token, reauthentication_token
   ) values (
     '00000000-0000-0000-0000-000000000000', v_salon_user_id, 'authenticated', 'authenticated',
     salon_email, crypt(salon_password, gen_salt('bf')),
     now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb,
-    now(), now(), false, false
+    now(), now(), false, false,
+    '', '', '', '', '', '', '', ''
   );
   insert into auth.identities (id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
   values (gen_random_uuid(), v_salon_user_id::text, v_salon_user_id,
