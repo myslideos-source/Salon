@@ -1,22 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --color-cream: #fbf8f3;
-  --color-cream-soft: #f6f1e9;
-  --color-sand: #efe6d8;
-  --color-beige: #e6d9c4;
-  --color-border: #e6ddcd;
-  --color-border-strong: #d8cbb2;
+  /* Rebranded to HalloMia's purple-to-pink logo (values sampled directly
+     from the logo artwork). Token *names* were kept (bronze/gold/cream)
+     to avoid rewriting every className across the app - only the values
+     changed, so `bg-bronze` etc. still work everywhere but now render the
+     new brand colors. */
+  --color-cream: #faf9fd;
+  --color-cream-soft: #f3f0fa;
+  --color-sand: #ece6f7;
+  --color-beige: #ded2f2;
+  --color-border: #e4ddf5;
+  --color-border-strong: #cbb9ea;
 
-  --color-ink: #26221d;
-  --color-ink-soft: #5c554c;
-  --color-ink-faint: #8c8377;
+  --color-ink: #0b1436;
+  --color-ink-soft: #4b4f72;
+  --color-ink-faint: #8a8cae;
 
-  --color-bronze: #a97e50;
-  --color-bronze-dark: #8a6640;
-  --color-bronze-soft: #f1e3d0;
+  --color-bronze: #7c1fe0;
+  --color-bronze-dark: #57139c;
+  --color-bronze-soft: #f1e5fd;
 
-  --color-gold: #c9a15a;
+  --color-gold: #ec2a9c;
+
+  /* Gradient stops sampled from the logo's heart/wordmark for the few
+     spots that should show the actual gradient, not a flat color. */
+  --color-brand-from: #6b15fb;
+  --color-brand-via: #b026d6;
+  --color-brand-to: #fc3598;
 
   --color-success: #4f7d5c;
   --color-success-soft: #e5f0e6;
@@ -47,6 +58,10 @@
   --color-bronze-dark: var(--color-bronze-dark);
   --color-bronze-soft: var(--color-bronze-soft);
   --color-gold: var(--color-gold);
+
+  --color-brand-from: var(--color-brand-from);
+  --color-brand-via: var(--color-brand-via);
+  --color-brand-to: var(--color-brand-to);
 
   --color-success: var(--color-success);
   --color-success-soft: var(--color-success-soft);
@@ -99,6 +114,19 @@ body {
 ::selection {
   background: var(--color-bronze-soft);
   color: var(--color-ink);
+}
+
+/* True gradient (not a flat token color) for the handful of spots that
+   should show the logo's actual purple-to-pink transition - the CTA
+   button, the highlighted pricing plan, the wordmark. */
+.brand-gradient-bg {
+  background-image: linear-gradient(135deg, var(--color-brand-from), var(--color-brand-via), var(--color-brand-to));
+}
+.brand-gradient-text {
+  background-image: linear-gradient(135deg, var(--color-brand-from), var(--color-brand-via), var(--color-brand-to));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 /* Thin, unobtrusive scrollbars for the calendar and side panels */

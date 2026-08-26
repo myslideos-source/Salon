@@ -43,7 +43,7 @@ export function Pricing() {
             )}
           >
             {plan.highlighted && (
-              <span className="mb-3 inline-block rounded-full bg-bronze px-2.5 py-1 text-[11px] font-medium text-white">
+              <span className="brand-gradient-bg mb-3 inline-block rounded-full px-2.5 py-1 text-[11px] font-medium text-white">
                 Beliebteste Wahl
               </span>
             )}

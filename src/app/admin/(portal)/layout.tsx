@@ -2,6 +2,7 @@ import { LayoutGrid, Building2, Phone, CalendarClock, Activity } from "lucide-re
 import { requirePlatformAdmin } from "@/lib/auth/session";
 import { Sidebar, type NavItem } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { Logo } from "@/components/brand/logo";
 
 const iconProps = { className: "h-5 w-5", strokeWidth: 1.8 };
 
@@ -31,9 +32,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       />
       <div className="flex min-h-screen flex-1 flex-col pb-16 lg:pb-0">
         <div className="flex items-center justify-between gap-3 border-b border-border bg-cream/80 px-4 py-3 lg:hidden">
-          <span className="font-display text-lg text-ink">
-            Hallo<span className="text-bronze">Mia</span>
-          </span>
+          <Logo size="lg" />
         </div>
         <main className="flex-1">{children}</main>
       </div>

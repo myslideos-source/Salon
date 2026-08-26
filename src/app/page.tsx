@@ -4,6 +4,8 @@ import { Button, LinkButton } from "@/components/ui/button";
 import { DemoAnimation } from "@/components/marketing/demo-animation";
 import { ProductShowcase } from "@/components/marketing/product-showcase";
 import { Pricing } from "@/components/marketing/pricing";
+import { Logo } from "@/components/brand/logo";
+import { CookieNotice } from "@/components/marketing/cookie-notice";
 
 const FEATURES = [
   {
@@ -33,9 +35,7 @@ export default function LandingPage() {
     <div className="flex flex-col">
       <header className="sticky top-0 z-30 border-b border-border/70 bg-cream/85 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <span className="font-display text-lg text-ink">
-            Hallo<span className="text-bronze">Mia</span>
-          </span>
+          <Logo size="lg" />
           <nav className="hidden items-center gap-8 text-sm text-ink-soft sm:flex">
             <a href="#funktionen" className="hover:text-ink">Funktionen</a>
             <a href="#so-funktionierts" className="hover:text-ink">So funktioniert&apos;s</a>
@@ -125,12 +125,15 @@ export default function LandingPage() {
 
       <footer className="border-t border-border/70 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-ink-faint sm:flex-row sm:px-6 lg:px-8">
-          <span className="font-display text-ink-soft">
-            Hallo<span className="text-bronze">Mia</span>
-          </span>
+          <Logo size="sm" textClassName="text-ink-soft" />
           <p>© {new Date().getFullYear()} HalloMia. Alle Rechte vorbehalten.</p>
+          <nav className="flex items-center gap-5">
+            <Link href="/impressum" className="hover:text-ink">Impressum</Link>
+            <Link href="/datenschutz" className="hover:text-ink">Datenschutz</Link>
+          </nav>
         </div>
       </footer>
+      <CookieNotice />
     </div>
   );
 }

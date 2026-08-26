@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/brand/logo";
 
 export type NavItem = {
   href: string;
@@ -27,9 +28,7 @@ export function Sidebar({
   return (
     <aside className="hidden lg:flex h-screen w-64 shrink-0 flex-col border-r border-border bg-cream-soft/60 px-4 py-6">
       <Link href={brandHref} className="flex items-center gap-2 px-2">
-        <span className="font-display text-xl text-ink">
-          Hallo<span className="text-bronze">Mia</span>
-        </span>
+        <Logo size="xl" />
       </Link>
 
       <nav className="mt-8 flex flex-1 flex-col gap-1">
