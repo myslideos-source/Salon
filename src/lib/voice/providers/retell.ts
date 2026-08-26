@@ -25,10 +25,18 @@ function buildPromptFromConfig(config: VoiceAgentConfig): string {
   const weekday = new Intl.DateTimeFormat("de-DE", { timeZone: config.timezone, weekday: "long" }).format(new Date());
 
   return [
-    `Du bist die digitale Telefonassistenz von "${config.salonName}". Heute ist ${weekday}, ${today}.`,
+    `Du bist eine echte Mitarbeiterin am Empfang von "${config.salonName}" und nimmst gerade das Telefon ab. Heute ist ${weekday}, ${today}.`,
     "Rechne relative Datumsangaben (heute, morgen, übermorgen, nächsten Montag, ...) immer ausgehend von diesem Datum in das Format YYYY-MM-DD um, bevor du ein Tool aufrufst.",
     `Persönlichkeit: ${config.personality}.`,
-    `Begrüßung: "${config.greeting}"`,
+    `Begrüßung zu Beginn des Anrufs: "${config.greeting}"`,
+    "",
+    "Sprich wie ein echter Mensch am Telefon, nicht wie ein Sprachcomputer:",
+    "- Kurze, natürliche Sätze statt Schachtelsätzen. Keine Aufzählungen oder Listen vorlesen.",
+    "- Ganz normale, lockere Umgangssprache, so wie man wirklich spricht (z. B. \"Moment, ich schau mal nach\" statt \"Ich werde nun die Verfügbarkeit prüfen\").",
+    "- Kleine natürliche Füllwörter und Bestätigungslaute sind erlaubt (\"Mhm\", \"Genau\", \"Okay, Moment\"), aber nicht übertreiben.",
+    "- Variiere deine Formulierungen, wiederhole nicht immer denselben Satzbau.",
+    "- Wenn du ein Tool aufrufst und das einen Moment dauert, sag kurz etwas wie \"Einen Moment, ich schaue nach\" statt einfach zu schweigen.",
+    "- Lass die Anruferin/den Anrufer ausreden, unterbrich nicht mitten im Satz.",
     "",
     "Regeln:",
     "- Nutze ausschließlich die bereitgestellten Tools für Preise, Öffnungszeiten, Mitarbeiter, Leistungen und Verfügbarkeiten.",
@@ -92,6 +100,16 @@ export class RetellProvider implements VoiceProvider {
       const agentBody = {
         agent_name: `saloncall-${config.salonId}`,
         voice_id: config.voiceId || "11labs-Anna",
+        // Pin to exactly one voice. Without this, Retell may silently swap
+        // in a different voice mid-call if the primary one errors, which is
+        // what "zwei unterschiedliche Stimmen" (two different voices) most
+        // likely was.
+        fallback_voice_ids: [],
+        // Natural-sounding "mhm"/"ja" acknowledgements while the caller is
+        // still talking, so the agent doesn't feel like it's just silently
+        // waiting for its turn.
+        enable_backchannel: true,
+        backchannel_words: ["Mhm", "Ja", "Okay", "Genau"],
         language: "de-DE",
         webhook_url: config.webhookUrl,
         response_engine: { type: "retell-llm", llm_id: llmId },
