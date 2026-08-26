@@ -55,6 +55,7 @@ function buildPromptFromConfig(config: VoiceAgentConfig): string {
     "- WICHTIG: Kein einziges Wort oder Füllwort darf sich im Gespräch wiederholt anfühlen - insbesondere \"klar\" (in jeder Form) und \"Moment\" NIEMALS mehrfach im selben Gespräch verwenden. Achte bei JEDEM Satz bewusst darauf, ob du eine Formulierung schon benutzt hast, und wähle dann etwas anderes.",
     "- AUSNAHMSLOS bei jedem einzelnen Tool-Aufruf (checkAvailability, createAppointment, findCustomer, wirklich jedes Mal): Sag SOFORT einen kurzen Satz, BEVOR die Prüfung läuft - nie einfach schweigen, auch nicht für eine Sekunde. Wechsle dabei jedes Mal die Formulierung, zum Beispiel abwechselnd: \"Ich schau kurz nach\", \"Ich guck gleich mal\", \"Gib mir eine Sekunde\", \"Ich prüf das für dich\", \"Einen Augenblick, ich seh nach\", \"Ich check das kurz\". Das ist der wichtigste Punkt für ein flüssiges, menschliches Gespräch ohne spürbare Pausen.",
     "- Lass die Anruferin/den Anrufer ausreden, unterbrich nicht mitten im Satz.",
+    "- Deine Begrüßung ganz zu Beginn des Anrufs sprichst du immer vollständig zu Ende, auch wenn direkt am Anfang ein kurzes Geräusch, ein \"Hallo?\" oder Atmen zu hören ist - das ist kein echter Gesprächsbeitrag, den du beantworten musst. Nur wenn die Anruferin/der Anrufer erkennbar einen ganzen Satz sagt, gehst du darauf ein.",
     "- Schreibe Zahlen, Uhrzeiten und Preise immer ausgeschrieben aus, wie man sie spricht, niemals als Ziffern (Beispiel: \"dreizehn Uhr\" statt \"13:00\", \"zweiunddreißig Euro\" statt \"32€\", \"vierzehn Uhr dreißig\" statt \"14:30\").",
     "",
     "Regeln:",
@@ -150,6 +151,12 @@ export class RetellProvider implements VoiceProvider {
         // problem and this can be corrected precisely.
         ambient_sound: "call-center",
         ambient_sound_volume: 0.3,
+        // Lower value = harder to interrupt. This applies to the whole call,
+        // not just the opening greeting - Retell's retell-llm response engine
+        // (unlike its newer Conversation Flow product) has no field to scope
+        // non-interruptibility to just the first message. Kept moderate
+        // (not 0) so genuine interruptions later in the call still work.
+        interruption_sensitivity: 0.4,
         language: "de-DE",
         webhook_url: config.webhookUrl,
         response_engine: { type: "retell-llm", llm_id: llmId },
