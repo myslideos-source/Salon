@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Phone, Calendar, Users, Sparkles, PhoneMissed, Clock3, Moon, HeartHandshake, ChevronDown } from "lucide-react";
+import { Phone, Calendar, Users, Sparkles, PhoneMissed, Clock3, Moon, HeartHandshake, ChevronDown, ShieldCheck, MapPin, UserCheck } from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { DemoAnimation } from "@/components/marketing/demo-animation";
 import { VoiceDemoPlayer } from "@/components/marketing/voice-demo-player";
@@ -142,6 +142,28 @@ export default function LandingPage() {
             className="absolute inset-x-[18%] md:hidden"
             style={{ top: "79%", bottom: "11%" }}
           />
+        </div>
+      </section>
+
+      <section className="border-y border-border/70 bg-cream-soft/40">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-8 px-4 py-10 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+          <div className="flex items-center gap-4 text-left">
+            <span className="brand-gradient-text font-display text-4xl leading-none sm:text-5xl">24/7</span>
+            <p className="max-w-xs text-sm leading-relaxed text-ink-soft">
+              HalloMia arbeitet automatisch rund um die Uhr für dich — mehr Zeit für andere Dinge oder deine Kund:innen.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-ink-soft">
+            <span className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-bronze" /> Made in Germany
+            </span>
+            <span className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-bronze" /> DSGVO-konform · Server in der EU
+            </span>
+            <span className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4 text-bronze" /> Persönliche Einrichtung
+            </span>
+          </div>
         </div>
       </section>
 
