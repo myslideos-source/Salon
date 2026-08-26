@@ -114,7 +114,7 @@ export function Pricing() {
             key={plan.id}
             className={cn(
               "flex flex-col rounded-2xl border p-6",
-              plan.highlighted ? "border-bronze bg-bronze-soft/40 shadow-md" : "border-border bg-white/70"
+              plan.highlighted ? "border-bronze bg-bronze-soft/60 shadow-md" : "border-border bg-white/[0.03] backdrop-blur-sm"
             )}
           >
             {plan.highlighted && (

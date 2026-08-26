@@ -19,7 +19,7 @@ export function VoiceDemoPlayer() {
   }
 
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-border bg-white/70 px-5 py-4">
+    <div className="flex items-center gap-4 rounded-2xl border border-border bg-white/[0.03] px-5 py-4 backdrop-blur-sm">
       <button
         onClick={toggle}
         aria-label={playing ? "Pausieren" : "Abspielen"}

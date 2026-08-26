@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Fraunces, Inter, Poppins } from "next/font/google";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -13,6 +13,16 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+// Bold, rounded geometric sans for the public marketing site (landing page,
+// Impressum/Datenschutz) to match the dark HalloMia mockup - scoped to
+// those pages only via the `.theme-landing` class in globals.css, so the
+// authenticated app/admin portal keeps using Fraunces untouched.
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+});
+
 export const metadata: Metadata = {
   title: "HalloMia",
   description:
@@ -23,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="de"
-      className={`${fraunces.variable} ${inter.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${inter.variable} ${poppins.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-cream text-ink">{children}</body>
     </html>

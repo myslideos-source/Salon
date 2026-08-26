@@ -33,7 +33,7 @@ const FEATURES = [
 
 export default function LandingPage() {
   return (
-    <div className="flex flex-col">
+    <div className="theme-landing flex min-h-screen flex-col bg-cream text-ink">
       <header className="sticky top-0 z-30 border-b border-border/70 bg-cream/85 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Logo size="lg" />
@@ -54,7 +54,8 @@ export default function LandingPage() {
       </header>
 
       <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute -top-24 right-[-10%] h-96 w-96 rounded-full bg-bronze-soft/50 blur-3xl" />
+        <div className="pointer-events-none absolute -top-24 right-[-10%] h-96 w-96 rounded-full bg-bronze/25 blur-[110px]" />
+        <div className="pointer-events-none absolute -bottom-32 left-[-10%] h-96 w-96 rounded-full bg-gold/15 blur-[110px]" />
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-28">
           <div className="animate-rise">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-bronze-soft px-3 py-1 text-xs font-medium text-bronze-dark">
@@ -97,7 +98,7 @@ export default function LandingPage() {
           </div>
           <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map((f) => (
-              <div key={f.title} className="rounded-2xl border border-border bg-white/70 p-6">
+              <div key={f.title} className="rounded-2xl border border-border bg-white/[0.03] p-6 backdrop-blur-sm">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-bronze-soft text-bronze-dark">
                   <f.icon className="h-5 w-5" strokeWidth={1.8} />
                 </div>

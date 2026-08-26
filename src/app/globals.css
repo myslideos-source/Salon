@@ -40,6 +40,47 @@
 
   --background: var(--color-cream);
   --foreground: var(--color-ink);
+
+  /* Self-referential so `.theme-landing` below can override it via the
+     cascade - see the note on @theme inline's font-display entry. */
+  --font-display: var(--font-fraunces);
+  --font-marketing-display: var(--font-poppins);
+}
+
+/* Dark theme for the public marketing site (landing page, Impressum,
+   Datenschutz) to match the HalloMia mockup - near-black background with
+   glowing purple/pink accents. Scoped to a wrapper class (not :root) so the
+   authenticated app/admin portal keeps its light theme untouched: every
+   existing bg-cream/text-ink/etc. className throughout those marketing
+   pages picks up these values automatically via the same token names. */
+.theme-landing {
+  --color-cream: #0c0814;
+  --color-cream-soft: #12101c;
+  --color-sand: #1a1626;
+  --color-beige: #251f36;
+  --color-border: #292236;
+  --color-border-strong: #453a5c;
+
+  --color-ink: #f8f6fc;
+  --color-ink-soft: #beb3d1;
+  --color-ink-faint: #857a9c;
+
+  --color-bronze: #a970ff;
+  --color-bronze-dark: #d9bbff;
+  --color-bronze-soft: #201933;
+
+  --color-gold: #ff5fb8;
+
+  --color-success: #6fcf87;
+  --color-success-soft: #16281c;
+  --color-warning: #f0b955;
+  --color-warning-soft: #2e2210;
+  --color-danger: #ff7a68;
+  --color-danger-soft: #331714;
+  --color-info: #7fb0e0;
+  --color-info-soft: #16232e;
+
+  --font-display: var(--font-marketing-display);
 }
 
 @theme inline {
@@ -75,7 +116,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  --font-display: var(--font-fraunces);
+  --font-display: var(--font-display);
   --font-sans: var(--font-inter);
 
   --animate-fade-in: fade-in 0.4s ease-out;

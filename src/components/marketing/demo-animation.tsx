@@ -23,7 +23,7 @@ export function DemoAnimation() {
   }, []);
 
   return (
-    <div className="rounded-3xl border border-border bg-white/70 p-6 shadow-sm sm:p-8">
+    <div className="rounded-3xl border border-border bg-white/[0.03] p-6 shadow-sm backdrop-blur-sm sm:p-8">
       <div className="mb-6 flex items-center gap-2">
         <span className="relative flex h-2.5 w-2.5">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-bronze/60" />

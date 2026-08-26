@@ -10,7 +10,7 @@ export function ProductShowcase() {
         </p>
       </div>
 
-      <div className="mt-12 overflow-hidden rounded-3xl border border-border bg-white/70 shadow-[0_1px_2px_rgba(38,34,29,0.04)]">
+      <div className="mt-12 overflow-hidden rounded-3xl border border-border bg-white/[0.04] shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-sm">
         <Image
           src="/marketing/dashboard-stats.png"
           alt="HalloMia Dashboard-Kopfzeile mit Tagesübersicht: Anrufe, Termine, Neukunden und Terminwert"
@@ -22,7 +22,7 @@ export function ProductShowcase() {
       </div>
 
       <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-5">
-        <div className="overflow-hidden rounded-3xl border border-border bg-white/70 shadow-[0_1px_2px_rgba(38,34,29,0.04)] lg:col-span-3">
+        <div className="overflow-hidden rounded-3xl border border-border bg-white/[0.04] shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-sm lg:col-span-3">
           <Image
             src="/marketing/dashboard-calendar.png"
             alt="HalloMia Wochenkalender mit farbcodierten Terminen je Mitarbeiterin"
@@ -39,7 +39,7 @@ export function ProductShowcase() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-border bg-white/70 shadow-[0_1px_2px_rgba(38,34,29,0.04)] lg:col-span-2">
+        <div className="overflow-hidden rounded-3xl border border-border bg-white/[0.04] shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-sm lg:col-span-2">
           <Image
             src="/marketing/dashboard-ai-assistant.png"
             alt="KI-Telefonassistent bucht live während des Anrufs einen Termin"
