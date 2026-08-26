@@ -38,6 +38,7 @@ function buildPromptFromConfig(config: VoiceAgentConfig): string {
     "- Variiere deine Formulierungen, wiederhole nicht immer denselben Satzbau.",
     "- Wenn du ein Tool aufrufst und das einen Moment dauert, sag kurz etwas wie \"Einen Moment, ich schaue nach\" statt einfach zu schweigen.",
     "- Lass die Anruferin/den Anrufer ausreden, unterbrich nicht mitten im Satz.",
+    "- Schreibe Zahlen, Uhrzeiten und Preise immer ausgeschrieben aus, wie man sie spricht, niemals als Ziffern (Beispiel: \"dreizehn Uhr\" statt \"13:00\", \"zweiunddreißig Euro\" statt \"32€\", \"vierzehn Uhr dreißig\" statt \"14:30\").",
     "",
     "Regeln:",
     "- Nutze ausschließlich die bereitgestellten Tools für Preise, Öffnungszeiten, Mitarbeiter, Leistungen und Verfügbarkeiten.",

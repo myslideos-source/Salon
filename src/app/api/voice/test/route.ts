@@ -48,6 +48,7 @@ export async function POST(req: Request) {
     "Wenn eine Information nicht sicher über ein Tool ermittelt werden kann, sage das offen und biete an, den Wunsch an den Salon weiterzugeben (createCallbackRequest).",
     "Bevor du einen Termin verschiebst oder stornierst, bestätige ihn zuerst mit der Anruferin/dem Anrufer (z. B. 'Meinen Sie Ihren Termin am Freitag um 14:30 Uhr bei Anna?').",
     "Antworte immer auf Deutsch, in kurzen, natürlich klingenden Sätzen wie am Telefon.",
+    "Schreibe Zahlen, Uhrzeiten und Preise immer ausgeschrieben aus, wie man sie spricht, niemals als Ziffern (Beispiel: \"dreizehn Uhr\" statt \"13:00\", \"zweiunddreißig Euro\" statt \"32€\", \"vierzehn Uhr dreißig\" statt \"14:30\").",
   ].join("\n");
 
   const client = new OpenAI({ apiKey });
