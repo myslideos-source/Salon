@@ -24,10 +24,10 @@ export function VoiceSettingsForm({ salonId, settings }: { salonId: string; sett
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label htmlFor="voice_id">Stimme</Label>
-          <Select id="voice_id" name="voice_id" defaultValue={settings?.voice_id ?? "11labs-Anna"}>
-            <option value="11labs-Anna">Anna (weiblich, warm)</option>
-            <option value="11labs-Marcus">Marcus (männlich, ruhig)</option>
-            <option value="11labs-Lea">Lea (weiblich, energisch)</option>
+          <Select id="voice_id" name="voice_id" defaultValue={settings?.voice_id ?? "11labs-Carola"}>
+            <option value="11labs-Carola">Carola (deutsch, weiblich)</option>
+            <option value="11labs-Claudia">Claudia (deutsch, weiblich)</option>
+            <option value="11labs-Gaby">Gaby (deutsch, weiblich)</option>
           </Select>
         </div>
         <div>

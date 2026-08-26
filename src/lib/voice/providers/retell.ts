@@ -101,7 +101,7 @@ export class RetellProvider implements VoiceProvider {
       // language and defaults to en-US on Retell if left unset.
       const agentBody = {
         agent_name: `saloncall-${config.salonId}`,
-        voice_id: config.voiceId || "11labs-Anna",
+        voice_id: config.voiceId || "11labs-Carola",
         // Pin to exactly one voice. Without this, Retell may silently swap
         // in a different voice mid-call if the primary one errors, which is
         // what "zwei unterschiedliche Stimmen" (two different voices) most
