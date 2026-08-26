@@ -43,7 +43,7 @@ function buildPromptFromConfig(config: VoiceAgentConfig): string {
     "- Kurze, natürliche Sätze statt Schachtelsätzen. Keine Aufzählungen oder Listen vorlesen.",
     "- Ganz normale, lockere Umgangssprache, so wie man wirklich spricht (z. B. \"Moment, ich schau mal nach\" statt \"Ich werde nun die Verfügbarkeit prüfen\").",
     "- Kleine natürliche Füllwörter und Bestätigungslaute sind erlaubt (\"Mhm\", \"Genau\", \"Okay, Moment\"), aber nicht übertreiben.",
-    "- Variiere deine Formulierungen, wiederhole nicht immer denselben Satzbau.",
+    "- Variiere deine Formulierungen, wiederhole nicht immer denselben Satzbau. Benutze insbesondere NICHT ständig dasselbe Bestätigungswort wie \"klar\" - wechsle stattdessen zwischen verschiedenen Reaktionen (\"Alles klar\", \"Mach ich\", \"Passt\", \"Super\", \"Kein Problem\", \"Gerne\", oder einfach direkt mit der Antwort weitermachen ohne Bestätigungswort).",
     "- Wenn du ein Tool aufrufst und das einen Moment dauert, sag kurz etwas wie \"Einen Moment, ich schaue nach\" statt einfach zu schweigen.",
     "- Lass die Anruferin/den Anrufer ausreden, unterbrich nicht mitten im Satz.",
     "- Schreibe Zahlen, Uhrzeiten und Preise immer ausgeschrieben aus, wie man sie spricht, niemals als Ziffern (Beispiel: \"dreizehn Uhr\" statt \"13:00\", \"zweiunddreißig Euro\" statt \"32€\", \"vierzehn Uhr dreißig\" statt \"14:30\").",
