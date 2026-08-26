@@ -41,10 +41,10 @@ function buildPromptFromConfig(config: VoiceAgentConfig): string {
     "GANZ WICHTIG - sprich wie ein echter Mensch am Telefon, flüssig und ohne lange Pausen, nicht wie ein Sprachcomputer:",
     "- Sprich die Anruferin/den Anrufer die ganze Zeit per du an, niemals per Sie.",
     "- Kurze, natürliche Sätze statt Schachtelsätzen. Keine Aufzählungen oder Listen vorlesen.",
-    "- Ganz normale, lockere Umgangssprache, so wie man wirklich spricht (z. B. \"Moment, ich schau mal nach\" statt \"Ich werde nun die Verfügbarkeit prüfen\").",
-    "- Kleine natürliche Füllwörter und Bestätigungslaute sind erlaubt (\"Mhm\", \"Genau\", \"Okay, Moment\"), aber nicht übertreiben.",
-    "- Variiere deine Formulierungen, wiederhole nicht immer denselben Satzbau. Das Wort \"klar\" (auch nicht in \"alles klar\" oder \"ja klar\") ist komplett TABU, benutze es niemals. Wechsle stattdessen zwischen verschiedenen Reaktionen (\"Mach ich\", \"Passt\", \"Super\", \"Kein Problem\", \"Gerne\", \"Okay\", oder einfach direkt mit der Antwort weitermachen ohne Bestätigungswort).",
-    "- AUSNAHMSLOS bei jedem einzelnen Tool-Aufruf (checkAvailability, createAppointment, findCustomer, wirklich jedes Mal): Sag SOFORT einen kurzen Satz wie \"Moment, ich schau mal nach\" oder \"Einen Augenblick\", BEVOR die Prüfung läuft - nie einfach schweigen, auch nicht für eine Sekunde. Das ist der wichtigste Punkt für ein flüssiges, menschliches Gespräch ohne spürbare Pausen.",
+    "- Ganz normale, lockere Umgangssprache, so wie man wirklich spricht (z. B. \"Ich schau kurz nach\" statt \"Ich werde nun die Verfügbarkeit prüfen\").",
+    "- Kleine natürliche Füllwörter und Bestätigungslaute sind erlaubt (\"Mhm\", \"Genau\", \"Okay\"), aber nicht übertreiben.",
+    "- WICHTIG: Kein einziges Wort oder Füllwort darf sich im Gespräch wiederholt anfühlen - insbesondere \"klar\" (in jeder Form) und \"Moment\" NIEMALS mehrfach im selben Gespräch verwenden. Achte bei JEDEM Satz bewusst darauf, ob du eine Formulierung schon benutzt hast, und wähle dann etwas anderes.",
+    "- AUSNAHMSLOS bei jedem einzelnen Tool-Aufruf (checkAvailability, createAppointment, findCustomer, wirklich jedes Mal): Sag SOFORT einen kurzen Satz, BEVOR die Prüfung läuft - nie einfach schweigen, auch nicht für eine Sekunde. Wechsle dabei jedes Mal die Formulierung, zum Beispiel abwechselnd: \"Ich schau kurz nach\", \"Ich guck gleich mal\", \"Gib mir eine Sekunde\", \"Ich prüf das für dich\", \"Einen Augenblick, ich seh nach\", \"Ich check das kurz\". Das ist der wichtigste Punkt für ein flüssiges, menschliches Gespräch ohne spürbare Pausen.",
     "- Lass die Anruferin/den Anrufer ausreden, unterbrich nicht mitten im Satz.",
     "- Schreibe Zahlen, Uhrzeiten und Preise immer ausgeschrieben aus, wie man sie spricht, niemals als Ziffern (Beispiel: \"dreizehn Uhr\" statt \"13:00\", \"zweiunddreißig Euro\" statt \"32€\", \"vierzehn Uhr dreißig\" statt \"14:30\").",
     "",
@@ -129,6 +129,14 @@ export class RetellProvider implements VoiceProvider {
         // proper nouns (employee/service names) instead of mishearing them
         // as similar-sounding common words.
         boosted_keywords: config.boostedKeywords,
+        // Background office ambience so the silent gap during a tool call
+        // reads as "she's typing something up" rather than dead air.
+        // UNVERIFIED: the exact set of valid Retell ambient_sound presets
+        // isn't confirmed from this environment - if this preset name is
+        // wrong, syncAgent's error response will name the actual field/value
+        // problem and this can be corrected precisely.
+        ambient_sound: "call-center",
+        ambient_sound_volume: 0.3,
         language: "de-DE",
         webhook_url: config.webhookUrl,
         response_engine: { type: "retell-llm", llm_id: llmId },
