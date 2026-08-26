@@ -79,7 +79,12 @@ function SignupForm({ plan, onSent }: { plan: string; onSent: () => void }) {
       </div>
       <div>
         <Label htmlFor="message">Nachricht (optional)</Label>
-        <Textarea id="message" name="message" placeholder="Fragen oder Wünsche?" />
+        <Textarea id="message" name="message" placeholder="Fragen, Wünsche oder deine bisherige Telefonnummer?" />
+      </div>
+      <div className="rounded-lg border border-border bg-cream-soft/60 px-3 py-2.5 text-xs text-ink-soft">
+        <strong className="text-ink">Deine bisherige Telefonnummer bleibt erhalten:</strong> Wir richten meist eine
+        Rufumleitung von deiner bestehenden Nummer auf HalloMia ein — schnell, ohne Anbieterwechsel. Eine vollständige
+        Portierung der Nummer ist später jederzeit möglich, falls gewünscht.
       </div>
       <FieldError>{state?.error}</FieldError>
       <p className="text-xs text-ink-faint">
