@@ -4,8 +4,11 @@ import { useActionState, useState, useTransition } from "react";
 import { UploadCloud, CheckCircle2 } from "lucide-react";
 import { Label, Select, Textarea, FieldError } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
-import { updateSalonVoiceSettingsAction, syncActiveVoiceAgentAction } from "@/lib/actions/salon-voice-settings";
-import type { ActionState } from "@/lib/actions/admin";
+import {
+  updateSalonVoiceSettingsAction,
+  syncActiveVoiceAgentAction,
+  type AiSettingsActionState,
+} from "@/lib/actions/salon-voice-settings";
 import type { Tables } from "@/lib/supabase/database.types";
 
 const RULES: { key: keyof Pick<Tables<"voice_settings">, "mention_prices" | "offer_alternatives" | "respect_employee_preference" | "offer_callback" | "detect_new_customers" | "send_confirmation_sms" | "emergency_redirect">; label: string }[] = [
@@ -19,26 +22,24 @@ const RULES: { key: keyof Pick<Tables<"voice_settings">, "mention_prices" | "off
 ];
 
 export function AiSettingsForm({ settings }: { settings: Tables<"voice_settings"> | null }) {
-  const [state, formAction, pending] = useActionState<ActionState, FormData>(updateSalonVoiceSettingsAction, null);
+  const [state, formAction, pending] = useActionState<AiSettingsActionState, FormData>(updateSalonVoiceSettingsAction, null);
   const [showCancellationHours, setShowCancellationHours] = useState(settings?.mention_cancellation_policy ?? false);
 
-  const [syncPending, startSync] = useTransition();
-  const [agentId, setAgentId] = useState(
-    settings?.provider === "elevenlabs" ? settings?.elevenlabs_agent_id ?? null : settings?.provider_agent_id ?? null
-  );
-  const [syncError, setSyncError] = useState<string | null>(null);
-  const [synced, setSynced] = useState(false);
+  const [retryPending, startRetry] = useTransition();
+  const [retryError, setRetryError] = useState<string | null>(null);
+  const [retried, setRetried] = useState(false);
 
-  function sync() {
-    setSyncError(null);
-    setSynced(false);
-    startSync(async () => {
+  const hasAgent = Boolean(settings?.provider === "elevenlabs" ? settings?.elevenlabs_agent_id : settings?.provider_agent_id);
+
+  function retrySync() {
+    setRetryError(null);
+    setRetried(false);
+    startRetry(async () => {
       const result = await syncActiveVoiceAgentAction();
       if (result.ok) {
-        setAgentId(result.agentId);
-        setSynced(true);
+        setRetried(true);
       } else {
-        setSyncError(result.error);
+        setRetryError(result.error);
       }
     });
   }
@@ -134,29 +135,36 @@ export function AiSettingsForm({ settings }: { settings: Tables<"voice_settings"
         <FieldError>{state?.error}</FieldError>
         <div className="flex items-center gap-3">
           <Button type="submit" variant="gradient" disabled={pending}>
-            {pending ? "Wird gespeichert…" : "Speichern"}
+            <UploadCloud className="h-4 w-4" />
+            {pending ? "Wird gespeichert und übertragen…" : "Speichern & übertragen"}
           </Button>
-          {state?.ok && <span className="text-sm text-success">Gespeichert.</span>}
+          {state?.ok && !state.syncWarning && (
+            <span className="flex items-center gap-1.5 text-sm text-success">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Gespeichert und live übertragen.
+            </span>
+          )}
         </div>
+        <p className="text-xs text-ink-faint">
+          Ein Klick speichert deine Änderungen und schickt sie sofort an deinen Telefonassistenten - {hasAgent ? "keine weiteren Schritte nötig" : "beim ersten Mal wird dabei auch der Assistent angelegt"}.
+        </p>
       </form>
 
-      <div className="rounded-xl border border-border bg-cream-soft/60 p-4 space-y-3">
-        <p className="text-sm font-medium text-ink">An deine KI übertragen</p>
-        <p className="text-xs text-ink-faint">
-          Speichere zuerst deine Änderungen oben, dann überträgt dieser Schritt sie an deinen Telefonassistenten.
-        </p>
-        {agentId && (
-          <p className="flex items-center gap-1.5 text-xs text-success">
-            <CheckCircle2 className="h-3.5 w-3.5" /> Bereits übertragen
+      {state?.ok && state.syncWarning && (
+        <div className="rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 space-y-2">
+          <p className="text-sm text-ink">
+            Gespeichert, aber die Übertragung an deinen Telefonassistenten ist fehlgeschlagen: {state.syncWarning}
           </p>
-        )}
-        {syncError && <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{syncError}</p>}
-        <Button variant="gradient" onClick={sync} disabled={syncPending}>
-          <UploadCloud className="h-4 w-4" />
-          {syncPending ? "Wird übertragen…" : "Übertragen"}
-        </Button>
-        {synced && <p className="text-sm text-success">Übertragen.</p>}
-      </div>
+          <Button variant="gradient" size="sm" onClick={retrySync} disabled={retryPending}>
+            {retryPending ? "Wird erneut versucht…" : "Erneut versuchen"}
+          </Button>
+          {retryError && <p className="text-sm text-danger">{retryError}</p>}
+          {retried && (
+            <p className="flex items-center gap-1.5 text-sm text-success">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Übertragen.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

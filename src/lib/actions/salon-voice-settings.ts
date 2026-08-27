@@ -7,8 +7,9 @@ import { requireSalonSession, resolveActiveSalonId } from "@/lib/auth/session";
 import { retellProvider } from "@/lib/voice/providers/retell";
 import { elevenLabsProvider } from "@/lib/voice/providers/elevenlabs";
 import { loadVoiceAgentContext } from "@/lib/voice/build-config";
-import type { ActionState } from "@/lib/actions/admin";
 import type { SyncResult } from "@/lib/actions/retell";
+
+export type AiSettingsActionState = { error?: string; ok?: boolean; syncWarning?: string } | null;
 
 // Customer-facing counterpart to lib/actions/voice-settings.ts (admin-only).
 // Exposes only what a salon owner should be able to touch themselves -
@@ -31,7 +32,13 @@ const schema = z.object({
   required_documents: z.string().max(500).optional().or(z.literal("")),
 });
 
-export async function updateSalonVoiceSettingsAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+// Saves the settings and immediately pushes them live in one step - a
+// separate manual "Übertragen" click used to be required after saving,
+// which meant a saved-but-not-synced state was easy to miss. Save failures
+// still block (error), but a sync failure after a successful save is
+// reported as a non-blocking warning since the settings themselves are
+// safely stored either way and syncActiveVoiceAgentAction can retry later.
+export async function updateSalonVoiceSettingsAction(_prev: AiSettingsActionState, formData: FormData): Promise<AiSettingsActionState> {
   const session = await requireSalonSession();
   const salonId = resolveActiveSalonId(session);
   if (!salonId) return { error: "Kein Salon gefunden." };
@@ -61,19 +68,27 @@ export async function updateSalonVoiceSettingsAction(_prev: ActionState, formDat
   });
 
   if (error) return { error: error.message };
+
+  const syncResult = await performSync(supabase, salonId);
   revalidatePath("/app/ai");
+  if (!syncResult.ok) return { ok: true, syncWarning: syncResult.error };
   return { ok: true };
 }
 
-// Syncs whichever provider is currently active for this salon (set by the
-// admin in voice_settings.provider) - the salon owner doesn't need to know
-// or choose between Retell/ElevenLabs, just click one "Übertragen" button.
+// Manual retry, exposed for the fallback button that appears when the
+// automatic sync inside updateSalonVoiceSettingsAction above failed (e.g. a
+// transient ElevenLabs error) - lets the owner retry without re-saving.
 export async function syncActiveVoiceAgentAction(): Promise<SyncResult> {
   const session = await requireSalonSession();
   const salonId = resolveActiveSalonId(session);
   if (!salonId) return { ok: false, error: "Kein Salon gefunden." };
-
   const supabase = await createClient();
+  const result = await performSync(supabase, salonId);
+  revalidatePath("/app/ai");
+  return result;
+}
+
+async function performSync(supabase: Awaited<ReturnType<typeof createClient>>, salonId: string): Promise<SyncResult> {
   const context = await loadVoiceAgentContext(supabase, salonId);
   if (!context.ok) return { ok: false, error: context.error };
   const { settings, configBase } = context;
