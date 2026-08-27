@@ -13,6 +13,7 @@ import { TodayAppointmentsCard } from "./today-appointments-card";
 import { WeekStatsCard } from "./week-stats-card";
 import { EmployeeFilter } from "./employee-filter";
 import { NewAppointmentModal } from "./new-appointment-modal";
+import { CalendarFeedCard } from "@/components/portal/calendar-feed-card";
 import {
   getDayCalendarDataAction,
   getSalonEmployeesAction,
@@ -35,6 +36,7 @@ export function CalendarShell({
   canEdit,
   avatarLabel,
   initialDate,
+  showCalendarFeed,
 }: {
   salonId: string;
   basePath: string;
@@ -44,6 +46,9 @@ export function CalendarShell({
   canEdit: boolean;
   avatarLabel: string;
   initialDate?: string;
+  /** Salon-portal self-service ICS calendar-subscription card - not shown
+   * in the admin calendar, which manages many salons at once. */
+  showCalendarFeed?: boolean;
 }) {
   const [view, setView] = useState<View>("week");
   const [date, setDate] = useState(initialDate ?? todayStr());
@@ -146,6 +151,8 @@ export function CalendarShell({
           )
         }
       />
+
+      {showCalendarFeed && <CalendarFeedCard />}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">

@@ -681,6 +681,7 @@ export type Database = {
         Row: {
           address: string | null
           ai_active: boolean
+          calendar_feed_token: string | null
           created_at: string
           earliest_booking_lead_minutes: number
           id: string
@@ -697,6 +698,7 @@ export type Database = {
         Insert: {
           address?: string | null
           ai_active?: boolean
+          calendar_feed_token?: string | null
           created_at?: string
           earliest_booking_lead_minutes?: number
           id?: string
@@ -713,6 +715,7 @@ export type Database = {
         Update: {
           address?: string | null
           ai_active?: boolean
+          calendar_feed_token?: string | null
           created_at?: string
           earliest_booking_lead_minutes?: number
           id?: string
@@ -952,6 +955,10 @@ export type Database = {
       }
       is_platform_admin: { Args: never; Returns: boolean }
       is_salon_member: { Args: { target_salon_id: string }; Returns: boolean }
+      regenerate_calendar_feed_token: {
+        Args: { target_salon_id: string }
+        Returns: string
+      }
       toggle_salon_ai: {
         Args: { active: boolean; target_salon_id: string }
         Returns: undefined

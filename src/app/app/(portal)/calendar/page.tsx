@@ -25,6 +25,7 @@ export default async function SalonCalendarPage() {
       slotGranularity={salon?.slot_granularity_minutes ?? 15}
       canEdit
       avatarLabel={session.email ?? "Salon"}
+      showCalendarFeed
     />
   );
 }
