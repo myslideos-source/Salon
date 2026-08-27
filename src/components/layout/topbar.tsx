@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Bell } from "lucide-react";
 import { initials } from "@/lib/utils";
 
@@ -105,11 +106,14 @@ export function Topbar({
   title,
   subtitle,
   avatarLabel,
+  avatarImageUrl,
   right,
 }: {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   avatarLabel: string;
+  /** Real photo instead of the initials fallback (e.g. the admin avatar). */
+  avatarImageUrl?: string;
   right?: React.ReactNode;
 }) {
   return (
@@ -123,9 +127,19 @@ export function Topbar({
       <div className="flex shrink-0 items-center gap-3">
         {right}
         <NotificationsBell />
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-bronze-soft text-xs font-semibold text-bronze-dark">
-          {initials(avatarLabel.split(" ")[0] ?? "S", avatarLabel.split(" ")[1] ?? "C")}
-        </div>
+        {avatarImageUrl ? (
+          <Image
+            src={avatarImageUrl}
+            alt={avatarLabel}
+            width={36}
+            height={36}
+            className="h-9 w-9 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-bronze-soft text-xs font-semibold text-bronze-dark">
+            {initials(avatarLabel.split(" ")[0] ?? "S", avatarLabel.split(" ")[1] ?? "C")}
+          </div>
+        )}
       </div>
     </header>
   );

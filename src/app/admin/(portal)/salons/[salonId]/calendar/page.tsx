@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { CalendarShell } from "@/components/calendar/calendar-shell";
+import { ADMIN_AVATAR_URL } from "@/lib/utils";
 
 export default async function AdminSalonCalendarPage({
   params,
@@ -27,6 +28,7 @@ export default async function AdminSalonCalendarPage({
       slotGranularity={salon?.slot_granularity_minutes ?? 15}
       canEdit
       avatarLabel="Admin"
+      avatarImageUrl={ADMIN_AVATAR_URL}
     />
   );
 }

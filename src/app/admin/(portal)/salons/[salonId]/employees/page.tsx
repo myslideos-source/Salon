@@ -12,7 +12,7 @@ export default async function AdminEmployeesPage({
   const supabase = await createClient();
   const { data: employees } = await supabase
     .from("employees")
-    .select("id, first_name, last_name, color, active, sort_order")
+    .select("id, first_name, last_name, color, active, sort_order, avatar_url")
     .eq("salon_id", salonId)
     .order("sort_order")
     .order("first_name");

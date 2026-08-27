@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Topbar } from "@/components/layout/topbar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, ADMIN_AVATAR_URL } from "@/lib/utils";
 
 export default async function AdminAllAppointmentsPage() {
   const supabase = await createClient();
@@ -20,7 +20,7 @@ export default async function AdminAllAppointmentsPage() {
 
   return (
     <div>
-      <Topbar title="Termine" subtitle="Kommende Termine, alle Salons" avatarLabel="Admin" />
+      <Topbar title="Termine" subtitle="Kommende Termine, alle Salons" avatarLabel="Admin" avatarImageUrl={ADMIN_AVATAR_URL} />
       <div className="p-4 sm:p-6 lg:p-8">
         <Card>
           <div className="divide-y divide-border">

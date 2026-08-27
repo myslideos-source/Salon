@@ -25,6 +25,7 @@ export type CalendarEmployee = {
   firstName: string;
   lastName: string;
   color: string;
+  avatarUrl: string | null;
   workingHours: { startTime: string; endTime: string }[];
 };
 
@@ -32,11 +33,18 @@ export async function getSalonEmployeesAction(salonId: string): Promise<Calendar
   const supabase = await createClient();
   const { data: employees } = await supabase
     .from("employees")
-    .select("id, first_name, last_name, color")
+    .select("id, first_name, last_name, color, avatar_url")
     .eq("salon_id", salonId)
     .eq("active", true)
     .order("sort_order");
-  return (employees ?? []).map((e) => ({ id: e.id, firstName: e.first_name, lastName: e.last_name, color: e.color, workingHours: [] }));
+  return (employees ?? []).map((e) => ({
+    id: e.id,
+    firstName: e.first_name,
+    lastName: e.last_name,
+    color: e.color,
+    avatarUrl: e.avatar_url,
+    workingHours: [],
+  }));
 }
 
 export async function getDayCalendarDataAction(salonId: string, date: string) {
@@ -49,7 +57,7 @@ export async function getDayCalendarDataAction(salonId: string, date: string) {
   const bounds = timezone === "Europe/Berlin" ? { start: dayStart, end: dayEnd } : localDayBoundsUtc(date, timezone);
 
   const [{ data: employees }, { data: workingHours }, { data: businessHours }, { data: appointments }] = await Promise.all([
-    supabase.from("employees").select("id, first_name, last_name, color").eq("salon_id", salonId).eq("active", true).order("sort_order"),
+    supabase.from("employees").select("id, first_name, last_name, color, avatar_url").eq("salon_id", salonId).eq("active", true).order("sort_order"),
     supabase.from("employee_working_hours").select("employee_id, start_time, end_time").eq("salon_id", salonId).eq("weekday", weekday),
     supabase.from("business_hours").select("is_closed, start_time, end_time").eq("salon_id", salonId).eq("weekday", weekday).maybeSingle(),
     supabase
@@ -69,6 +77,7 @@ export async function getDayCalendarDataAction(salonId: string, date: string) {
     firstName: e.first_name,
     lastName: e.last_name,
     color: e.color,
+    avatarUrl: e.avatar_url,
     workingHours: (workingHours ?? [])
       .filter((w) => w.employee_id === e.id)
       .map((w) => ({ startTime: w.start_time, endTime: w.end_time })),
@@ -119,7 +128,7 @@ export async function getWeekCalendarDataAction(salonId: string, dates: string[]
   const weekdays = dates.map((d) => weekdayOf(d));
 
   const [{ data: employees }, { data: businessHoursRows }, { data: appointments }] = await Promise.all([
-    supabase.from("employees").select("id, first_name, last_name, color").eq("salon_id", salonId).eq("active", true).order("sort_order"),
+    supabase.from("employees").select("id, first_name, last_name, color, avatar_url").eq("salon_id", salonId).eq("active", true).order("sort_order"),
     supabase.from("business_hours").select("weekday, is_closed, start_time, end_time").eq("salon_id", salonId).in("weekday", weekdays),
     supabase
       .from("appointments")
@@ -138,6 +147,7 @@ export async function getWeekCalendarDataAction(salonId: string, dates: string[]
     firstName: e.first_name,
     lastName: e.last_name,
     color: e.color,
+    avatarUrl: e.avatar_url,
     workingHours: [],
   }));
 

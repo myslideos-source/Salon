@@ -17,7 +17,17 @@ const OUTCOME_LABEL: Record<string, { label: string; tone: "success" | "info" | 
 
 const STATUS_ICON = { completed: Phone, missed: PhoneMissed, voicemail: Voicemail, in_progress: Phone };
 
-export async function CallsView({ salonId, avatarLabel, basePath }: { salonId: string; avatarLabel: string; basePath: string }) {
+export async function CallsView({
+  salonId,
+  avatarLabel,
+  avatarImageUrl,
+  basePath,
+}: {
+  salonId: string;
+  avatarLabel: string;
+  avatarImageUrl?: string;
+  basePath: string;
+}) {
   const supabase = await createClient();
   const [{ data: calls }, { data: callbacks }] = await Promise.all([
     supabase
@@ -38,7 +48,7 @@ export async function CallsView({ salonId, avatarLabel, basePath }: { salonId: s
 
   return (
     <div>
-      <Topbar title="Anrufe" subtitle={`${(calls ?? []).length} Anrufe protokolliert`} avatarLabel={avatarLabel} />
+      <Topbar title="Anrufe" subtitle={`${(calls ?? []).length} Anrufe protokolliert`} avatarLabel={avatarLabel} avatarImageUrl={avatarImageUrl} />
       <div className="grid grid-cols-1 gap-6 p-4 sm:p-6 lg:p-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Card>

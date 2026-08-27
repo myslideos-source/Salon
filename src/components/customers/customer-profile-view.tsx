@@ -19,11 +19,13 @@ export async function CustomerProfileView({
   customerId,
   basePath,
   avatarLabel,
+  avatarImageUrl,
 }: {
   salonId: string;
   customerId: string;
   basePath: string;
   avatarLabel: string;
+  avatarImageUrl?: string;
 }) {
   const supabase = await createClient();
   const [{ data: customer }, { data: employees }] = await Promise.all([
@@ -52,6 +54,7 @@ export async function CustomerProfileView({
         title={`${customer.first_name} ${customer.last_name}`.trim() || customer.phone}
         subtitle={customer.phone}
         avatarLabel={avatarLabel}
+        avatarImageUrl={avatarImageUrl}
         right={<EditCustomerButton salonId={salonId} redirectPath={basePath} employees={employees ?? []} customer={customer} />}
       />
       <div className="grid grid-cols-1 gap-6 p-4 sm:p-6 lg:p-8 lg:grid-cols-3">

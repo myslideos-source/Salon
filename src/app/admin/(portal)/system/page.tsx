@@ -3,6 +3,7 @@ import { Topbar } from "@/components/layout/topbar";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { ADMIN_AVATAR_URL } from "@/lib/utils";
 
 const ENV_CHECKS = [
   { key: "NEXT_PUBLIC_SUPABASE_URL", label: "Supabase URL" },
@@ -25,7 +26,7 @@ export default async function AdminSystemPage() {
 
   return (
     <div>
-      <Topbar title="Systemstatus" avatarLabel="Admin" />
+      <Topbar title="Systemstatus" avatarLabel="Admin" avatarImageUrl={ADMIN_AVATAR_URL} />
       <div className="grid grid-cols-1 gap-6 p-4 sm:p-6 lg:p-8 lg:grid-cols-2">
         <Card>
           <CardHeader title="Plattform" />

@@ -10,10 +10,12 @@ export async function CustomersView({
   salonId,
   basePath,
   avatarLabel,
+  avatarImageUrl,
 }: {
   salonId: string;
   basePath: string;
   avatarLabel: string;
+  avatarImageUrl?: string;
 }) {
   const supabase = await createClient();
   const [{ data: customers }, { data: employees }] = await Promise.all([
@@ -50,6 +52,7 @@ export async function CustomersView({
         title="Kunden"
         subtitle={`${(customers ?? []).length} Kunden insgesamt`}
         avatarLabel={avatarLabel}
+        avatarImageUrl={avatarImageUrl}
         right={<NewCustomerButton salonId={salonId} redirectPath={basePath} employees={employees ?? []} />}
       />
       <div className="p-4 sm:p-6 lg:p-8 space-y-2">

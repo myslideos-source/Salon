@@ -3,6 +3,7 @@ import { requirePlatformAdmin } from "@/lib/auth/session";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardHeader } from "@/components/ui/card";
 import { SignupRequestRow } from "@/components/admin/signup-request-row";
+import { ADMIN_AVATAR_URL } from "@/lib/utils";
 
 export default async function AdminSignupsPage() {
   const session = await requirePlatformAdmin();
@@ -17,7 +18,7 @@ export default async function AdminSignupsPage() {
 
   return (
     <div>
-      <Topbar title="Anfragen" subtitle={`Angemeldet als ${session.email}`} avatarLabel="Admin" />
+      <Topbar title="Anfragen" subtitle={`Angemeldet als ${session.email}`} avatarLabel="Admin" avatarImageUrl={ADMIN_AVATAR_URL} />
       <div className="p-4 sm:p-6 lg:p-8">
         <Card>
           <CardHeader title="Paket-Anfragen" subtitle={`${openCount} neu`} />

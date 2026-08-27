@@ -35,6 +35,7 @@ export function CalendarShell({
   slotGranularity,
   canEdit,
   avatarLabel,
+  avatarImageUrl,
   initialDate,
   showCalendarFeed,
 }: {
@@ -45,6 +46,7 @@ export function CalendarShell({
   slotGranularity: number;
   canEdit: boolean;
   avatarLabel: string;
+  avatarImageUrl?: string;
   initialDate?: string;
   /** Salon-portal self-service ICS calendar-subscription card - not shown
    * in the admin calendar, which manages many salons at once. */
@@ -191,6 +193,7 @@ export function CalendarShell({
         title="Kalender"
         subtitle="Behalte alle Termine im Blick."
         avatarLabel={avatarLabel}
+        avatarImageUrl={avatarImageUrl}
         right={
           <div className="flex items-center gap-2">
             <button

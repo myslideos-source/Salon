@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Phone, ArrowRight } from "lucide-react";
 import { NewSalonButton } from "@/components/admin/new-salon-button";
+import { ADMIN_AVATAR_URL } from "@/lib/utils";
 
 export default async function AdminSalonsPage() {
   const session = await requirePlatformAdmin();
@@ -28,7 +29,7 @@ export default async function AdminSalonsPage() {
 
   return (
     <div>
-      <Topbar title="Salons" subtitle={`Angemeldet als ${session.email}`} avatarLabel="Admin" right={<NewSalonButton />} />
+      <Topbar title="Salons" subtitle={`Angemeldet als ${session.email}`} avatarLabel="Admin" avatarImageUrl={ADMIN_AVATAR_URL} right={<NewSalonButton />} />
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {(salons ?? []).map((salon) => (

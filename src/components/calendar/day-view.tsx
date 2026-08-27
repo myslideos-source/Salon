@@ -163,12 +163,17 @@ export function DayView({
         {employees.map((emp) => (
           <div key={emp.id} className="flex-1 min-w-[200px] border-l border-border first:border-l-0">
             <div className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b border-border bg-cream-soft/90 px-3 backdrop-blur-sm">
-              <span
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white"
-                style={{ backgroundColor: emp.color }}
-              >
-                {initials(emp.firstName, emp.lastName)}
-              </span>
+              {emp.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- user-uploaded Supabase Storage URL, not a local/known asset
+                <img src={emp.avatarUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+              ) : (
+                <span
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+                  style={{ backgroundColor: emp.color }}
+                >
+                  {initials(emp.firstName, emp.lastName)}
+                </span>
+              )}
               <span className="truncate text-sm font-medium text-ink">{emp.firstName}</span>
             </div>
             <div
