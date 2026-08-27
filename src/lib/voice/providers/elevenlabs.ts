@@ -129,6 +129,12 @@ export class ElevenLabsProvider implements VoiceProvider {
             // pick a real German voice ID from the ElevenLabs voice library
             // under "KI-Einstellungen" once synced, then sync again.
             voice_id: config.voiceId || undefined,
+            // ElevenLabs rejects non-English agents outright without this:
+            // "Non-english Agents must use turbo or flash V2_5" (confirmed
+            // live). Turbo v2.5 is the more natural-sounding of the two
+            // multilingual-capable options; Flash v2.5 trades some quality
+            // for lower latency if turbo ever feels too slow in a real call.
+            model_id: "eleven_turbo_v2_5",
           },
         },
       };
