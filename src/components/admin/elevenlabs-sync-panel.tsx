@@ -31,7 +31,7 @@ export function ElevenLabsSyncPanel({
 
   return (
     <Card>
-      <CardHeader title="ElevenLabs-Telefonassistent (Test)" subtitle="Alternative zu Retell — überträgt Begrüßung, Stimme und Regeln zu ElevenLabs." />
+      <CardHeader title="ElevenLabs-Telefonassistent" subtitle="Überträgt Begrüßung, Stimme und Regeln zu ElevenLabs." />
       <div className="p-5 pt-4 space-y-4">
         {agentId && (
           <p className="flex items-center gap-1.5 text-xs text-success">
@@ -56,8 +56,8 @@ export function ElevenLabsSyncPanel({
 
         <p className="text-xs text-ink-faint">
           Trägt intern <code className="rounded bg-sand px-1">ELEVENLABS_API_KEY</code> zum Anlegen/Aktualisieren des
-          Agents bei ElevenLabs ein. Solange die Twilio-Nummer noch nicht dorthin umgehängt ist, kann dieser Agent
-          gefahrlos parallel zum Retell-Agenten getestet werden, ohne den Live-Betrieb zu beeinflussen.
+          Agents bei ElevenLabs ein. Beide Agenten (Retell und ElevenLabs) können unabhängig voneinander synchronisiert
+          bleiben — nur die Telefonnummer entscheidet, welcher davon echte Anrufe entgegennimmt.
         </p>
       </div>
     </Card>

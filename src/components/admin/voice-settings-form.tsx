@@ -41,7 +41,7 @@ export function VoiceSettingsForm({ salonId, settings }: { salonId: string; sett
         <Label htmlFor="provider">Aktiver Anbieter</Label>
         <Select id="provider" name="provider" defaultValue={settings?.provider ?? "retell"}>
           <option value="retell">Retell (live)</option>
-          <option value="elevenlabs">ElevenLabs (Test)</option>
+          <option value="elevenlabs">ElevenLabs</option>
         </Select>
         <p className="mt-1 text-xs text-ink-faint">
           Legt nur fest, welcher Anbieter beim täglichen automatischen Resync als &bdquo;der echte&ldquo; behandelt
@@ -71,7 +71,7 @@ export function VoiceSettingsForm({ salonId, settings }: { salonId: string; sett
       </div>
 
       <div>
-        <Label htmlFor="elevenlabs_voice_select">Stimme (ElevenLabs, Test)</Label>
+        <Label htmlFor="elevenlabs_voice_select">Stimme (ElevenLabs)</Label>
         <Select
           id="elevenlabs_voice_select"
           value={elevenLabsChoice}
