@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, BellRing } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, BellRing, Bell, BellOff } from "lucide-react";
 import { Topbar } from "@/components/layout/topbar";
 import { DayView } from "./day-view";
 import { WeekGrid } from "./week-grid";
@@ -66,6 +66,52 @@ export function CalendarShell({
   const [showNew, setShowNew] = useState(false);
   const [weekRefreshKey, setWeekRefreshKey] = useState(0);
   const [liveNotice, setLiveNotice] = useState<string | null>(null);
+  const [notifyEnabled, setNotifyEnabled] = useState(false);
+  const notifyEnabledRef = useRef(notifyEnabled);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of a per-browser preference, not app state
+    setNotifyEnabled(localStorage.getItem("hallomia_calendar_notify") === "1");
+  }, []);
+
+  useEffect(() => {
+    notifyEnabledRef.current = notifyEnabled;
+  }, [notifyEnabled]);
+
+  function playChime() {
+    const AudioCtx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = (audioCtxRef.current ??= new AudioCtx());
+    const now = ctx.currentTime;
+    [880, 1318.5].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, now + i * 0.12);
+      gain.gain.linearRampToValueAtTime(0.2, now + i * 0.12 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.3);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + i * 0.12);
+      osc.stop(now + i * 0.12 + 0.32);
+    });
+  }
+
+  // Toggling is the user gesture that unlocks audio playback for the rest
+  // of the page's lifetime (browsers block AudioContext without one) and,
+  // on first enable, asks for OS-notification permission so a new booking
+  // still alerts the salon even while this tab is in the background - the
+  // "wie man's vom Handy kennt" behavior.
+  function toggleNotify() {
+    const next = !notifyEnabled;
+    setNotifyEnabled(next);
+    localStorage.setItem("hallomia_calendar_notify", next ? "1" : "0");
+    if (!next) return;
+    const AudioCtx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (AudioCtx) audioCtxRef.current ??= new AudioCtx();
+    if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
+  }
 
   const load = useCallback(() => {
     setLoading(true);
@@ -109,6 +155,12 @@ export function CalendarShell({
           if (payload.eventType === "INSERT") {
             setLiveNotice("Neuer Termin eingegangen");
             setTimeout(() => setLiveNotice(null), 5000);
+            if (notifyEnabledRef.current) {
+              playChime();
+              if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+                new Notification("HalloMia", { body: "Neuer Termin eingegangen", tag: "hallomia-new-appointment" });
+              }
+            }
           }
           if (viewRef.current === "day") loadRef.current();
           setWeekRefreshKey((k) => k + 1);
@@ -140,15 +192,28 @@ export function CalendarShell({
         subtitle="Behalte alle Termine im Blick."
         avatarLabel={avatarLabel}
         right={
-          canEdit && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowNew(true)}
-              aria-label="Neuer Termin"
-              className="brand-gradient-bg flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold text-white shadow-[0_0_20px_rgba(169,112,255,0.25)] transition-opacity hover:opacity-90"
+              onClick={toggleNotify}
+              aria-label={notifyEnabled ? "Live-Benachrichtigung mit Ton ausschalten" : "Live-Benachrichtigung mit Ton einschalten"}
+              title={notifyEnabled ? "Live-Benachrichtigung mit Ton ist an" : "Live-Benachrichtigung mit Ton einschalten"}
+              className={cn(
+                "rounded-xl p-2 transition-colors",
+                notifyEnabled ? "bg-bronze-soft text-bronze-dark" : "text-ink-soft hover:bg-sand"
+              )}
             >
-              <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Neuer Termin</span>
+              {notifyEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
             </button>
-          )
+            {canEdit && (
+              <button
+                onClick={() => setShowNew(true)}
+                aria-label="Neuer Termin"
+                className="brand-gradient-bg flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold text-white shadow-[0_0_20px_rgba(169,112,255,0.25)] transition-opacity hover:opacity-90"
+              >
+                <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Neuer Termin</span>
+              </button>
+            )}
+          </div>
         }
       />
 

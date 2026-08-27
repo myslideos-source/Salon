@@ -151,9 +151,7 @@ export function AiSettingsForm({ settings }: { settings: Tables<"voice_settings"
 
       {state?.ok && state.syncWarning && (
         <div className="rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 space-y-2">
-          <p className="text-sm text-ink">
-            Gespeichert, aber die Übertragung an deinen Telefonassistenten ist fehlgeschlagen: {state.syncWarning}
-          </p>
+          <p className="text-sm text-ink">Gespeichert. {state.syncWarning}</p>
           <Button variant="gradient" size="sm" onClick={retrySync} disabled={retryPending}>
             {retryPending ? "Wird erneut versucht…" : "Erneut versuchen"}
           </Button>

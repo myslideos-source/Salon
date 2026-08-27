@@ -71,13 +71,13 @@ export async function updateSalonVoiceSettingsAction(_prev: AiSettingsActionStat
 
   const syncResult = await performSync(supabase, salonId);
   revalidatePath("/app/ai");
-  if (!syncResult.ok) return { ok: true, syncWarning: syncResult.error };
+  if (!syncResult.ok) return { ok: true, syncWarning: sanitizeSyncError(syncResult.error) };
   return { ok: true };
 }
 
 // Manual retry, exposed for the fallback button that appears when the
 // automatic sync inside updateSalonVoiceSettingsAction above failed (e.g. a
-// transient ElevenLabs error) - lets the owner retry without re-saving.
+// transient provider error) - lets the owner retry without re-saving.
 export async function syncActiveVoiceAgentAction(): Promise<SyncResult> {
   const session = await requireSalonSession();
   const salonId = resolveActiveSalonId(session);
@@ -85,7 +85,18 @@ export async function syncActiveVoiceAgentAction(): Promise<SyncResult> {
   const supabase = await createClient();
   const result = await performSync(supabase, salonId);
   revalidatePath("/app/ai");
+  if (!result.ok) return { ok: false, error: sanitizeSyncError(result.error) };
   return result;
+}
+
+// Which voice-AI vendor we use behind the scenes (currently ElevenLabs) is
+// admin-only knowledge - the admin sync panel shows the real provider error
+// for debugging, but nothing customer-facing should ever surface a vendor
+// name or raw API error text. Logged server-side so the real error is still
+// diagnosable from the Vercel function logs.
+function sanitizeSyncError(raw: string): string {
+  console.error("[salon-voice-settings] sync failed:", raw);
+  return "Die Übertragung an deinen Telefonassistenten hat gerade nicht geklappt. Bitte versuche es in ein paar Minuten erneut oder kontaktiere den Support.";
 }
 
 async function performSync(supabase: Awaited<ReturnType<typeof createClient>>, salonId: string): Promise<SyncResult> {
