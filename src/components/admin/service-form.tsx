@@ -8,7 +8,7 @@ import { createServiceAction, type ActionState } from "@/lib/actions/admin";
 
 const PALETTE = ["#8A7159", "#4F7D5C", "#B8873F", "#4F6F8F", "#B1533F", "#7C8B6E"];
 
-export function ServiceForm({ salonId }: { salonId: string }) {
+export function ServiceForm({ salonId, showPrice = true }: { salonId: string; showPrice?: boolean }) {
   const action = createServiceAction.bind(null, salonId);
   const [state, formAction, pending] = useActionState<ActionState, FormData>(action, null);
   const [priceEuro, setPriceEuro] = useState("");
@@ -23,25 +23,29 @@ export function ServiceForm({ salonId }: { salonId: string }) {
         <Label htmlFor="category">Kategorie</Label>
         <Input id="category" name="category" placeholder="Schneiden" />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className={showPrice ? "grid grid-cols-2 gap-3" : ""}>
         <div>
           <Label htmlFor="duration_minutes">Dauer (Min.)</Label>
           <Input id="duration_minutes" name="duration_minutes" type="number" min={5} step={5} required defaultValue={60} />
         </div>
-        <div>
-          <Label htmlFor="price_euro">Preis (€)</Label>
-          <Input
-            id="price_euro"
-            type="number"
-            min={0}
-            step="0.5"
-            required
-            value={priceEuro}
-            onChange={(e) => setPriceEuro(e.target.value)}
-            placeholder="59"
-          />
-          <input type="hidden" name="price_cents" value={Math.round(Number(priceEuro || 0) * 100)} />
-        </div>
+        {showPrice ? (
+          <div>
+            <Label htmlFor="price_euro">Preis (€)</Label>
+            <Input
+              id="price_euro"
+              type="number"
+              min={0}
+              step="0.5"
+              required
+              value={priceEuro}
+              onChange={(e) => setPriceEuro(e.target.value)}
+              placeholder="59"
+            />
+            <input type="hidden" name="price_cents" value={Math.round(Number(priceEuro || 0) * 100)} />
+          </div>
+        ) : (
+          <input type="hidden" name="price_cents" value={0} />
+        )}
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>

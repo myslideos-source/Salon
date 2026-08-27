@@ -11,11 +11,17 @@ export default async function AdminServicesPage({
 }) {
   const { salonId } = await params;
   const supabase = await createClient();
-  const [{ data: services }, { data: employees }, { data: links }] = await Promise.all([
+  const [{ data: services }, { data: employees }, { data: links }, { data: settings }] = await Promise.all([
     supabase.from("services").select("*").eq("salon_id", salonId).order("sort_order").order("name"),
     supabase.from("employees").select("id, first_name, last_name").eq("salon_id", salonId).eq("active", true).order("sort_order"),
     supabase.from("employee_services").select("employee_id, service_id").eq("salon_id", salonId),
+    supabase.from("voice_settings").select("mention_prices").eq("salon_id", salonId).maybeSingle(),
   ]);
+
+  // Nicht jede Branche arbeitet mit festen Preisen (z. B. Arztpraxen) - dieselbe
+  // "Preise nennen"-Regel, die steuert ob die KI Preise ausspricht, blendet hier
+  // auch die Preisfelder aus, statt eine zweite, redundante Einstellung zu pflegen.
+  const showPrices = settings?.mention_prices ?? true;
 
   return (
     <div className="space-y-6">
@@ -23,16 +29,16 @@ export default async function AdminServicesPage({
         <div className="lg:col-span-2 space-y-3">
           <h2 className="font-display text-lg text-ink px-1">Leistungen</h2>
           {(services ?? []).map((s) => (
-            <ServiceRow key={s.id} salonId={salonId} service={s} />
+            <ServiceRow key={s.id} salonId={salonId} service={s} showPrice={showPrices} />
           ))}
           {(services ?? []).length === 0 && (
             <Card className="p-8 text-center text-sm text-ink-soft">Noch keine Leistungen angelegt.</Card>
           )}
         </div>
         <Card className="h-fit">
-          <CardHeader title="Leistung hinzufügen" subtitle="Dauer, Preis und Puffer je Termin." />
+          <CardHeader title="Leistung hinzufügen" subtitle={showPrices ? "Dauer, Preis und Puffer je Termin." : "Dauer und Puffer je Termin."} />
           <div className="p-5 pt-4">
-            <ServiceForm salonId={salonId} />
+            <ServiceForm salonId={salonId} showPrice={showPrices} />
           </div>
         </Card>
       </div>
