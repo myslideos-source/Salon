@@ -787,6 +787,8 @@ export type Database = {
       voice_settings: {
         Row: {
           detect_new_customers: boolean
+          elevenlabs_agent_id: string | null
+          elevenlabs_voice_id: string | null
           forwarding_number: string | null
           greeting: string
           mention_prices: boolean
@@ -805,6 +807,8 @@ export type Database = {
         }
         Insert: {
           detect_new_customers?: boolean
+          elevenlabs_agent_id?: string | null
+          elevenlabs_voice_id?: string | null
           forwarding_number?: string | null
           greeting?: string
           mention_prices?: boolean
@@ -823,6 +827,8 @@ export type Database = {
         }
         Update: {
           detect_new_customers?: boolean
+          elevenlabs_agent_id?: string | null
+          elevenlabs_voice_id?: string | null
           forwarding_number?: string | null
           greeting?: string
           mention_prices?: boolean
@@ -1019,9 +1025,3 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-
-export const Constants = {
-  public: {
-    Enums: {},
-  },
-} as const

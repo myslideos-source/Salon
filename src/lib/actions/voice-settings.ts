@@ -7,7 +7,9 @@ import { z } from "zod";
 import type { ActionState } from "@/lib/actions/admin";
 
 const schema = z.object({
+  provider: z.enum(["retell", "elevenlabs"]),
   voice_id: z.string().min(1),
+  elevenlabs_voice_id: z.string().optional().or(z.literal("")),
   greeting: z.string().min(1),
   personality: z.enum(["freundlich", "professionell", "locker", "elegant"]),
   phone_number: z.string().optional().or(z.literal("")),
@@ -30,7 +32,9 @@ export async function updateVoiceSettingsAction(salonId: string, _prev: ActionSt
     .from("voice_settings")
     .upsert({
       salon_id: salonId,
+      provider: parsed.data.provider,
       voice_id: parsed.data.voice_id,
+      elevenlabs_voice_id: parsed.data.elevenlabs_voice_id || null,
       greeting: parsed.data.greeting,
       personality: parsed.data.personality,
       phone_number: parsed.data.phone_number || null,

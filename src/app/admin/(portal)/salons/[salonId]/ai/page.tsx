@@ -3,6 +3,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { VoiceSettingsForm } from "@/components/admin/voice-settings-form";
 import { TestCallPanel } from "@/components/admin/test-call-panel";
 import { RetellSyncPanel } from "@/components/admin/retell-sync-panel";
+import { ElevenLabsSyncPanel } from "@/components/admin/elevenlabs-sync-panel";
 
 export default async function AdminAiPage({
   params,
@@ -24,6 +25,7 @@ export default async function AdminAiPage({
           </div>
         </Card>
         <RetellSyncPanel salonId={salonId} webhookUrl={webhookUrl} currentAgentId={settings?.provider_agent_id ?? null} />
+        <ElevenLabsSyncPanel salonId={salonId} currentAgentId={settings?.elevenlabs_agent_id ?? null} />
       </div>
       <div>
         <h2 className="font-display text-lg text-ink px-1 mb-3">Testanruf</h2>
