@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireSalonSession, resolveActiveSalonId } from "@/lib/auth/session";
 import { CalendarShell } from "@/components/calendar/calendar-shell";
+import { DEFAULT_COMPANY_LABEL } from "@/lib/terminology";
 
 export default async function SalonCalendarPage() {
   const session = await requireSalonSession();
@@ -24,7 +25,7 @@ export default async function SalonCalendarPage() {
       services={services ?? []}
       slotGranularity={salon?.slot_granularity_minutes ?? 15}
       canEdit
-      avatarLabel={session.email ?? "Salon"}
+      avatarLabel={session.email ?? DEFAULT_COMPANY_LABEL}
       showCalendarFeed
     />
   );

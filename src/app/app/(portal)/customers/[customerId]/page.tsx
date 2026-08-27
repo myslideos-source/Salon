@@ -1,5 +1,6 @@
 import { requireSalonSession, resolveActiveSalonId } from "@/lib/auth/session";
 import { CustomerProfileView } from "@/components/customers/customer-profile-view";
+import { DEFAULT_COMPANY_LABEL } from "@/lib/terminology";
 
 export default async function SalonCustomerProfilePage({
   params,
@@ -14,7 +15,7 @@ export default async function SalonCustomerProfilePage({
       salonId={salonId}
       customerId={customerId}
       basePath="/app/customers"
-      avatarLabel={session.email ?? "Salon"}
+      avatarLabel={session.email ?? DEFAULT_COMPANY_LABEL}
     />
   );
 }

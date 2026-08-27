@@ -5,7 +5,7 @@ import { Logo } from "@/components/brand/logo";
 
 const ERROR_MESSAGES: Record<string, string> = {
   forbidden: "Dieses Konto hat keinen Zugriff auf den Admin-Bereich.",
-  no_salon: "Für dieses Konto ist kein Salon hinterlegt.",
+  no_salon: "Für dieses Konto ist kein Unternehmen hinterlegt.",
 };
 
 export default async function AdminLoginPage({

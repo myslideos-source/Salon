@@ -29,7 +29,7 @@ export default async function AdminEmployeesPage({
         )}
       </div>
       <Card className="h-fit">
-        <CardHeader title="Mitarbeiter hinzufügen" subtitle="Erscheint sofort im Salon-Kalender." />
+        <CardHeader title="Mitarbeiter hinzufügen" subtitle="Erscheint sofort im Kalender." />
         <div className="p-5 pt-4">
           <EmployeeForm salonId={salonId} />
         </div>

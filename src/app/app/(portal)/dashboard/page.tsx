@@ -7,6 +7,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Topbar } from "@/components/layout/topbar";
 import { formatPrice } from "@/lib/utils";
+import { DEFAULT_COMPANY_LABEL } from "@/lib/terminology";
 
 function greeting() {
   const h = new Date().getHours();
@@ -97,7 +98,7 @@ export default async function SalonDashboardPage() {
 
   return (
     <div>
-      <Topbar title={`${greeting()}, ${salon?.name}`} subtitle="Hier ist dein Überblick für heute." avatarLabel={session.email ?? "Salon"} />
+      <Topbar title={`${greeting()}, ${salon?.name}`} subtitle="Hier ist dein Überblick für heute." avatarLabel={session.email ?? DEFAULT_COMPANY_LABEL} />
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           <StatCard

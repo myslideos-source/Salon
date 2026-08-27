@@ -4,7 +4,7 @@ import { salonLoginAction } from "@/lib/auth/actions";
 import { Logo } from "@/components/brand/logo";
 
 const ERROR_MESSAGES: Record<string, string> = {
-  no_salon: "Für dieses Konto ist kein Salon hinterlegt. Bitte wende dich an deinen HalloMia-Ansprechpartner.",
+  no_salon: "Für dieses Konto ist kein Unternehmen hinterlegt. Bitte wende dich an deinen HalloMia-Ansprechpartner.",
 };
 
 export default async function SalonLoginPage({
@@ -36,7 +36,7 @@ export default async function SalonLoginPage({
           </div>
         </div>
         <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs text-ink-faint">
-          <Lock className="h-3.5 w-3.5" /> Sicherer Zugang für moderne Friseursalons
+          <Lock className="h-3.5 w-3.5" /> Sicherer Zugang für dein Unternehmen
         </p>
         <p className="mt-2 text-center text-xs text-ink-faint">
           Zugangsdaten erhältst du von deinem HalloMia-Ansprechpartner.

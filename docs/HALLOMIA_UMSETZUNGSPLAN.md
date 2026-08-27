@@ -154,11 +154,23 @@ Keine gefunden. Gezielte Suche nach `TODO`, `FIXME`, „coming soon", „not imp
 Reihenfolge nach Risiko (niedrig → hoch) und Abhängigkeit. Jede Phase ist einzeln deploybar, einzeln testbar und lässt das Projekt in einem grün buildenden Zustand zurück. Migrationsnummern sind Vorschläge (`0014` aufwärts) und additiv — keine bestehende Migration wird verändert.
 
 ### Phase 1 — Terminologie-Fundament (reine Konfigurationsebene, kein Rename)
+**Status: ✅ umgesetzt (2026-08-27)**, gemeinsam mit einem Teil von Phase 4 (Grundnavigation), siehe Statusnotiz unten.
+
 **Ziel:** Eine zentrale, austauschbare Begriffsebene schaffen, ohne bestehende DB-Spalten oder Routen umzubenennen.
 **Vorgehen:** Neues `src/lib/terminology.ts` (bzw. React-Context analog zu `useActiveSalon`) mit Default-Labels „Unternehmen, Kunde, Terminart, Leistung, Mitarbeiter, Ressource, Standort, Anfrage". UI-Komponenten, die aktuell hart „Salon" anzeigen (siehe 1.8b), auf dieses Label-System umstellen.
 **Betroffene Dateien:** neue Datei `src/lib/terminology.ts`; alle Stellen aus 1.8b (`avatarLabel={session.email ?? "Salon"}` × 7, Fehlermeldungen in `app/login` und `admin/login`).
 **DB:** keine Änderung.
 **Prüf-/Akzeptanzkriterien:** `npm run build`, `npx tsc --noEmit`, `npx eslint .` grün; manuelle Sichtprüfung aller betroffenen Seiten (Desktop + Mobile), kein „Salon" mehr als Platzhalter-Text im Salon-Portal sichtbar; bestehende Funktionalität (Login, Fehlermeldungen) unverändert.
+
+**Umsetzungsnotiz (2026-08-27):** Auf expliziten Auftrag wurde diese Phase um die im Konzept beschriebene Grundnavigation erweitert (siehe „Navigation der Anwendung" im Universal-Konzept), da beide Themen zusammen die kleinste sinnvoll abnahmefähige Einheit „Generische Begriffe und Grundnavigation" bilden. Umgesetzt:
+
+- `src/lib/terminology.ts` neu angelegt (zentrale Default-Labels: Unternehmen, Kunde, Terminart, Leistung, Mitarbeiter, Ressource, Standort, Anfrage) und in Navigation, Topbars und Avatar-Fallbacks tatsächlich verwendet (nicht nur deklariert).
+- Alle sieben `avatarLabel={session.email ?? "Salon"}`-Stellen sowie die Fehlermeldungen „kein Salon hinterlegt" in `app/login` und `admin/login` auf generische Begriffe umgestellt; „Sicherer Zugang für moderne Friseursalons" im Salon-Login sowie „Salon-Kalender" im Admin-Mitarbeiterformular generalisiert.
+- Hauptnavigation des Salon-Portals (`src/app/app/(portal)/layout.tsx`) exakt auf die Konzept-Vorgabe umgestellt: Übersicht, Kalender, Anrufe, Kunden, Anfragen, Meine Mia, Leistungen, Team und Ressourcen, Statistiken, Einstellungen — Desktop-Sidebar und mobile Bottom-Nav teilen sich weiterhin dieselbe `navItems`-Liste (keine Duplikate).
+- Fünf neue, an bestehende RLS-Rechte gebundene Seiten ergänzt, damit jeder neue Navigationspunkt zu einer echten, funktionierenden Seite führt statt zu einem funktionslosen Button: `/app/requests` (Anfragen — bestehende `callback_requests` generisch gerahmt, inkl. Status-Aktion), `/app/services` (Leistungen, lesend — Schreibrechte sind laut RLS bis Phase 4 Plattform-Admin-only), `/app/team` (Team und Ressourcen — Mitarbeiterliste lesend + vollständig funktionale Abwesenheitsverwaltung, ersetzt `/app/absences`), `/app/stats` (Statistiken — echte 7-Tage-Kennzahlen aus vorhandenen Tabellen, keine erfundenen Daten) und `/app/settings` (Einstellungen — Unternehmensdaten lesend, funktionierender KI-Aktiv-Schalter, Links zu den übrigen Bereichen).
+- `/app/absences` bleibt als Redirect auf `/app/team` erhalten (keine toten Links für bestehende Lesezeichen); `/app/appointments` bleibt unverändert erreichbar über den bestehenden „Listenansicht"-Link im Kalender, ist aber bewusst nicht mehr in der Hauptnavigation, da das Konzept dort keine eigene „Termine"-Position vorsieht.
+- Bewusst **nicht** angetastet: Landingpage- und Rechtstexte-Wording (bleibt Phase 2), interne Bezeichner wie `SalonMembership`/`salon_id` (bleibt Phase 16), Schreibrechte für Leistungen/Mitarbeiter (bleibt Phase 4) und jegliche neue Datenbankarchitektur.
+- Geprüft: `npx tsc --noEmit`, `npx eslint .` und `npm run build` fehlerfrei (alle 38 Routen kompilieren), `npx vitest run` weiterhin grün. Die Login-Seite wurde per Playwright auf Desktop- und Mobile-Breite visuell verifiziert; ein vollständiger Klick-Durchlauf der neu angemeldeten Seiten war in dieser Sitzung nicht möglich, da keine gültigen Demo-Zugangsdaten für das verbundene Supabase-Projekt vorlagen (die Platzhalter aus `supabase/seed.sql` griffen nicht) — dies sollte vor dem nächsten Schritt mit echten Zugangsdaten nachgeholt werden.
 
 ### Phase 2 — Landingpage & rechtliche Seiten universalisieren
 **Ziel:** Konzept-Akzeptanzkriterium „Landingpage wirkt nicht mehr wie reine Friseur-Software" erfüllen.

@@ -1,5 +1,17 @@
 import { redirect } from "next/navigation";
-import { LayoutGrid, Calendar, Clock, Users, Phone, CalendarOff, Sparkles, HelpCircle } from "lucide-react";
+import {
+  LayoutGrid,
+  Calendar,
+  Phone,
+  Users,
+  Inbox,
+  Sparkles,
+  ClipboardList,
+  UsersRound,
+  BarChart3,
+  Settings,
+  HelpCircle,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireSalonSession, resolveActiveSalonId } from "@/lib/auth/session";
 import { Sidebar, type NavItem } from "@/components/layout/sidebar";
@@ -7,17 +19,22 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { SalonProvider } from "@/components/layout/salon-context";
 import { AiToggle } from "@/components/layout/ai-toggle";
 import { Logo } from "@/components/brand/logo";
+import { TERMINOLOGY } from "@/lib/terminology";
 
 const iconProps = { className: "h-5 w-5", strokeWidth: 1.8 };
 
+// Generische Hauptnavigation — passend für jede Branche, nicht nur Friseursalons.
 const navItems: NavItem[] = [
   { href: "/app/dashboard", label: "Übersicht", icon: <LayoutGrid {...iconProps} /> },
   { href: "/app/calendar", label: "Kalender", icon: <Calendar {...iconProps} /> },
-  { href: "/app/appointments", label: "Termine", icon: <Clock {...iconProps} /> },
-  { href: "/app/customers", label: "Kunden", icon: <Users {...iconProps} /> },
   { href: "/app/calls", label: "Anrufe", icon: <Phone {...iconProps} /> },
-  { href: "/app/absences", label: "Abwesenheiten", icon: <CalendarOff {...iconProps} /> },
-  { href: "/app/ai", label: "KI-Assistent", icon: <Sparkles {...iconProps} /> },
+  { href: "/app/customers", label: TERMINOLOGY.customerPlural, icon: <Users {...iconProps} /> },
+  { href: "/app/requests", label: TERMINOLOGY.requestPlural, icon: <Inbox {...iconProps} /> },
+  { href: "/app/ai", label: "Meine Mia", icon: <Sparkles {...iconProps} /> },
+  { href: "/app/services", label: TERMINOLOGY.servicePlural, icon: <ClipboardList {...iconProps} /> },
+  { href: "/app/team", label: TERMINOLOGY.teamAndResources, icon: <UsersRound {...iconProps} /> },
+  { href: "/app/stats", label: "Statistiken", icon: <BarChart3 {...iconProps} /> },
+  { href: "/app/settings", label: "Einstellungen", icon: <Settings {...iconProps} /> },
 ];
 
 export default async function SalonAppLayout({ children }: { children: React.ReactNode }) {
