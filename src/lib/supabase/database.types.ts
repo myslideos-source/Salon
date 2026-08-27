@@ -828,12 +828,15 @@ export type Database = {
       }
       voice_settings: {
         Row: {
+          cancellation_notice_hours: number
           custom_prompt: string | null
           detect_new_customers: boolean
           elevenlabs_agent_id: string | null
           elevenlabs_voice_id: string | null
+          emergency_redirect: boolean
           forwarding_number: string | null
           greeting: string
+          mention_cancellation_policy: boolean
           mention_prices: boolean
           offer_alternatives: boolean
           offer_callback: boolean
@@ -842,6 +845,7 @@ export type Database = {
           provider: string
           provider_agent_id: string | null
           provider_llm_id: string | null
+          required_documents: string | null
           respect_employee_preference: boolean
           salon_id: string
           send_confirmation_sms: boolean
@@ -849,12 +853,15 @@ export type Database = {
           voice_id: string
         }
         Insert: {
+          cancellation_notice_hours?: number
           custom_prompt?: string | null
           detect_new_customers?: boolean
           elevenlabs_agent_id?: string | null
           elevenlabs_voice_id?: string | null
+          emergency_redirect?: boolean
           forwarding_number?: string | null
           greeting?: string
+          mention_cancellation_policy?: boolean
           mention_prices?: boolean
           offer_alternatives?: boolean
           offer_callback?: boolean
@@ -863,6 +870,7 @@ export type Database = {
           provider?: string
           provider_agent_id?: string | null
           provider_llm_id?: string | null
+          required_documents?: string | null
           respect_employee_preference?: boolean
           salon_id: string
           send_confirmation_sms?: boolean
@@ -870,12 +878,15 @@ export type Database = {
           voice_id?: string
         }
         Update: {
+          cancellation_notice_hours?: number
           custom_prompt?: string | null
           detect_new_customers?: boolean
           elevenlabs_agent_id?: string | null
           elevenlabs_voice_id?: string | null
+          emergency_redirect?: boolean
           forwarding_number?: string | null
           greeting?: string
+          mention_cancellation_policy?: boolean
           mention_prices?: boolean
           offer_alternatives?: boolean
           offer_callback?: boolean
@@ -884,6 +895,7 @@ export type Database = {
           provider?: string
           provider_agent_id?: string | null
           provider_llm_id?: string | null
+          required_documents?: string | null
           respect_employee_preference?: boolean
           salon_id?: string
           send_confirmation_sms?: boolean
@@ -946,13 +958,17 @@ export type Database = {
       }
       update_voice_settings_customer_fields: {
         Args: {
+          p_cancellation_notice_hours: number
           p_custom_prompt: string
           p_detect_new_customers: boolean
+          p_emergency_redirect: boolean
           p_greeting: string
+          p_mention_cancellation_policy: boolean
           p_mention_prices: boolean
           p_offer_alternatives: boolean
           p_offer_callback: boolean
           p_personality: string
+          p_required_documents: string
           p_respect_employee_preference: boolean
           p_send_confirmation_sms: boolean
           target_salon_id: string

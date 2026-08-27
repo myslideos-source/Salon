@@ -21,7 +21,16 @@ export interface VoiceAgentConfig {
     offerCallback: boolean;
     detectNewCustomers: boolean;
     sendConfirmationSms: boolean;
+    /** Bei akuten/dringenden Anliegen auf Notruf/Notdienst hinweisen statt
+     * einen normalen Termin zu buchen (Arzt, Tierarzt, Handwerk-Notdienst). */
+    emergencyRedirect: boolean;
+    /** Bei der Buchung eine Stornofrist nennen (cancellationNoticeHours). */
+    mentionCancellationPolicy: boolean;
   };
+  cancellationNoticeHours: number;
+  /** Freitext, was die Anruferin/der Anrufer zum Termin mitbringen soll
+   * (Rezept, Unterlagen, Ausweis, ...). Wird nur erwähnt, wenn gesetzt. */
+  requiredDocuments: string | null;
   webhookUrl: string;
   /** Proper nouns worth biasing speech recognition toward (employee names,
    * service names) - helps the provider transcribe them correctly instead

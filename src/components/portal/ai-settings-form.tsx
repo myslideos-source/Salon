@@ -8,17 +8,19 @@ import { updateSalonVoiceSettingsAction, syncActiveVoiceAgentAction } from "@/li
 import type { ActionState } from "@/lib/actions/admin";
 import type { Tables } from "@/lib/supabase/database.types";
 
-const RULES: { key: keyof Pick<Tables<"voice_settings">, "mention_prices" | "offer_alternatives" | "respect_employee_preference" | "offer_callback" | "detect_new_customers" | "send_confirmation_sms">; label: string }[] = [
+const RULES: { key: keyof Pick<Tables<"voice_settings">, "mention_prices" | "offer_alternatives" | "respect_employee_preference" | "offer_callback" | "detect_new_customers" | "send_confirmation_sms" | "emergency_redirect">; label: string }[] = [
   { key: "mention_prices", label: "Preise nennen" },
   { key: "offer_alternatives", label: "Alternativtermine anbieten" },
   { key: "respect_employee_preference", label: "Mitarbeiterwunsch beachten" },
   { key: "offer_callback", label: "Rückruf anbieten" },
   { key: "detect_new_customers", label: "Neukunden erkennen" },
   { key: "send_confirmation_sms", label: "Terminbestätigung per SMS" },
+  { key: "emergency_redirect", label: "Bei Notfällen auf Notruf/Notdienst hinweisen" },
 ];
 
 export function AiSettingsForm({ settings }: { settings: Tables<"voice_settings"> | null }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(updateSalonVoiceSettingsAction, null);
+  const [showCancellationHours, setShowCancellationHours] = useState(settings?.mention_cancellation_policy ?? false);
 
   const [syncPending, startSync] = useTransition();
   const [agentId, setAgentId] = useState(
@@ -79,11 +81,54 @@ export function AiSettingsForm({ settings }: { settings: Tables<"voice_settings"
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {RULES.map((r) => (
               <label key={r.key} className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-ink-soft">
-                <input type="checkbox" name={r.key} defaultChecked={settings?.[r.key] ?? true} className="rounded border-border-strong" />
+                <input
+                  type="checkbox"
+                  name={r.key}
+                  defaultChecked={settings?.[r.key] ?? (r.key === "emergency_redirect" ? false : true)}
+                  className="rounded border-border-strong"
+                />
                 {r.label}
               </label>
             ))}
+            <label className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-ink-soft">
+              <input
+                type="checkbox"
+                name="mention_cancellation_policy"
+                defaultChecked={settings?.mention_cancellation_policy ?? false}
+                onChange={(e) => setShowCancellationHours(e.target.checked)}
+                className="rounded border-border-strong"
+              />
+              Stornofrist nennen
+            </label>
           </div>
+          {showCancellationHours ? (
+            <div className="mt-2 max-w-[220px]">
+              <Label htmlFor="cancellation_notice_hours">Stornofrist (Stunden vorher)</Label>
+              <input
+                id="cancellation_notice_hours"
+                name="cancellation_notice_hours"
+                type="number"
+                min={1}
+                max={168}
+                defaultValue={settings?.cancellation_notice_hours ?? 24}
+                className="w-full rounded-lg border border-border-strong bg-sand px-3 h-10 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/30 focus:border-bronze"
+              />
+            </div>
+          ) : (
+            <input type="hidden" name="cancellation_notice_hours" value={settings?.cancellation_notice_hours ?? 24} />
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="required_documents">Mitzubringendes (optional)</Label>
+          <input
+            id="required_documents"
+            name="required_documents"
+            defaultValue={settings?.required_documents ?? ""}
+            placeholder="z. B. Überweisung, Ausweis, Impfpass"
+            className="w-full rounded-lg border border-border-strong bg-sand px-3 h-10 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-bronze/30 focus:border-bronze"
+          />
+          <p className="mt-1.5 text-xs text-ink-faint">Wird bei jeder Buchung freundlich erwähnt, wenn ausgefüllt.</p>
         </div>
 
         <FieldError>{state?.error}</FieldError>

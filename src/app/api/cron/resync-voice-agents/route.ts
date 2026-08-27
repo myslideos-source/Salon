@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   const { data: rows, error } = await supabase
     .from("voice_settings")
     .select(
-      "salon_id, provider_agent_id, provider_llm_id, elevenlabs_agent_id, elevenlabs_voice_id, greeting, personality, voice_id, phone_number, forwarding_number, mention_prices, offer_alternatives, respect_employee_preference, offer_callback, detect_new_customers, send_confirmation_sms, custom_prompt, salons(name, timezone)"
+      "salon_id, provider_agent_id, provider_llm_id, elevenlabs_agent_id, elevenlabs_voice_id, greeting, personality, voice_id, phone_number, forwarding_number, mention_prices, offer_alternatives, respect_employee_preference, offer_callback, detect_new_customers, send_confirmation_sms, custom_prompt, emergency_redirect, mention_cancellation_policy, cancellation_notice_hours, required_documents, salons(name, timezone)"
     )
     .or("provider_agent_id.not.is.null,elevenlabs_agent_id.not.is.null");
 
@@ -67,7 +67,11 @@ export async function GET(req: Request) {
           offerCallback: row.offer_callback,
           detectNewCustomers: row.detect_new_customers,
           sendConfirmationSms: row.send_confirmation_sms,
+          emergencyRedirect: row.emergency_redirect,
+          mentionCancellationPolicy: row.mention_cancellation_policy,
         },
+        cancellationNoticeHours: row.cancellation_notice_hours,
+        requiredDocuments: row.required_documents,
         webhookUrl: `${appUrl}/api/voice/webhook`,
         boostedKeywords,
         customPrompt: row.custom_prompt,
@@ -113,7 +117,11 @@ export async function GET(req: Request) {
           offerCallback: row.offer_callback,
           detectNewCustomers: row.detect_new_customers,
           sendConfirmationSms: row.send_confirmation_sms,
+          emergencyRedirect: row.emergency_redirect,
+          mentionCancellationPolicy: row.mention_cancellation_policy,
         },
+        cancellationNoticeHours: row.cancellation_notice_hours,
+        requiredDocuments: row.required_documents,
         webhookUrl: `${appUrl}/api/voice/webhook/elevenlabs`,
         boostedKeywords,
         customPrompt: row.custom_prompt,

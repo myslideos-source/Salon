@@ -49,6 +49,15 @@ export function buildPromptFromConfig(config: VoiceAgentConfig): string {
     config.rules.sendConfirmationSms
       ? "- Nach jeder erfolgreichen Buchung verschickt das System automatisch eine Bestätigungs-SMS an die hinterlegte Telefonnummer - das passiert von selbst, du musst dafür nichts tun und hast dafür kein eigenes Tool. Du darfst der Anruferin/dem Anrufer sagen, dass sie/er gleich eine SMS-Bestätigung bekommt. Wenn danach gefragt wird, ob du selbst jetzt eine SMS schicken kannst: Nein, aber nach der Buchung kommt automatisch eine."
       : "",
+    config.rules.emergencyRedirect
+      ? "- WICHTIG: Wenn eine Anruferin/ein Anrufer einen akuten Notfall oder ein dringendes, nicht bis zum nächsten regulären Termin aufschiebbares Anliegen schildert, biete KEINEN normalen Termin an. Weise stattdessen klar und ruhig auf den Notruf (112) bzw. den zuständigen Notdienst hin und biete zusätzlich einen Rückruf durch das Team an, falls verfügbar."
+      : "",
+    config.rules.mentionCancellationPolicy
+      ? `- Wenn ein Termin gebucht wird, weise beiläufig darauf hin, dass Termine bis ${config.cancellationNoticeHours} Stunden vorher kostenfrei abgesagt oder verschoben werden können.`
+      : "",
+    config.requiredDocuments?.trim()
+      ? `- Wenn ein Termin gebucht wird, erinnere die Anruferin/den Anrufer freundlich daran, Folgendes zum Termin mitzubringen: ${config.requiredDocuments.trim()}.`
+      : "",
   ]
     .filter(Boolean)
     .join("\n");

@@ -25,6 +25,10 @@ const schema = z.object({
   offer_callback: z.coerce.boolean(),
   detect_new_customers: z.coerce.boolean(),
   send_confirmation_sms: z.coerce.boolean(),
+  emergency_redirect: z.coerce.boolean(),
+  mention_cancellation_policy: z.coerce.boolean(),
+  cancellation_notice_hours: z.coerce.number().int().min(1).max(168),
+  required_documents: z.string().max(500).optional().or(z.literal("")),
 });
 
 export async function updateSalonVoiceSettingsAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -49,6 +53,11 @@ export async function updateSalonVoiceSettingsAction(_prev: ActionState, formDat
     p_offer_callback: parsed.data.offer_callback,
     p_detect_new_customers: parsed.data.detect_new_customers,
     p_send_confirmation_sms: parsed.data.send_confirmation_sms,
+    p_emergency_redirect: parsed.data.emergency_redirect,
+    p_mention_cancellation_policy: parsed.data.mention_cancellation_policy,
+    p_cancellation_notice_hours: parsed.data.cancellation_notice_hours,
+    // Same null-vs-string generated-type mismatch as p_custom_prompt above.
+    p_required_documents: (parsed.data.required_documents || null) as string,
   });
 
   if (error) return { error: error.message };
