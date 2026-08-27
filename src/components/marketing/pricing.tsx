@@ -12,7 +12,10 @@ const PLANS = [
   {
     id: "starter",
     name: "Starter",
-    price: "79",
+    price: "149",
+    callsPerDay: "5",
+    minutes: "300",
+    overagePrice: "0,30",
     description: "Für kleine Salons, die loslegen wollen.",
     features: ["1 Mitarbeiter im Kalender", "KI-Telefonassistent", "Terminverwaltung", "Kundenverwaltung"],
     highlighted: false,
@@ -20,7 +23,10 @@ const PLANS = [
   {
     id: "salon",
     name: "Salon",
-    price: "99",
+    price: "299",
+    callsPerDay: "10",
+    minutes: "600",
+    overagePrice: "0,28",
     description: "Der Standard für die meisten Salons.",
     features: ["Bis zu 5 Mitarbeiter", "KI-Telefonassistent", "Anrufhistorie & Rückrufe", "Prioritäts-Support"],
     highlighted: true,
@@ -28,7 +34,10 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro",
-    price: "199",
+    price: "499",
+    callsPerDay: "15",
+    minutes: "900",
+    overagePrice: "0,25",
     description: "Für große Teams und mehrere Standorte.",
     features: ["Unbegrenzt Mitarbeiter", "KI-Telefonassistent", "Erweiterte Auswertungen", "Persönlicher Ansprechpartner"],
     highlighted: false,
@@ -128,7 +137,11 @@ export function Pricing() {
               <span className="font-display text-3xl text-ink">{plan.price} €</span>
               <span className="text-sm text-ink-faint">/Monat</span>
             </p>
+            <p className="brand-gradient-text mt-1 text-sm font-medium">ca. {plan.callsPerDay} Anrufe/Tag inklusive</p>
             <ul className="mt-5 space-y-2.5">
+              <li className="flex items-center gap-2 text-sm text-ink-soft">
+                <Check className="h-4 w-4 shrink-0 text-bronze" /> {plan.minutes} Freiminuten, danach {plan.overagePrice} €/Min.
+              </li>
               {plan.features.map((f) => (
                 <li key={f} className="flex items-center gap-2 text-sm text-ink-soft">
                   <Check className="h-4 w-4 shrink-0 text-bronze" /> {f}
@@ -148,6 +161,10 @@ export function Pricing() {
 
       <p className="mt-8 text-center text-sm text-ink-faint">
         Einmalige Einrichtung: <span className="font-medium text-ink-soft">249 €</span> — ich übernehme die komplette technische Ersteinrichtung.
+      </p>
+      <p className="mt-2 text-center text-xs text-ink-faint">
+        Anrufe/Tag als grobe Orientierung bei durchschnittlich 2 Minuten Gesprächsdauer — reicht dein Kontingent nicht,
+        wird einfach zum Überminutenpreis weiterberechnet, dein Assistent bleibt jederzeit erreichbar.
       </p>
 
       <Modal
