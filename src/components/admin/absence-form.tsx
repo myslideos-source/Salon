@@ -66,7 +66,7 @@ export function AbsenceForm({
         <Textarea name="note" rows={2} />
       </div>
       <FieldError>{state?.error}</FieldError>
-      <Button type="submit" variant="bronze" className="w-full" disabled={pending}>
+      <Button type="submit" variant="gradient" className="w-full" disabled={pending}>
         {pending ? "Wird gespeichert…" : "Eintragen"}
       </Button>
     </form>

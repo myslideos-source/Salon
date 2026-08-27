@@ -58,7 +58,7 @@ export async function CustomersView({
           const isNew = !s || s.count <= 1;
           return (
             <Link key={c.id} href={`${basePath}/${c.id}`}>
-              <Card className="flex items-center justify-between gap-3 p-4 hover:shadow-md transition-shadow">
+              <Card className="flex items-center justify-between gap-3 p-4 transition-all hover:border-bronze/40 hover:shadow-[0_0_20px_rgba(169,112,255,0.12)]">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-bronze-soft text-xs font-semibold text-bronze-dark">
                     {initials(c.first_name || "?", c.last_name || "")}

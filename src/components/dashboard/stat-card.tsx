@@ -21,12 +21,12 @@ export function StatCard({
   return (
     <Card className="p-5">
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-bronze-soft text-bronze-dark">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-bronze-soft text-bronze-dark shadow-[0_0_16px_rgba(169,112,255,0.15)]">
           <Icon className="h-5 w-5" strokeWidth={1.8} />
         </div>
         <div className="min-w-0">
           <p className="text-xs text-ink-soft">{label}</p>
-          <p className="font-display text-3xl tracking-tight text-ink">{value}</p>
+          <p className="brand-gradient-text font-display text-3xl tracking-tight">{value}</p>
         </div>
       </div>
       {deltaLabel && (

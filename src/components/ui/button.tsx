@@ -8,6 +8,8 @@ const variants = {
     "bg-ink text-cream hover:bg-ink/90 shadow-sm shadow-ink/10",
   bronze:
     "bg-bronze text-white hover:bg-bronze-dark shadow-sm shadow-bronze/20",
+  gradient:
+    "brand-gradient-bg text-white shadow-[0_0_20px_rgba(169,112,255,0.25)] hover:opacity-90",
   outline:
     "border border-border-strong bg-white/5 text-ink hover:bg-sand",
   ghost: "text-ink-soft hover:bg-sand hover:text-ink",

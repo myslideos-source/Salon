@@ -18,7 +18,7 @@ export function NewCustomerButton({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button variant="bronze" size="sm" onClick={() => setOpen(true)} aria-label="Neuer Kunde">
+      <Button variant="gradient" size="sm" onClick={() => setOpen(true)} aria-label="Neuer Kunde">
         <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Neuer Kunde</span>
       </Button>
       <Modal open={open} onClose={() => setOpen(false)} title="Neuer Kunde">
