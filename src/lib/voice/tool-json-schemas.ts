@@ -21,9 +21,9 @@ export const toolJsonSchemas: Record<ToolName, Record<string, unknown>> = {
   createCustomer: {
     type: "object",
     properties: {
-      firstName: { type: "string" },
-      lastName: { type: "string" },
-      phone: { type: "string" },
+      firstName: { type: "string", description: "Vorname der Kundin/des Kunden" },
+      lastName: { type: "string", description: "Nachname der Kundin/des Kunden, falls bekannt" },
+      phone: { type: "string", description: "Telefonnummer der Kundin/des Kunden" },
     },
     required: ["firstName", "phone"],
     additionalProperties: false,
@@ -32,7 +32,11 @@ export const toolJsonSchemas: Record<ToolName, Record<string, unknown>> = {
     type: "object",
     properties: {
       employeeId: { type: ["string", "null"], description: "UUID des gewünschten Mitarbeiters, falls bekannt" },
-      serviceIds: { type: "array", items: { type: "string" }, description: "UUIDs der gewünschten Leistungen" },
+      serviceIds: {
+        type: "array",
+        items: { type: "string", description: "UUID einer gewünschten Leistung" },
+        description: "UUIDs der gewünschten Leistungen",
+      },
       date: { type: "string", description: "Datum im Format YYYY-MM-DD" },
       preferredTimeRange: {
         type: ["object", "null"],
@@ -47,44 +51,48 @@ export const toolJsonSchemas: Record<ToolName, Record<string, unknown>> = {
   createAppointment: {
     type: "object",
     properties: {
-      customerId: { type: "string" },
-      employeeId: { type: "string" },
-      serviceIds: { type: "array", items: { type: "string" } },
+      customerId: { type: "string", description: "UUID der Kundin/des Kunden" },
+      employeeId: { type: "string", description: "UUID des gewählten Mitarbeiters" },
+      serviceIds: {
+        type: "array",
+        items: { type: "string", description: "UUID einer gebuchten Leistung" },
+        description: "UUIDs der gebuchten Leistungen",
+      },
       startAt: { type: "string", description: "ISO-Zeitstempel des gewählten freien Slots" },
-      notes: { type: "string" },
+      notes: { type: "string", description: "Optionale Notiz zum Termin" },
     },
     required: ["customerId", "employeeId", "serviceIds", "startAt"],
     additionalProperties: false,
   },
   findAppointment: {
     type: "object",
-    properties: { phone: { type: "string" } },
+    properties: { phone: { type: "string", description: "Telefonnummer der Anruferin/des Anrufers" } },
     required: ["phone"],
     additionalProperties: false,
   },
   rescheduleAppointment: {
     type: "object",
     properties: {
-      appointmentId: { type: "string" },
-      newEmployeeId: { type: "string" },
-      newStartAt: { type: "string" },
+      appointmentId: { type: "string", description: "UUID des zu verschiebenden Termins" },
+      newEmployeeId: { type: "string", description: "UUID des Mitarbeiters für die neue Zeit" },
+      newStartAt: { type: "string", description: "ISO-Zeitstempel der neuen gewünschten Startzeit" },
     },
     required: ["appointmentId", "newEmployeeId", "newStartAt"],
     additionalProperties: false,
   },
   cancelAppointment: {
     type: "object",
-    properties: { appointmentId: { type: "string" } },
+    properties: { appointmentId: { type: "string", description: "UUID des zu stornierenden Termins" } },
     required: ["appointmentId"],
     additionalProperties: false,
   },
   createCallbackRequest: {
     type: "object",
     properties: {
-      phone: { type: "string" },
-      customerId: { type: ["string", "null"] },
-      reason: { type: "string" },
-      note: { type: "string" },
+      phone: { type: "string", description: "Telefonnummer für den Rückruf" },
+      customerId: { type: ["string", "null"], description: "UUID der Kundin/des Kunden, falls bekannt" },
+      reason: { type: "string", description: "Kurzer Grund für den Rückrufwunsch" },
+      note: { type: "string", description: "Zusätzliche Notiz zum Rückrufwunsch" },
     },
     required: ["phone"],
     additionalProperties: false,

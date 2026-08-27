@@ -31,7 +31,40 @@ function toolWebhookUrl(baseWebhookUrl: string, toolName: ToolName, salonId: str
   return url.toString();
 }
 
-type JsonSchema = { type: string; properties?: Record<string, unknown>; required?: string[] };
+type JsonSchema = {
+  type: string | string[];
+  properties?: Record<string, JsonSchema>;
+  items?: JsonSchema;
+  required?: string[];
+  description?: string;
+};
+
+// ElevenLabs' webhook-tool request_body_schema is NOT plain JSON Schema -
+// confirmed live from a real sync attempt (422 response), it requires:
+// (a) every property/items node to carry a `description` (or one of a few
+// other "how to fill this" markers we don't use), and (b) `type` to be a
+// single literal tag - a nullable union like ["object", "null"] isn't
+// supported for object/array types (string/number/boolean nullable unions
+// are fine, but our only nullable non-primitive is preferredTimeRange, so
+// dropping "null" and relying on the field being non-required is enough).
+function normalizeType(type: string | string[]): string {
+  if (Array.isArray(type)) return type.find((t) => t !== "null") ?? "string";
+  return type;
+}
+
+function normalizeProperty(node: JsonSchema, fallbackKey: string): Record<string, unknown> {
+  const result: Record<string, unknown> = {
+    type: normalizeType(node.type),
+    description: node.description ?? `Wert für ${fallbackKey}`,
+  };
+  if (node.properties) {
+    result.properties = Object.fromEntries(
+      Object.entries(node.properties).map(([key, value]) => [key, normalizeProperty(value, key)])
+    );
+  }
+  if (node.items) result.items = normalizeProperty(node.items, "Element");
+  return result;
+}
 
 function buildTools(config: VoiceAgentConfig) {
   const customTools = (Object.keys(toolJsonSchemas) as ToolName[]).map((name) => {
@@ -48,7 +81,9 @@ function buildTools(config: VoiceAgentConfig) {
         method: "POST",
         request_body_schema: {
           type: "object",
-          properties: schema.properties ?? {},
+          properties: Object.fromEntries(
+            Object.entries(schema.properties ?? {}).map(([key, value]) => [key, normalizeProperty(value, key)])
+          ),
           required: schema.required ?? [],
         },
       },
