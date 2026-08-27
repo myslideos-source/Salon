@@ -37,41 +37,24 @@ export function VoiceSettingsForm({ salonId, settings }: { salonId: string; sett
 
   return (
     <form action={formAction} className="space-y-5">
+      {/* ElevenLabs ist der einzige sichtbare Anbieter - provider/voice_id (Retell)
+          laufen als feste Hidden-Fields weiter, damit bestehende Spalten (NOT NULL)
+          und der Retell-Resync im Hintergrund unverändert funktionieren. */}
+      <input type="hidden" name="provider" value="elevenlabs" />
+      <input type="hidden" name="voice_id" value={settings?.voice_id ?? "cartesia-Eva"} />
+
       <div>
-        <Label htmlFor="provider">Aktiver Anbieter</Label>
-        <Select id="provider" name="provider" defaultValue={settings?.provider ?? "retell"}>
-          <option value="retell">Retell (live)</option>
-          <option value="elevenlabs">ElevenLabs</option>
+        <Label htmlFor="personality">Persönlichkeit</Label>
+        <Select id="personality" name="personality" defaultValue={settings?.personality ?? "freundlich"}>
+          <option value="freundlich">Freundlich</option>
+          <option value="professionell">Professionell</option>
+          <option value="locker">Locker</option>
+          <option value="elegant">Elegant</option>
         </Select>
-        <p className="mt-1 text-xs text-ink-faint">
-          Legt nur fest, welcher Anbieter beim täglichen automatischen Resync als &bdquo;der echte&ldquo; behandelt
-          wird. Beide Agenten können unabhängig davon jederzeit unten manuell synchronisiert werden.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor="voice_id">Stimme (Retell)</Label>
-          <Select id="voice_id" name="voice_id" defaultValue={settings?.voice_id ?? "cartesia-Eva"}>
-            <option value="cartesia-Eva">Eva (Cartesia)</option>
-            <option value="11labs-Carola">Carola (ElevenLabs, deutsch, weiblich)</option>
-            <option value="11labs-Claudia">Claudia (ElevenLabs, deutsch, weiblich)</option>
-            <option value="11labs-Gaby">Gaby (ElevenLabs, deutsch, weiblich)</option>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="personality">Persönlichkeit</Label>
-          <Select id="personality" name="personality" defaultValue={settings?.personality ?? "freundlich"}>
-            <option value="freundlich">Freundlich</option>
-            <option value="professionell">Professionell</option>
-            <option value="locker">Locker</option>
-            <option value="elegant">Elegant</option>
-          </Select>
-        </div>
       </div>
 
       <div>
-        <Label htmlFor="elevenlabs_voice_select">Stimme (ElevenLabs)</Label>
+        <Label htmlFor="elevenlabs_voice_select">Stimme</Label>
         <Select
           id="elevenlabs_voice_select"
           value={elevenLabsChoice}

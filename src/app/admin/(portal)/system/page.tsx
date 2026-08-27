@@ -9,8 +9,8 @@ const ENV_CHECKS = [
   { key: "NEXT_PUBLIC_SUPABASE_ANON_KEY", label: "Supabase Anon Key" },
   { key: "SUPABASE_SERVICE_ROLE_KEY", label: "Supabase Service Role Key" },
   { key: "OPENAI_API_KEY", label: "OpenAI API Key (Voice Test Mode)" },
-  { key: "RETELL_API_KEY", label: "Retell API Key (Live-Telefonie)" },
-  { key: "RETELL_WEBHOOK_SECRET", label: "Retell Webhook Secret" },
+  { key: "ELEVENLABS_API_KEY", label: "ElevenLabs API Key (Live-Telefonie)" },
+  { key: "ELEVENLABS_WEBHOOK_SECRET", label: "ElevenLabs Webhook Secret" },
 ];
 
 export default async function AdminSystemPage() {
