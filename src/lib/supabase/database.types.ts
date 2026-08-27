@@ -828,6 +828,7 @@ export type Database = {
       }
       voice_settings: {
         Row: {
+          custom_prompt: string | null
           detect_new_customers: boolean
           elevenlabs_agent_id: string | null
           elevenlabs_voice_id: string | null
@@ -848,6 +849,7 @@ export type Database = {
           voice_id: string
         }
         Insert: {
+          custom_prompt?: string | null
           detect_new_customers?: boolean
           elevenlabs_agent_id?: string | null
           elevenlabs_voice_id?: string | null
@@ -868,6 +870,7 @@ export type Database = {
           voice_id?: string
         }
         Update: {
+          custom_prompt?: string | null
           detect_new_customers?: boolean
           elevenlabs_agent_id?: string | null
           elevenlabs_voice_id?: string | null
@@ -939,6 +942,21 @@ export type Database = {
       is_salon_member: { Args: { target_salon_id: string }; Returns: boolean }
       toggle_salon_ai: {
         Args: { active: boolean; target_salon_id: string }
+        Returns: undefined
+      }
+      update_voice_settings_customer_fields: {
+        Args: {
+          p_custom_prompt: string
+          p_detect_new_customers: boolean
+          p_greeting: string
+          p_mention_prices: boolean
+          p_offer_alternatives: boolean
+          p_offer_callback: boolean
+          p_personality: string
+          p_respect_employee_preference: boolean
+          p_send_confirmation_sms: boolean
+          target_salon_id: string
+        }
         Returns: undefined
       }
     }
@@ -1067,3 +1085,9 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   const { data: rows, error } = await supabase
     .from("voice_settings")
     .select(
-      "salon_id, provider_agent_id, provider_llm_id, elevenlabs_agent_id, elevenlabs_voice_id, greeting, personality, voice_id, phone_number, forwarding_number, mention_prices, offer_alternatives, respect_employee_preference, offer_callback, detect_new_customers, send_confirmation_sms, salons(name, timezone)"
+      "salon_id, provider_agent_id, provider_llm_id, elevenlabs_agent_id, elevenlabs_voice_id, greeting, personality, voice_id, phone_number, forwarding_number, mention_prices, offer_alternatives, respect_employee_preference, offer_callback, detect_new_customers, send_confirmation_sms, custom_prompt, salons(name, timezone)"
     )
     .or("provider_agent_id.not.is.null,elevenlabs_agent_id.not.is.null");
 
@@ -70,6 +70,7 @@ export async function GET(req: Request) {
         },
         webhookUrl: `${appUrl}/api/voice/webhook`,
         boostedKeywords,
+        customPrompt: row.custom_prompt,
       },
       { agentId: row.provider_agent_id, llmId: row.provider_llm_id }
     );
@@ -115,6 +116,7 @@ export async function GET(req: Request) {
         },
         webhookUrl: `${appUrl}/api/voice/webhook/elevenlabs`,
         boostedKeywords,
+        customPrompt: row.custom_prompt,
       },
       { agentId: row.elevenlabs_agent_id }
     );

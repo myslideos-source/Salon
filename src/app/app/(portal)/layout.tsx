@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { LayoutGrid, Calendar, Clock, Users, Phone, CalendarOff, HelpCircle } from "lucide-react";
+import { LayoutGrid, Calendar, Clock, Users, Phone, CalendarOff, Sparkles, HelpCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireSalonSession, resolveActiveSalonId } from "@/lib/auth/session";
 import { Sidebar, type NavItem } from "@/components/layout/sidebar";
@@ -17,6 +17,7 @@ const navItems: NavItem[] = [
   { href: "/app/customers", label: "Kunden", icon: <Users {...iconProps} /> },
   { href: "/app/calls", label: "Anrufe", icon: <Phone {...iconProps} /> },
   { href: "/app/absences", label: "Abwesenheiten", icon: <CalendarOff {...iconProps} /> },
+  { href: "/app/ai", label: "KI-Assistent", icon: <Sparkles {...iconProps} /> },
 ];
 
 export default async function SalonAppLayout({ children }: { children: React.ReactNode }) {

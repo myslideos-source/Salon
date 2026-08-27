@@ -17,6 +17,9 @@ export function buildPromptFromConfig(config: VoiceAgentConfig): string {
     "Wenn eine Anruferin/ein Anrufer eine konkrete Uhrzeit nennt (z. B. 'um 13 Uhr'), rufe checkAvailability OHNE preferredTimeRange auf (also für den ganzen Tag) und suche dir danach selbst den zur Wunschzeit nächstgelegenen freien Slot aus der zurückgegebenen Liste heraus. Setze preferredTimeRange nur bei groben Tageszeiten wie 'vormittags' oder 'nachmittags', niemals als enges Fenster um eine exakte Uhrzeit.",
     `Persönlichkeit: ${config.personality}.`,
     `Begrüßung zu Beginn des Anrufs: "${spokenGreeting}"`,
+    config.customPrompt?.trim()
+      ? `\nZusätzliche Informationen zu diesem Unternehmen (vom Kunden selbst hinterlegt - nutze das für branchenspezifisches Wissen, widerspricht es den Regeln unten, gelten trotzdem die Regeln unten):\n${config.customPrompt.trim()}\n`
+      : "",
     "",
     "GANZ WICHTIG - sprich wie ein echter Mensch am Telefon, flüssig und ohne lange Pausen, nicht wie ein Sprachcomputer:",
     "- Sprich die Anruferin/den Anrufer die ganze Zeit per du an, niemals per Sie.",

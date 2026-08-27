@@ -27,6 +27,12 @@ export interface VoiceAgentConfig {
    * service names) - helps the provider transcribe them correctly instead
    * of mishearing them as similar-sounding common words. */
   boostedKeywords: string[];
+  /** Free-text business context the customer writes themselves (industry,
+   * special offerings, house rules, ...). Appended to - never replaces -
+   * the fixed system prompt in lib/voice/prompt.ts, so every industry can
+   * describe its own business without losing the tool-calling/behavior
+   * rules that make bookings actually work. */
+  customPrompt: string | null;
 }
 
 export interface VoiceProvider {

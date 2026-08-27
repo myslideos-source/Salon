@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePlatformAdmin } from "@/lib/auth/session";
 import { retellProvider } from "@/lib/voice/providers/retell";
-import { computeBoostedKeywords } from "@/lib/voice/boosted-keywords";
+import { loadVoiceAgentContext } from "@/lib/voice/build-config";
 
 export type SyncResult = { ok: true; agentId: string; llmId: string } | { ok: false; error: string };
 
@@ -12,39 +12,21 @@ export async function syncRetellAgentAction(salonId: string): Promise<SyncResult
   await requirePlatformAdmin();
   const supabase = await createClient();
 
-  const [{ data: salon }, { data: settings }] = await Promise.all([
-    supabase.from("salons").select("name, timezone").eq("id", salonId).single(),
-    supabase.from("voice_settings").select("*").eq("salon_id", salonId).maybeSingle(),
-  ]);
-
-  if (!salon) return { ok: false, error: "Salon nicht gefunden." };
-  if (!settings) return { ok: false, error: "Bitte zuerst die KI-Einstellungen speichern." };
+  const context = await loadVoiceAgentContext(supabase, salonId);
+  if (!context.ok) return { ok: false, error: context.error };
+  const { settings, configBase } = context;
 
   const appUrl = process.env.APP_URL;
   if (!appUrl) return { ok: false, error: "APP_URL ist nicht gesetzt (siehe .env.example)." };
 
-  const boostedKeywords = await computeBoostedKeywords(supabase, salonId);
-
-  const result = await retellProvider.syncAgent({
-    salonId,
-    salonName: salon.name,
-    timezone: salon.timezone,
-    greeting: settings.greeting,
-    personality: settings.personality,
-    voiceId: settings.voice_id,
-    phoneNumber: settings.phone_number,
-    forwardingNumber: settings.forwarding_number,
-    rules: {
-      mentionPrices: settings.mention_prices,
-      offerAlternatives: settings.offer_alternatives,
-      respectEmployeePreference: settings.respect_employee_preference,
-      offerCallback: settings.offer_callback,
-      detectNewCustomers: settings.detect_new_customers,
-      sendConfirmationSms: settings.send_confirmation_sms,
+  const result = await retellProvider.syncAgent(
+    {
+      ...configBase,
+      voiceId: settings.voice_id,
+      webhookUrl: `${appUrl}/api/voice/webhook`,
     },
-    webhookUrl: `${appUrl}/api/voice/webhook`,
-    boostedKeywords,
-  }, { agentId: settings.provider_agent_id, llmId: settings.provider_llm_id });
+    { agentId: settings.provider_agent_id, llmId: settings.provider_llm_id }
+  );
 
   if (!result.ok) return result;
 
