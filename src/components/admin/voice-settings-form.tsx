@@ -7,13 +7,14 @@ import { updateVoiceSettingsAction } from "@/lib/actions/voice-settings";
 import type { ActionState } from "@/lib/actions/admin";
 import type { Tables } from "@/lib/supabase/database.types";
 
-const RULES: { key: keyof Pick<Tables<"voice_settings">, "mention_prices" | "offer_alternatives" | "respect_employee_preference" | "offer_callback" | "detect_new_customers" | "send_confirmation_sms">; label: string }[] = [
+const RULES: { key: keyof Pick<Tables<"voice_settings">, "mention_prices" | "offer_alternatives" | "respect_employee_preference" | "offer_callback" | "detect_new_customers" | "send_confirmation_sms" | "emergency_redirect">; label: string }[] = [
   { key: "mention_prices", label: "Preise nennen" },
   { key: "offer_alternatives", label: "Alternativtermine anbieten" },
   { key: "respect_employee_preference", label: "Mitarbeiterwunsch beachten" },
   { key: "offer_callback", label: "Rückruf anbieten" },
   { key: "detect_new_customers", label: "Neukunden erkennen" },
   { key: "send_confirmation_sms", label: "Terminbestätigung per SMS" },
+  { key: "emergency_redirect", label: "Bei Notfällen auf Notruf/Notdienst hinweisen" },
 ];
 
 const ELEVENLABS_VOICES = [
@@ -24,6 +25,7 @@ const ELEVENLABS_VOICES = [
 export function VoiceSettingsForm({ salonId, settings }: { salonId: string; settings: Tables<"voice_settings"> | null }) {
   const action = updateVoiceSettingsAction.bind(null, salonId);
   const [state, formAction, pending] = useActionState<ActionState, FormData>(action, null);
+  const [showCancellationHours, setShowCancellationHours] = useState(settings?.mention_cancellation_policy ?? false);
 
   const savedElevenLabsId = settings?.elevenlabs_voice_id ?? "";
   const knownElevenLabsIds = ELEVENLABS_VOICES.map((v) => v.id);
@@ -100,11 +102,51 @@ export function VoiceSettingsForm({ salonId, settings }: { salonId: string; sett
         <div className="grid grid-cols-2 gap-2">
           {RULES.map((r) => (
             <label key={r.key} className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-ink-soft">
-              <input type="checkbox" name={r.key} defaultChecked={settings?.[r.key] ?? true} className="rounded border-border-strong" />
+              <input
+                type="checkbox"
+                name={r.key}
+                defaultChecked={settings?.[r.key] ?? (r.key === "emergency_redirect" ? false : true)}
+                className="rounded border-border-strong"
+              />
               {r.label}
             </label>
           ))}
+          <label className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-ink-soft">
+            <input
+              type="checkbox"
+              name="mention_cancellation_policy"
+              defaultChecked={settings?.mention_cancellation_policy ?? false}
+              onChange={(e) => setShowCancellationHours(e.target.checked)}
+              className="rounded border-border-strong"
+            />
+            Stornofrist nennen
+          </label>
         </div>
+        {showCancellationHours ? (
+          <div className="mt-2 max-w-[220px]">
+            <Label htmlFor="cancellation_notice_hours">Stornofrist (Stunden vorher)</Label>
+            <Input
+              id="cancellation_notice_hours"
+              name="cancellation_notice_hours"
+              type="number"
+              min={1}
+              max={168}
+              defaultValue={settings?.cancellation_notice_hours ?? 24}
+            />
+          </div>
+        ) : (
+          <input type="hidden" name="cancellation_notice_hours" value={settings?.cancellation_notice_hours ?? 24} />
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="required_documents">Mitzubringendes (optional)</Label>
+        <Input
+          id="required_documents"
+          name="required_documents"
+          defaultValue={settings?.required_documents ?? ""}
+          placeholder="z. B. Überweisung, Ausweis, Impfpass"
+        />
       </div>
 
       <FieldError>{state?.error}</FieldError>

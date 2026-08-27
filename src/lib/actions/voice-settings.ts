@@ -20,6 +20,10 @@ const schema = z.object({
   offer_callback: z.coerce.boolean(),
   detect_new_customers: z.coerce.boolean(),
   send_confirmation_sms: z.coerce.boolean(),
+  emergency_redirect: z.coerce.boolean(),
+  mention_cancellation_policy: z.coerce.boolean(),
+  cancellation_notice_hours: z.coerce.number().int().min(1).max(168),
+  required_documents: z.string().max(500).optional().or(z.literal("")),
 });
 
 export async function updateVoiceSettingsAction(salonId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -45,6 +49,10 @@ export async function updateVoiceSettingsAction(salonId: string, _prev: ActionSt
       offer_callback: parsed.data.offer_callback,
       detect_new_customers: parsed.data.detect_new_customers,
       send_confirmation_sms: parsed.data.send_confirmation_sms,
+      emergency_redirect: parsed.data.emergency_redirect,
+      mention_cancellation_policy: parsed.data.mention_cancellation_policy,
+      cancellation_notice_hours: parsed.data.cancellation_notice_hours,
+      required_documents: parsed.data.required_documents || null,
       updated_at: new Date().toISOString(),
     });
   if (error) return { error: error.message };
