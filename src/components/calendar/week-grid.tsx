@@ -19,6 +19,49 @@ function timeToMinutes(t: string) {
   return h * 60 + m;
 }
 
+// Assigns each time-overlapping appointment a column/columns-in-cluster pair
+// so concurrent appointments from different employees render side-by-side
+// instead of stacked directly on top of each other. Standard greedy-column
+// sweep: sort by start, pack into the first column whose last appointment
+// has already ended, and every appointment sharing a connected overlap
+// chain ("cluster") gets the cluster's max simultaneous column count.
+function layoutOverlaps(items: { id: string; start: number; end: number }[]) {
+  const sorted = [...items].sort((a, b) => a.start - b.start || a.end - b.end);
+  const result = new Map<string, { col: number; cols: number }>();
+  let clusterIds: string[] = [];
+  let clusterEnd = -Infinity;
+  let columnEnds: number[] = [];
+
+  function flushCluster() {
+    for (const id of clusterIds) {
+      const entry = result.get(id);
+      if (entry) entry.cols = columnEnds.length;
+    }
+    clusterIds = [];
+    columnEnds = [];
+  }
+
+  for (const item of sorted) {
+    if (item.start >= clusterEnd) {
+      flushCluster();
+      clusterEnd = -Infinity;
+    }
+    let col = columnEnds.findIndex((end) => end <= item.start);
+    if (col === -1) {
+      col = columnEnds.length;
+      columnEnds.push(item.end);
+    } else {
+      columnEnds[col] = item.end;
+    }
+    result.set(item.id, { col, cols: 0 });
+    clusterIds.push(item.id);
+    clusterEnd = Math.max(clusterEnd, item.end);
+  }
+  flushCluster();
+
+  return result;
+}
+
 type Service = { id: string; name: string; duration_minutes: number; price_cents: number; color: string };
 
 export function WeekGrid({
@@ -266,29 +309,45 @@ export function WeekGrid({
                   </div>
                 )}
 
-                {appointmentsForDate(date).map((a) => {
-                  const isDragging = drag?.id === a.id && drag.date === date;
-                  const startMin = apptMinutes(a.startAt) + (isDragging ? drag.deltaMinutes : 0);
-                  const endMin = apptMinutes(a.endAt) + (isDragging ? drag.deltaMinutes : 0);
-                  const top = (startMin - windowStart) * PX_PER_MIN;
-                  const height = Math.max((endMin - startMin) * PX_PER_MIN - 2, 16);
-                  const emp = employeesById.get(a.employeeId);
-                  return (
-                    <AppointmentCard
-                      key={a.id}
-                      appointment={a}
-                      timezone={timezone}
-                      dragging={isDragging}
-                      style={{ top, height }}
-                      colorOverride={emp?.color}
-                      showEmployeeName={emp?.firstName}
-                      onPointerDown={(e) => handlePointerDown(e, a, date)}
-                      onClick={() => {
-                        if (!drag) setDetail(a);
-                      }}
-                    />
-                  );
-                })}
+                {(() => {
+                  const dayAppts = appointmentsForDate(date);
+                  const withMinutes = dayAppts.map((a) => {
+                    const isDragging = drag?.id === a.id && drag.date === date;
+                    const startMin = apptMinutes(a.startAt) + (isDragging ? drag.deltaMinutes : 0);
+                    const endMin = apptMinutes(a.endAt) + (isDragging ? drag.deltaMinutes : 0);
+                    return { a, isDragging, startMin, endMin };
+                  });
+                  const layout = layoutOverlaps(withMinutes.map((w) => ({ id: w.a.id, start: w.startMin, end: w.endMin })));
+
+                  return withMinutes.map(({ a, isDragging, startMin, endMin }) => {
+                    const top = (startMin - windowStart) * PX_PER_MIN;
+                    const height = Math.max((endMin - startMin) * PX_PER_MIN - 2, 16);
+                    const emp = employeesById.get(a.employeeId);
+                    const { col, cols } = layout.get(a.id) ?? { col: 0, cols: 1 };
+                    const widthPct = 100 / cols;
+                    return (
+                      <AppointmentCard
+                        key={a.id}
+                        appointment={a}
+                        timezone={timezone}
+                        dragging={isDragging}
+                        style={{
+                          top,
+                          height,
+                          left: `calc(${col * widthPct}% + 2px)`,
+                          width: `calc(${widthPct}% - 4px)`,
+                          right: "auto",
+                        }}
+                        colorOverride={emp?.color}
+                        showEmployeeName={emp?.firstName}
+                        onPointerDown={(e) => handlePointerDown(e, a, date)}
+                        onClick={() => {
+                          if (!drag) setDetail(a);
+                        }}
+                      />
+                    );
+                  });
+                })()}
               </div>
             </div>
           );
