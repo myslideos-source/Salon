@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Input, Label, Select, Textarea, FieldError } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { updateVoiceSettingsAction } from "@/lib/actions/voice-settings";
@@ -16,9 +16,24 @@ const RULES: { key: keyof Pick<Tables<"voice_settings">, "mention_prices" | "off
   { key: "send_confirmation_sms", label: "Terminbestätigung per SMS" },
 ];
 
+const ELEVENLABS_VOICES = [
+  { id: "itBlUwkHD8mtjbyJyCuC", label: "Lena (ElevenLabs, deutsch, weiblich)" },
+  { id: "Zgahiwh5FVSG7MFjZwPE", label: "Anny (ElevenLabs, deutsch, weiblich)" },
+];
+
 export function VoiceSettingsForm({ salonId, settings }: { salonId: string; settings: Tables<"voice_settings"> | null }) {
   const action = updateVoiceSettingsAction.bind(null, salonId);
   const [state, formAction, pending] = useActionState<ActionState, FormData>(action, null);
+
+  const savedElevenLabsId = settings?.elevenlabs_voice_id ?? "";
+  const knownElevenLabsIds = ELEVENLABS_VOICES.map((v) => v.id);
+  const [elevenLabsChoice, setElevenLabsChoice] = useState(
+    savedElevenLabsId && knownElevenLabsIds.includes(savedElevenLabsId)
+      ? savedElevenLabsId
+      : savedElevenLabsId
+        ? "custom"
+        : ELEVENLABS_VOICES[0].id
+  );
 
   return (
     <form action={formAction} className="space-y-5">
@@ -56,13 +71,29 @@ export function VoiceSettingsForm({ salonId, settings }: { salonId: string; sett
       </div>
 
       <div>
-        <Label htmlFor="elevenlabs_voice_id">Stimme-ID (ElevenLabs, Test)</Label>
-        <Input
-          id="elevenlabs_voice_id"
-          name="elevenlabs_voice_id"
-          defaultValue={settings?.elevenlabs_voice_id ?? ""}
-          placeholder="Voice-ID aus der ElevenLabs-Stimmbibliothek einfügen"
-        />
+        <Label htmlFor="elevenlabs_voice_select">Stimme (ElevenLabs, Test)</Label>
+        <Select
+          id="elevenlabs_voice_select"
+          value={elevenLabsChoice}
+          onChange={(e) => setElevenLabsChoice(e.target.value)}
+        >
+          {ELEVENLABS_VOICES.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.label}
+            </option>
+          ))}
+          <option value="custom">Andere (Voice-ID manuell einfügen)</option>
+        </Select>
+        {elevenLabsChoice === "custom" ? (
+          <Input
+            className="mt-2"
+            name="elevenlabs_voice_id"
+            defaultValue={knownElevenLabsIds.includes(savedElevenLabsId) ? "" : savedElevenLabsId}
+            placeholder="Voice-ID aus der ElevenLabs-Stimmbibliothek einfügen"
+          />
+        ) : (
+          <input type="hidden" name="elevenlabs_voice_id" value={elevenLabsChoice} />
+        )}
       </div>
 
       <div>
