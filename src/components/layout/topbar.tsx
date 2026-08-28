@@ -5,12 +5,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { Bell } from "lucide-react";
 import { initials } from "@/lib/utils";
+import { markNotificationReadAction } from "@/lib/actions/notifications";
 
 type Notification = {
   id: string;
   title: string;
   detail: string | null;
   createdAt: string;
+  read: boolean;
+  href: string;
 };
 
 function timeAgo(iso: string): string {
@@ -28,6 +31,7 @@ function NotificationsBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   useEffect(() => {
     let cancelled = false;
@@ -57,6 +61,14 @@ function NotificationsBell() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  function handleOpenNotification(n: Notification) {
+    setOpen(false);
+    if (!n.read && !n.id.startsWith("signup-")) {
+      setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
+      void markNotificationReadAction(n.id).catch(() => {});
+    }
+  }
+
   return (
     <div ref={wrapperRef} className="relative">
       <button
@@ -65,8 +77,10 @@ function NotificationsBell() {
         aria-label="Benachrichtigungen"
       >
         <Bell className="h-5 w-5" strokeWidth={1.8} />
-        {notifications.length > 0 && (
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-bronze" />
+        {unreadCount > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-bronze px-1 text-[10px] font-semibold text-white">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
         )}
       </button>
       {open && (
@@ -79,17 +93,25 @@ function NotificationsBell() {
               <p className="px-4 py-6 text-center text-sm text-ink-faint">Keine offenen Benachrichtigungen.</p>
             ) : (
               notifications.map((n) => (
-                <div key={n.id} className="border-b border-border px-4 py-3 last:border-b-0">
-                  <p className="text-sm text-ink">{n.title}</p>
+                <Link
+                  key={n.id}
+                  href={n.href}
+                  onClick={() => handleOpenNotification(n)}
+                  className="block border-b border-border px-4 py-3 last:border-b-0 hover:bg-sand"
+                >
+                  <p className="flex items-center gap-2 text-sm text-ink">
+                    {!n.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-bronze" />}
+                    {n.title}
+                  </p>
                   {n.detail && <p className="mt-0.5 text-xs text-ink-soft">{n.detail}</p>}
                   <p className="mt-1 text-xs text-ink-faint">{timeAgo(n.createdAt)}</p>
-                </div>
+                </Link>
               ))
             )}
           </div>
           {notifications.length > 0 && (
             <Link
-              href={notifications[0]!.id.startsWith("signup-") ? "/admin/signups" : "/app/calls"}
+              href={notifications[0]!.href}
               onClick={() => setOpen(false)}
               className="block border-t border-border px-4 py-2.5 text-center text-sm text-bronze-dark hover:bg-sand"
             >

@@ -1444,6 +1444,7 @@ export type Database = {
           earliest_booking_lead_minutes: number
           id: string
           industry_template_id: string | null
+          is_demo: boolean
           logo_url: string | null
           max_advance_booking_days: number
           max_appointments_per_day: number | null
@@ -1468,6 +1469,7 @@ export type Database = {
           earliest_booking_lead_minutes?: number
           id?: string
           industry_template_id?: string | null
+          is_demo?: boolean
           logo_url?: string | null
           max_advance_booking_days?: number
           max_appointments_per_day?: number | null
@@ -1492,6 +1494,7 @@ export type Database = {
           earliest_booking_lead_minutes?: number
           id?: string
           industry_template_id?: string | null
+          is_demo?: boolean
           logo_url?: string | null
           max_advance_booking_days?: number
           max_appointments_per_day?: number | null
@@ -1861,6 +1864,14 @@ export type Database = {
       }
       is_platform_admin: { Args: never; Returns: boolean }
       is_salon_member: { Args: { target_salon_id: string }; Returns: boolean }
+      mark_all_notifications_read: {
+        Args: { target_salon_id: string }
+        Returns: undefined
+      }
+      mark_notification_read: {
+        Args: { p_notification_id: string }
+        Returns: undefined
+      }
       regenerate_calendar_feed_token: {
         Args: { target_salon_id: string }
         Returns: string

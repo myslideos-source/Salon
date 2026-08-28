@@ -7,6 +7,7 @@ import {
   type PreferredTimeRange,
 } from "./availability";
 import { sendAppointmentConfirmationSms } from "@/lib/notifications/appointment-sms";
+import { notifyAppointmentEvent } from "@/lib/notifications/appointment-events";
 
 export type DbClient = SupabaseClient<Database>;
 
@@ -277,6 +278,7 @@ export async function createAppointment(supabase: DbClient, params: CreateAppoin
   }
 
   await sendAppointmentConfirmationSms(supabase, salonId, data.id);
+  await notifyAppointmentEvent(supabase, salonId, data.id, "appointment_booked");
 
   return data;
 }
@@ -336,6 +338,8 @@ export async function rescheduleAppointment(supabase: DbClient, params: Reschedu
     throw new SchedulingError("invalid_input", error.message);
   }
 
+  await notifyAppointmentEvent(supabase, salonId, appointmentId, "appointment_changed");
+
   return data;
 }
 
@@ -388,6 +392,8 @@ export async function resizeAppointment(supabase: DbClient, params: ResizeAppoin
     throw new SchedulingError("invalid_input", error.message);
   }
 
+  await notifyAppointmentEvent(supabase, salonId, appointmentId, "appointment_changed");
+
   return data;
 }
 
@@ -409,5 +415,6 @@ export async function cancelAppointment(supabase: DbClient, salonId: string, app
     .select()
     .single();
   if (error) throw new SchedulingError("invalid_input", error.message);
+  await notifyAppointmentEvent(supabase, salonId, appointmentId, "appointment_cancelled");
   return data;
 }

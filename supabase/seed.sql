@@ -87,8 +87,8 @@ begin
     jsonb_build_object('sub', v_salon_user_id::text, 'email', salon_email), 'email', now(), now(), now());
 
   -- ── Salon ────────────────────────────────────────────────────────────
-  insert into salons (name, slug, timezone, phone, address, status, ai_active, slot_granularity_minutes, earliest_booking_lead_minutes, max_advance_booking_days)
-  values ('Hair Lounge Milano', 'hair-lounge-milano', 'Europe/Berlin', '+49 30 1234567', 'Kastanienallee 12, 10435 Berlin', 'active', true, 15, 60, 60)
+  insert into salons (name, slug, timezone, phone, address, status, ai_active, is_demo, slot_granularity_minutes, earliest_booking_lead_minutes, max_advance_booking_days)
+  values ('Hair Lounge Milano', 'hair-lounge-milano', 'Europe/Berlin', '+49 30 1234567', 'Kastanienallee 12, 10435 Berlin', 'active', true, true, 15, 60, 60)
   returning id into v_salon_id;
 
   insert into salon_users (salon_id, user_id, role) values (v_salon_id, v_salon_user_id, 'owner');

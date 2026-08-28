@@ -1,9 +1,13 @@
-import { Phone, CalendarCheck, UserPlus, XCircle } from "lucide-react";
+import { Phone, CalendarCheck, UserPlus, XCircle, PhoneMissed, PhoneCall, Timer, Trophy, Radio, Clock3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireSalonSession, resolveActiveSalonId } from "@/lib/auth/session";
+import { checkPermission } from "@/lib/auth/permissions";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Topbar } from "@/components/layout/topbar";
+import { formatDuration } from "@/lib/utils";
+import { computePeriodMetrics, computeEmployeeUtilization } from "@/lib/stats/metrics";
 import { DEFAULT_COMPANY_LABEL } from "@/lib/terminology";
 
 function trend(current: number, previous: number): string | undefined {
@@ -12,10 +16,36 @@ function trend(current: number, previous: number): string | undefined {
   return `${pct >= 0 ? "+" : ""}${pct}% vs. Vorwoche`;
 }
 
+function pct(rate: number | null): string {
+  return rate === null ? "–" : `${Math.round(rate * 100)}%`;
+}
+
+function fmtDuration(seconds: number | null): string {
+  if (seconds === null) return "–";
+  const minutes = Math.round(seconds / 60);
+  return minutes === 0 ? `${seconds} Sek.` : formatDuration(minutes);
+}
+
 export default async function SalonStatsPage() {
   const session = await requireSalonSession();
   const salonId = resolveActiveSalonId(session)!;
   const supabase = await createClient();
+
+  const allowed = await checkPermission(salonId, "view_statistics");
+  if (!allowed) {
+    return (
+      <div>
+        <Topbar title="Statistiken" avatarLabel={session.email ?? DEFAULT_COMPANY_LABEL} />
+        <div className="p-4 sm:p-6 lg:p-8">
+          <Card>
+            <p className="px-5 py-8 text-center text-sm text-ink-soft">Für deine Rolle sind Statistiken nicht sichtbar.</p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  const { data: salon } = await supabase.from("salons").select("is_demo").eq("id", salonId).single();
 
   const periodEnd = new Date();
   const periodStart = new Date(periodEnd);
@@ -23,78 +53,89 @@ export default async function SalonStatsPage() {
   const prevStart = new Date(periodStart);
   prevStart.setDate(prevStart.getDate() - 7);
   const prevEnd = periodStart;
+  const todayIso = periodEnd.toISOString().slice(0, 10);
 
-  const [
-    { data: callsPeriod },
-    { data: callsPrev },
-    { data: appointmentsPeriod },
-    { data: appointmentsPrev },
-    { data: customersPeriod },
-    { data: customersPrev },
-    { data: openRequests },
-  ] = await Promise.all([
-    supabase.from("calls").select("id").eq("salon_id", salonId).gte("started_at", periodStart.toISOString()).lte("started_at", periodEnd.toISOString()),
-    supabase.from("calls").select("id").eq("salon_id", salonId).gte("started_at", prevStart.toISOString()).lt("started_at", prevEnd.toISOString()),
-    supabase
-      .from("appointments")
-      .select("id, status, appointment_services(services(name))")
-      .eq("salon_id", salonId)
-      .gte("start_at", periodStart.toISOString())
-      .lte("start_at", periodEnd.toISOString()),
-    supabase.from("appointments").select("id, status").eq("salon_id", salonId).gte("start_at", prevStart.toISOString()).lt("start_at", prevEnd.toISOString()),
-    supabase.from("customers").select("id").eq("salon_id", salonId).gte("created_at", periodStart.toISOString()).lte("created_at", periodEnd.toISOString()),
-    supabase.from("customers").select("id").eq("salon_id", salonId).gte("created_at", prevStart.toISOString()).lt("created_at", prevEnd.toISOString()),
-    supabase.from("callback_requests").select("id").eq("salon_id", salonId).eq("status", "open"),
+  const [current, previous, utilization] = await Promise.all([
+    computePeriodMetrics(supabase, salonId, periodStart, periodEnd),
+    computePeriodMetrics(supabase, salonId, prevStart, prevEnd),
+    computeEmployeeUtilization(supabase, salonId, todayIso),
   ]);
-
-  const bookedPeriod = (appointmentsPeriod ?? []).filter((a) => a.status === "booked");
-  const bookedPrev = (appointmentsPrev ?? []).filter((a) => a.status === "booked");
-  const cancelledPeriod = (appointmentsPeriod ?? []).filter((a) => a.status === "cancelled");
-  const cancelledPrev = (appointmentsPrev ?? []).filter((a) => a.status === "cancelled");
-
-  const serviceCounts = new Map<string, number>();
-  for (const a of bookedPeriod) {
-    const links = (a.appointment_services ?? []) as unknown as { services: { name: string } | null }[];
-    for (const link of links) {
-      const name = link.services?.name;
-      if (!name) continue;
-      serviceCounts.set(name, (serviceCounts.get(name) ?? 0) + 1);
-    }
-  }
-  const topServices = [...serviceCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   return (
     <div>
-      <Topbar title="Statistiken" subtitle="Die letzten 7 Tage im Überblick." avatarLabel={session.email ?? DEFAULT_COMPANY_LABEL} />
+      <Topbar
+        title={
+          <span className="flex items-center gap-2">
+            Statistiken
+            {salon?.is_demo && <Badge tone="bronze">Demo</Badge>}
+          </span>
+        }
+        subtitle="Die letzten 7 Tage im Überblick."
+        avatarLabel={session.email ?? DEFAULT_COMPANY_LABEL}
+      />
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-          <StatCard icon={Phone} label="Anrufe (7 Tage)" value={String((callsPeriod ?? []).length)} deltaLabel={trend((callsPeriod ?? []).length, (callsPrev ?? []).length)} />
-          <StatCard icon={CalendarCheck} label="Termine gebucht" value={String(bookedPeriod.length)} deltaLabel={trend(bookedPeriod.length, bookedPrev.length)} />
-          <StatCard icon={UserPlus} label="Neukunden" value={String((customersPeriod ?? []).length)} deltaLabel={trend((customersPeriod ?? []).length, (customersPrev ?? []).length)} />
-          <StatCard icon={XCircle} label="Stornierungen" value={String(cancelledPeriod.length)} deltaLabel={trend(cancelledPeriod.length, cancelledPrev.length)} />
+          <StatCard icon={Phone} label="Anrufe (7 Tage)" value={String(current.callsTotal)} deltaLabel={trend(current.callsTotal, previous.callsTotal)} />
+          <StatCard icon={CalendarCheck} label="Termine gebucht" value={String(current.bookedAppointments)} deltaLabel={trend(current.bookedAppointments, previous.bookedAppointments)} />
+          <StatCard icon={UserPlus} label="Neukunden" value={String(current.newCustomers)} deltaLabel={trend(current.newCustomers, previous.newCustomers)} />
+          <StatCard icon={XCircle} label="Stornierungen" value={String(current.cancelledAppointments)} deltaLabel={trend(current.cancelledAppointments, previous.cancelledAppointments)} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          <StatCard icon={Trophy} label="Buchungsquote" value={pct(current.bookingRate)} />
+          <StatCard icon={XCircle} label="Stornoquote" value={pct(current.cancellationRate)} />
+          <StatCard icon={PhoneCall} label="Rückrufquote" value={pct(current.callbackRate)} />
+          <StatCard icon={Radio} label="Erreichbarkeit" value={pct(current.reachabilityRate)} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          <StatCard icon={PhoneMissed} label="Verpasste Anrufe" value={String(current.callsMissed)} deltaLabel={trend(current.callsMissed, previous.callsMissed)} />
+          <StatCard icon={Clock3} label="Ø Gesprächsdauer" value={fmtDuration(current.avgCallDurationSeconds)} />
+          <StatCard icon={Timer} label="Geschätzte Zeitersparnis" value={formatDuration(current.estimatedMinutesSaved)} />
+          <StatCard icon={CalendarCheck} label="Nicht erschienen" value={String(current.noShowAppointments)} />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader title="Beliebteste Leistungen" subtitle="Nach gebuchten Terminen der letzten 7 Tage." />
             <div className="divide-y divide-border">
-              {topServices.map(([name, count]) => (
+              {current.topServices.map(({ name, count }) => (
                 <div key={name} className="flex items-center justify-between px-5 py-3">
                   <p className="text-sm text-ink">{name}</p>
                   <p className="text-sm text-ink-soft">{count}</p>
                 </div>
               ))}
-              {topServices.length === 0 && <p className="px-5 py-8 text-center text-sm text-ink-faint">Noch keine Daten für diesen Zeitraum.</p>}
+              {current.topServices.length === 0 && <p className="px-5 py-8 text-center text-sm text-ink-faint">Noch keine Daten für diesen Zeitraum.</p>}
             </div>
           </Card>
 
           <Card>
-            <CardHeader title="Offene Anfragen" subtitle="Aktuell wartende Rückrufwünsche." />
-            <div className="p-5 pt-4">
-              <p className="brand-gradient-text font-display text-3xl tracking-tight">{(openRequests ?? []).length}</p>
+            <CardHeader title="Häufigste Anliegen" subtitle="Aus den Gesprächsthemen der letzten 7 Tage." />
+            <div className="divide-y divide-border">
+              {current.topTopics.map(({ topic, count }) => (
+                <div key={topic} className="flex items-center justify-between px-5 py-3">
+                  <p className="text-sm text-ink">{topic}</p>
+                  <p className="text-sm text-ink-soft">{count}</p>
+                </div>
+              ))}
+              {current.topTopics.length === 0 && <p className="px-5 py-8 text-center text-sm text-ink-faint">Noch keine Daten für diesen Zeitraum.</p>}
             </div>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader title="Auslastung je Mitarbeiter" subtitle="Gebuchte Terminminuten gegenüber hinterlegter Arbeitszeit, heute." />
+          <div className="divide-y divide-border">
+            {utilization.map((row) => (
+              <div key={row.employeeId} className="flex items-center gap-3 px-5 py-3">
+                <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: row.color ?? "var(--color-bronze)" }} />
+                <p className="min-w-0 flex-1 truncate text-sm text-ink">{row.name}</p>
+                <p className="shrink-0 text-sm text-ink-soft">{row.rate === null ? "Keine Arbeitszeit hinterlegt" : pct(row.rate)}</p>
+              </div>
+            ))}
+            {utilization.length === 0 && <p className="px-5 py-8 text-center text-sm text-ink-faint">Keine aktiven Mitarbeiter hinterlegt.</p>}
+          </div>
+        </Card>
       </div>
     </div>
   );

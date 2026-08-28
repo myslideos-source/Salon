@@ -1,13 +1,19 @@
 import Link from "next/link";
-import { Phone, CalendarCheck, UserPlus, Euro, Clock, Sparkles } from "lucide-react";
+import { Phone, CalendarCheck, UserPlus, Euro, Clock, Sparkles, PhoneCall, ClipboardList, Gauge, Trophy, Radio, Timer } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireSalonSession, resolveActiveSalonId } from "@/lib/auth/session";
+import { getSalonEmployeesAction } from "@/lib/actions/calendar-data";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { MiaStatusCard, resolveMiaStatus } from "@/components/dashboard/mia-status-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Topbar } from "@/components/layout/topbar";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDuration } from "@/lib/utils";
+import { computePeriodMetrics, computeEmployeeUtilization, averageUtilization } from "@/lib/stats/metrics";
+import { getRecentActivity, type ActivityItem } from "@/lib/stats/activity";
 import { DEFAULT_COMPANY_LABEL } from "@/lib/terminology";
+import type { CustomFieldDefinition } from "@/lib/validation/custom-fields";
 
 function greeting() {
   const h = new Date().getHours();
@@ -16,6 +22,18 @@ function greeting() {
   return "Guten Abend";
 }
 
+function pct(rate: number | null): string {
+  return rate === null ? "–" : `${Math.round(rate * 100)}%`;
+}
+
+const ACTIVITY_ICON: Record<ActivityItem["type"], typeof Phone> = {
+  appointment: CalendarCheck,
+  call: Phone,
+  customer: UserPlus,
+  callback: PhoneCall,
+  request: ClipboardList,
+};
+
 export default async function SalonDashboardPage() {
   const session = await requireSalonSession();
   const salonId = resolveActiveSalonId(session)!;
@@ -23,9 +41,10 @@ export default async function SalonDashboardPage() {
 
   const { data: salon } = await supabase
     .from("salons")
-    .select("name, onboarding_completed_at")
+    .select("name, timezone, onboarding_completed_at, ai_active, is_demo")
     .eq("id", salonId)
     .single();
+  const { data: voiceSettings } = await supabase.from("voice_settings").select("phone_number").eq("salon_id", salonId).maybeSingle();
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -33,6 +52,7 @@ export default async function SalonDashboardPage() {
   todayEnd.setHours(23, 59, 59, 999);
   const yesterdayStart = new Date(todayStart);
   yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+  const todayIso = todayStart.toISOString().slice(0, 10);
 
   const [
     { data: callsToday },
@@ -44,48 +64,62 @@ export default async function SalonDashboardPage() {
     { data: callsYesterday },
     { data: appointmentsYesterday },
     { data: newCustomersYesterday },
+    { data: openRequests },
+    todayMetrics,
+    utilizationRows,
+    activity,
+    employees,
+    { data: services },
+    { data: customFieldDefinitions },
   ] = await Promise.all([
-      supabase.from("calls").select("id").eq("salon_id", salonId).gte("started_at", todayStart.toISOString()),
-      supabase
-        .from("appointments")
-        .select("id, start_at, status, source, total_price_cents, customers(first_name, last_name), employees(first_name, color), appointment_services(services(name))")
-        .eq("salon_id", salonId)
-        .neq("status", "cancelled")
-        .gte("start_at", todayStart.toISOString())
-        .lte("start_at", todayEnd.toISOString())
-        .order("start_at"),
-      supabase.from("customers").select("id").eq("salon_id", salonId).gte("created_at", todayStart.toISOString()),
-      supabase
-        .from("calls")
-        .select("id, started_at, phone_number, topic, outcome, customers(first_name, last_name)")
-        .eq("salon_id", salonId)
-        .order("started_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("callback_requests")
-        .select("id, phone_number, reason, requested_at, customers(first_name, last_name)")
-        .eq("salon_id", salonId)
-        .eq("status", "open")
-        .order("requested_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("appointments")
-        .select("id, start_at, source, customers(first_name, last_name), employees(first_name, color), appointment_services(services(name))")
-        .eq("salon_id", salonId)
-        .eq("status", "booked")
-        .gt("start_at", new Date().toISOString())
-        .order("start_at")
-        .limit(5),
-      supabase.from("calls").select("id").eq("salon_id", salonId).gte("started_at", yesterdayStart.toISOString()).lt("started_at", todayStart.toISOString()),
-      supabase
-        .from("appointments")
-        .select("id, status, total_price_cents")
-        .eq("salon_id", salonId)
-        .eq("status", "booked")
-        .gte("start_at", yesterdayStart.toISOString())
-        .lt("start_at", todayStart.toISOString()),
-      supabase.from("customers").select("id").eq("salon_id", salonId).gte("created_at", yesterdayStart.toISOString()).lt("created_at", todayStart.toISOString()),
-    ]);
+    supabase.from("calls").select("id").eq("salon_id", salonId).gte("started_at", todayStart.toISOString()),
+    supabase
+      .from("appointments")
+      .select("id, start_at, status, source, total_price_cents, customers(first_name, last_name), employees(first_name, color), appointment_services(services(name))")
+      .eq("salon_id", salonId)
+      .neq("status", "cancelled")
+      .gte("start_at", todayStart.toISOString())
+      .lte("start_at", todayEnd.toISOString())
+      .order("start_at"),
+    supabase.from("customers").select("id").eq("salon_id", salonId).gte("created_at", todayStart.toISOString()),
+    supabase
+      .from("calls")
+      .select("id, started_at, phone_number, topic, outcome, customers(first_name, last_name)")
+      .eq("salon_id", salonId)
+      .order("started_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("callback_requests")
+      .select("id, phone_number, reason, requested_at, customers(first_name, last_name)")
+      .eq("salon_id", salonId)
+      .eq("status", "open")
+      .order("requested_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("appointments")
+      .select("id, start_at, source, customers(first_name, last_name), employees(first_name, color), appointment_services(services(name))")
+      .eq("salon_id", salonId)
+      .eq("status", "booked")
+      .gt("start_at", new Date().toISOString())
+      .order("start_at")
+      .limit(5),
+    supabase.from("calls").select("id").eq("salon_id", salonId).gte("started_at", yesterdayStart.toISOString()).lt("started_at", todayStart.toISOString()),
+    supabase
+      .from("appointments")
+      .select("id, status, total_price_cents")
+      .eq("salon_id", salonId)
+      .eq("status", "booked")
+      .gte("start_at", yesterdayStart.toISOString())
+      .lt("start_at", todayStart.toISOString()),
+    supabase.from("customers").select("id").eq("salon_id", salonId).gte("created_at", yesterdayStart.toISOString()).lt("created_at", todayStart.toISOString()),
+    supabase.from("requests").select("id").eq("salon_id", salonId).not("status", "in", "(done,rejected)"),
+    computePeriodMetrics(supabase, salonId, todayStart, todayEnd),
+    computeEmployeeUtilization(supabase, salonId, todayIso),
+    getRecentActivity(supabase, salonId, 8),
+    getSalonEmployeesAction(salonId),
+    supabase.from("services").select("id, name, duration_minutes, price_cents, color").eq("salon_id", salonId).eq("active", true).order("sort_order"),
+    supabase.from("custom_field_definitions").select("*").eq("salon_id", salonId).eq("entity_type", "customer").eq("active", true).order("sort_order"),
+  ]);
 
   const bookedToday = (appointmentsToday ?? []).filter((a) => a.status === "booked");
   const totalValue = bookedToday.reduce((sum, a) => sum + a.total_price_cents, 0);
@@ -93,29 +127,48 @@ export default async function SalonDashboardPage() {
 
   const trend = (current: number, previous: number): string | undefined => {
     if (previous === 0) return current > 0 ? "neu" : undefined;
-    const pct = Math.round(((current - previous) / previous) * 100);
-    return `${pct >= 0 ? "+" : ""}${pct}% vs. gestern`;
+    const percentage = Math.round(((current - previous) / previous) * 100);
+    return `${percentage >= 0 ? "+" : ""}${percentage}% vs. gestern`;
   };
 
   const fmtTime = (iso: string) => new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
   const fmtDay = (iso: string) => new Intl.DateTimeFormat("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+  const fmtActivityTime = (iso: string) => {
+    // eslint-disable-next-line react-hooks/purity -- server component, evaluated per request
+    const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
+    if (minutes < 1) return "gerade eben";
+    if (minutes < 60) return `vor ${minutes} Min.`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `vor ${hours} Std.`;
+    return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+  };
+
+  const miaStatus = resolveMiaStatus({ onboarding_completed_at: salon?.onboarding_completed_at ?? null, ai_active: salon?.ai_active ?? false }, voiceSettings?.phone_number ?? null);
+  const avgUtilization = averageUtilization(utilizationRows);
 
   return (
     <div>
-      <Topbar title={`${greeting()}, ${salon?.name}`} subtitle="Hier ist dein Überblick für heute." avatarLabel={session.email ?? DEFAULT_COMPANY_LABEL} />
+      <Topbar
+        title={
+          <span className="flex items-center gap-2">
+            {greeting()}, {salon?.name}
+            {salon?.is_demo && <Badge tone="bronze">Demo</Badge>}
+          </span>
+        }
+        subtitle="Hier ist dein Überblick für heute."
+        avatarLabel={session.email ?? DEFAULT_COMPANY_LABEL}
+      />
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
-        {!salon?.onboarding_completed_at && (
-          <Link
-            href="/app/onboarding"
-            className="flex items-center justify-between gap-3 rounded-2xl border border-bronze/30 bg-bronze-soft px-5 py-4 transition-colors hover:bg-bronze-soft/80"
-          >
-            <div>
-              <p className="text-sm font-medium text-ink">Einrichtung unvollständig</p>
-              <p className="mt-0.5 text-xs text-ink-soft">Unternehmen, Branche und Unternehmensdaten weiter einrichten.</p>
-            </div>
-            <Badge tone="bronze">Fortsetzen</Badge>
-          </Link>
-        )}
+        <MiaStatusCard status={miaStatus} />
+
+        <QuickActions
+          salonId={salonId}
+          timezone={salon?.timezone ?? "Europe/Berlin"}
+          employees={employees}
+          services={services ?? []}
+          customFieldDefinitions={(customFieldDefinitions ?? []) as CustomFieldDefinition[]}
+        />
+
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           <StatCard
             icon={Phone}
@@ -143,6 +196,18 @@ export default async function SalonDashboardPage() {
           />
         </div>
 
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          <StatCard icon={PhoneCall} label="Offene Rückrufe" value={String((callbacks ?? []).length)} />
+          <StatCard icon={ClipboardList} label="Ungelöste Anfragen" value={String((openRequests ?? []).length)} />
+          <StatCard icon={Gauge} label="Auslastung heute" value={pct(avgUtilization)} />
+          <StatCard icon={Timer} label="Zeitersparnis heute" value={formatDuration(todayMetrics.estimatedMinutesSaved)} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          <StatCard icon={Trophy} label="Erfolgsquote heute" value={pct(todayMetrics.bookingRate)} />
+          <StatCard icon={Radio} label="Erreichbarkeit heute" value={pct(todayMetrics.reachabilityRate)} />
+        </div>
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             <Card>
@@ -151,7 +216,7 @@ export default async function SalonDashboardPage() {
                 {bookedToday.map((a) => {
                   const customer = a.customers as unknown as { first_name: string; last_name: string } | null;
                   const employee = a.employees as unknown as { first_name: string; color: string | null } | null;
-                  const services = (a.appointment_services ?? []) as unknown as { services: { name: string } | null }[];
+                  const appointmentServices = (a.appointment_services ?? []) as unknown as { services: { name: string } | null }[];
                   return (
                     <div key={a.id} className="flex items-center gap-3 px-5 py-3">
                       <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: employee?.color ?? "var(--color-bronze)" }} />
@@ -162,7 +227,7 @@ export default async function SalonDashboardPage() {
                           {a.source === "voice_ai" && <Sparkles className="h-3 w-3 shrink-0 text-gold" />}
                         </p>
                         <p className="truncate text-xs text-ink-soft">
-                          {services.map((s) => s.services?.name).filter(Boolean).join(", ")} · {employee?.first_name}
+                          {appointmentServices.map((s) => s.services?.name).filter(Boolean).join(", ")} · {employee?.first_name}
                         </p>
                       </div>
                       <span className="shrink-0 text-sm text-ink-soft">{formatPrice(a.total_price_cents)}</span>
@@ -179,7 +244,7 @@ export default async function SalonDashboardPage() {
                 {(nextAppointments ?? []).map((a) => {
                   const customer = a.customers as unknown as { first_name: string; last_name: string } | null;
                   const employee = a.employees as unknown as { first_name: string; color: string | null } | null;
-                  const services = (a.appointment_services ?? []) as unknown as { services: { name: string } | null }[];
+                  const appointmentServices = (a.appointment_services ?? []) as unknown as { services: { name: string } | null }[];
                   return (
                     <div key={a.id} className="flex items-center gap-3 px-5 py-3">
                       <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: employee?.color ?? "var(--color-bronze)" }} />
@@ -189,13 +254,34 @@ export default async function SalonDashboardPage() {
                           {a.source === "voice_ai" && <Sparkles className="h-3 w-3 shrink-0 text-gold" />}
                         </p>
                         <p className="truncate text-xs text-ink-soft">
-                          {services.map((s) => s.services?.name).filter(Boolean).join(", ")} · {employee?.first_name}
+                          {appointmentServices.map((s) => s.services?.name).filter(Boolean).join(", ")} · {employee?.first_name}
                         </p>
                       </div>
                     </div>
                   );
                 })}
                 {(nextAppointments ?? []).length === 0 && <p className="px-5 py-8 text-center text-sm text-ink-faint">Keine kommenden Termine.</p>}
+              </div>
+            </Card>
+
+            <Card>
+              <CardHeader title="Aktuelle Aktivitäten" />
+              <div className="divide-y divide-border">
+                {activity.map((item) => {
+                  const Icon = ACTIVITY_ICON[item.type];
+                  return (
+                    <Link key={item.id} href={item.href} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-sand">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-bronze-soft text-bronze-dark">
+                        <Icon className="h-4 w-4" strokeWidth={1.8} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm text-ink">{item.title}</p>
+                        <p className="truncate text-xs text-ink-soft">{item.subtitle ? `${item.subtitle} · ` : ""}{fmtActivityTime(item.timestamp)}</p>
+                      </div>
+                    </Link>
+                  );
+                })}
+                {activity.length === 0 && <p className="px-5 py-8 text-center text-sm text-ink-faint">Noch keine Aktivitäten.</p>}
               </div>
             </Card>
           </div>

@@ -8,6 +8,7 @@ import {
   cancelAppointment as engineCancelAppointment,
   SchedulingError,
 } from "@/lib/scheduling/engine";
+import { notify } from "@/lib/notifications/notify";
 
 // ─────────────────────────────────────────────────────────────────────────
 // The structured Voice Tools (section 28). These are the ONLY way the voice
@@ -307,6 +308,16 @@ export async function createCallbackRequest(
     .select()
     .single();
   if (error) return fail(error.message);
+
+  await notify(supabase, {
+    salonId,
+    type: "callback_requested",
+    title: `Neuer Rückrufwunsch: ${input.phone}`,
+    body: input.reason ?? undefined,
+    entityType: "callback_request",
+    entityId: data.id,
+  });
+
   return ok(data);
 }
 

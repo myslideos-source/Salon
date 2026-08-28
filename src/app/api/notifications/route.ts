@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession, resolveActiveSalonId } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
-type Notification = { id: string; title: string; detail: string | null; createdAt: string };
+type Notification = { id: string; title: string; detail: string | null; createdAt: string; read: boolean; href: string };
 
 export async function GET() {
   const session = await getSession();
@@ -24,27 +24,28 @@ export async function GET() {
         title: `Neue Paket-Anfrage: ${s.salon_name}`,
         detail: `Paket: ${s.plan}`,
         createdAt: s.created_at,
+        read: false,
+        href: "/admin/signups",
       });
     }
   }
 
   const salonId = resolveActiveSalonId(session);
   if (salonId) {
-    const { data: callbacks } = await supabase
-      .from("callback_requests")
-      .select("id, phone_number, reason, requested_at, customers(first_name, last_name)")
+    const { data: rows } = await supabase
+      .from("notifications")
+      .select("id, type, title, body, created_at, read_at")
       .eq("salon_id", salonId)
-      .eq("status", "open")
-      .order("requested_at", { ascending: false })
-      .limit(10);
-    for (const cb of callbacks ?? []) {
-      const customer = cb.customers as unknown as { first_name: string; last_name: string } | null;
-      const who = customer ? `${customer.first_name} ${customer.last_name}`.trim() : cb.phone_number;
+      .order("created_at", { ascending: false })
+      .limit(20);
+    for (const n of rows ?? []) {
       notifications.push({
-        id: `callback-${cb.id}`,
-        title: `Rückruf erbeten: ${who}`,
-        detail: cb.reason,
-        createdAt: cb.requested_at,
+        id: n.id,
+        title: n.title,
+        detail: n.body,
+        createdAt: n.created_at,
+        read: n.read_at !== null,
+        href: "/app/notifications",
       });
     }
   }
