@@ -40,6 +40,40 @@ export interface ComputeFreeSlotsInput {
   /** Injectable "now" for deterministic tests; defaults to `new Date()`. */
   now?: Date;
   preferredTimeRange?: PreferredTimeRange;
+  /**
+   * An inactive employee may never be offered as available. Omit when the
+   * caller already guarantees the employee is active (e.g. filtered the
+   * picker to active employees) — defaults to available so existing
+   * callers are unaffected.
+   */
+  employeeActive?: boolean;
+  /**
+   * A locked/inactive resource may never be offered as available — pass
+   * `false` to short-circuit to no slots regardless of every other input.
+   * Omit entirely when the booking doesn't involve a resource at all.
+   */
+  resourceActive?: boolean;
+  /**
+   * The resource's own working-hour blocks for this weekday (mirrors
+   * `workingHours` for the employee). An empty array correctly means the
+   * resource has no configured hours that day → no slots, same as an
+   * employee with no working hours. Omit when no resource is involved.
+   */
+  resourceWorkingHours?: WorkingHourBlock[];
+  /** Appointments already occupying this resource, subject to the same overlap/buffer check as `existingAppointments`. */
+  resourceBusyBlocks?: ExistingAppointment[];
+  /**
+   * How many appointments may run at the same time across the whole
+   * company (independent of the hard per-employee double-booking guard).
+   * Omit or leave undefined for "unlimited".
+   */
+  maxParallelAppointments?: number;
+  /** Every other salon-wide appointment (any employee) that could overlap this day, used to enforce `maxParallelAppointments`. */
+  salonWideAppointments?: ExistingAppointment[];
+  /** How many appointments this employee already has booked on `date` — compared against `maxAppointmentsPerDay`. */
+  appointmentsBookedToday?: number;
+  /** Omit or leave undefined for "unlimited". */
+  maxAppointmentsPerDay?: number;
 }
 
 export function localTimeToUtc(date: string, time: string, timezone: string): Date {
@@ -96,8 +130,23 @@ export function computeFreeSlots(input: ComputeFreeSlotsInput): Date[] {
     earliestBookingLeadMinutes,
     maxAdvanceBookingDays,
     preferredTimeRange,
+    employeeActive,
+    resourceActive,
+    resourceWorkingHours,
+    resourceBusyBlocks,
+    maxParallelAppointments,
+    salonWideAppointments,
+    appointmentsBookedToday,
+    maxAppointmentsPerDay,
   } = input;
   const now = input.now ?? new Date();
+
+  // An inactive employee, a locked/inactive resource, or an employee who
+  // already reached today's appointment cap must never be offered —
+  // regardless of every other input below.
+  if (employeeActive === false) return [];
+  if (resourceActive === false) return [];
+  if (maxAppointmentsPerDay != null && (appointmentsBookedToday ?? 0) >= maxAppointmentsPerDay) return [];
 
   if (!businessHours || businessHours.isClosed || !businessHours.startTime || !businessHours.endTime) {
     return [];
@@ -127,6 +176,25 @@ export function computeFreeSlots(input: ComputeFreeSlotsInput): Date[] {
     windows = windows.flatMap((w) => subtractRange([w], cut));
   }
 
+  // Intersect with the resource's own working hours, if a resource is part
+  // of this booking. An empty array here (resource has no hours configured
+  // for this weekday) correctly collapses windows to [] below, same as an
+  // employee with no working hours.
+  if (resourceWorkingHours) {
+    const resourceBlocks: TimeRange[] = resourceWorkingHours.map((block) => ({
+      start: localTimeToUtc(date, block.startTime, timezone),
+      end: localTimeToUtc(date, block.endTime, timezone),
+    }));
+    windows = windows.flatMap((w) =>
+      resourceBlocks
+        .map((b) => ({
+          start: new Date(Math.max(w.start.getTime(), b.start.getTime())),
+          end: new Date(Math.min(w.end.getTime(), b.end.getTime())),
+        }))
+        .filter((r) => r.end > r.start)
+    );
+  }
+
   if (preferredTimeRange) {
     const pref: TimeRange = {
       start: localTimeToUtc(date, preferredTimeRange.fromTime, timezone),
@@ -147,7 +215,12 @@ export function computeFreeSlots(input: ComputeFreeSlotsInput): Date[] {
   const earliestStart = new Date(now.getTime() + earliestBookingLeadMinutes * 60_000);
   const latestStart = new Date(now.getTime() + maxAdvanceBookingDays * 24 * 60 * 60_000);
 
-  const busyBlocks: TimeRange[] = existingAppointments.map((a) => ({
+  const busyBlocks: TimeRange[] = [...existingAppointments, ...(resourceBusyBlocks ?? [])].map((a) => ({
+    start: new Date(a.startAt),
+    end: new Date(a.endAt),
+  }));
+
+  const parallelBlocks: TimeRange[] = (salonWideAppointments ?? []).map((a) => ({
     start: new Date(a.startAt),
     end: new Date(a.endAt),
   }));
@@ -168,8 +241,11 @@ export function computeFreeSlots(input: ComputeFreeSlotsInput): Date[] {
       const overlapsExisting = busyBlocks.some(
         (b) => occupancyStart < b.end && occupancyEnd > b.start
       );
+      const exceedsParallelCap =
+        maxParallelAppointments != null &&
+        parallelBlocks.filter((b) => occupancyStart < b.end && occupancyEnd > b.start).length >= maxParallelAppointments;
 
-      if (withinLeadTime && !overlapsExisting) {
+      if (withinLeadTime && !overlapsExisting && !exceedsParallelCap) {
         slots.push(new Date(cursor));
       }
 

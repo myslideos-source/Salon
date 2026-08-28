@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ClipboardList, UsersRound, Sparkles, ChevronRight } from "lucide-react";
+import { ClipboardList, UsersRound, Sparkles, ChevronRight, MapPin, CalendarClock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireSalonSession, resolveActiveSalonId } from "@/lib/auth/session";
 import { Topbar } from "@/components/layout/topbar";
@@ -17,7 +17,9 @@ const STATUS_LABEL: Record<string, string> = {
 const LINKS = [
   { href: "/app/ai", label: "Meine Mia", description: "Begrüßung, Tonalität und Fachwissen deines Telefonassistenten.", icon: Sparkles },
   { href: "/app/services", label: TERMINOLOGY.servicePlural, description: "Terminarten, Dauer und Preise.", icon: ClipboardList },
-  { href: "/app/team", label: TERMINOLOGY.teamAndResources, description: "Mitarbeiter und Abwesenheiten verwalten.", icon: UsersRound },
+  { href: "/app/team", label: TERMINOLOGY.teamAndResources, description: "Mitarbeiter, Ressourcen und Abwesenheiten verwalten.", icon: UsersRound },
+  { href: "/app/locations", label: "Standorte", description: "Filialen und Standorte verwalten.", icon: MapPin },
+  { href: "/app/availability", label: "Verfügbarkeit", description: "Öffnungszeiten, Feiertage, Buchungsregeln und Rückrufzeiträume.", icon: CalendarClock },
 ];
 
 export default async function SalonSettingsPage() {

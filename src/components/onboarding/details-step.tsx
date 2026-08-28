@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Input, Label, Textarea, FieldError } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { saveCompanyDetailsAction, type OnboardingActionState } from "@/lib/actions/onboarding";
@@ -11,12 +11,14 @@ export function DetailsStep({
   initialPhone,
   initialAddress,
   initialTimezone,
+  onSaved,
   onBack,
 }: {
   salonId: string;
   initialPhone: string;
   initialAddress: string;
   initialTimezone: string;
+  onSaved: () => void;
   onBack: () => void;
 }) {
   const boundAction = saveCompanyDetailsAction.bind(null, salonId);
@@ -29,10 +31,24 @@ export function DetailsStep({
   const [autosaveError, setAutosaveError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const skipAutosave = useRef(true);
+  const advancedOnceFor = useRef<OnboardingActionState>(null);
+
+  // Nur der reguläre Formular-Submit (der "Fertig für jetzt"-Button unten)
+  // läuft über `formAction`/`state` — die Autospeicherung unten ruft die
+  // Aktion separat auf und berührt `state` nicht. Der finale Submit rückt
+  // deshalb hier in den nächsten Schritt vor statt umzuleiten: Schritt 3 ist
+  // seit Phase "Standorte, Team, Ressourcen und Verfügbarkeit" nicht mehr
+  // der letzte interaktive Schritt.
+  useEffect(() => {
+    if (state?.ok && state !== advancedOnceFor.current) {
+      advancedOnceFor.current = state;
+      onSaved();
+    }
+  }, [state, onSaved]);
 
   // Autospeicherung der Unternehmensdaten nach kurzer Inaktivität — der
-  // endgültige Abschluss von Schritt 3 (mit Weiterleitung ins Dashboard)
-  // läuft separat über den regulären Formular-Submit unten.
+  // Übergang zu Schritt 4 (Standort) läuft separat über den regulären
+  // Formular-Submit unten.
   useEffect(() => {
     if (skipAutosave.current) {
       skipAutosave.current = false;
@@ -82,7 +98,7 @@ export function DetailsStep({
         <div className="flex items-center gap-3">
           {!autosaveError && savedAt && <span className="text-xs text-ink-faint">Automatisch gespeichert</span>}
           <Button type="submit" variant="bronze" disabled={pending}>
-            {pending ? "Wird gespeichert…" : "Fertig für jetzt"} <Check className="h-4 w-4" />
+            {pending ? "Wird gespeichert…" : "Weiter"} <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

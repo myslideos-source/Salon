@@ -1,5 +1,3 @@
-// Auto-generated via `mcp__Supabase__generate_typescript_types`.
-// Regenerate after schema changes — do not hand-edit.
 export type Json =
   | string
   | number
@@ -430,6 +428,41 @@ export type Database = {
           },
           {
             foreignKeyName: "callback_requests_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      callback_windows: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          salon_id: string
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          salon_id: string
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          salon_id?: string
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "callback_windows_salon_id_fkey"
             columns: ["salon_id"]
             isOneToOne: false
             referencedRelation: "salons"
@@ -1409,6 +1442,8 @@ export type Database = {
           industry_template_id: string | null
           logo_url: string | null
           max_advance_booking_days: number
+          max_appointments_per_day: number | null
+          max_parallel_appointments: number | null
           name: string
           onboarding_completed_at: string | null
           onboarding_draft: Json
@@ -1430,6 +1465,8 @@ export type Database = {
           industry_template_id?: string | null
           logo_url?: string | null
           max_advance_booking_days?: number
+          max_appointments_per_day?: number | null
+          max_parallel_appointments?: number | null
           name: string
           onboarding_completed_at?: string | null
           onboarding_draft?: Json
@@ -1451,6 +1488,8 @@ export type Database = {
           industry_template_id?: string | null
           logo_url?: string | null
           max_advance_booking_days?: number
+          max_appointments_per_day?: number | null
+          max_parallel_appointments?: number | null
           name?: string
           onboarding_completed_at?: string | null
           onboarding_draft?: Json
@@ -1806,6 +1845,17 @@ export type Database = {
       }
       toggle_salon_ai: {
         Args: { active: boolean; target_salon_id: string }
+        Returns: undefined
+      }
+      update_own_booking_rules: {
+        Args: {
+          p_earliest_booking_lead_minutes: number
+          p_max_advance_booking_days: number
+          p_max_appointments_per_day?: number
+          p_max_parallel_appointments?: number
+          p_slot_granularity_minutes: number
+          target_salon_id: string
+        }
         Returns: undefined
       }
       update_own_salon_onboarding: {

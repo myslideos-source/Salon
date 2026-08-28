@@ -117,6 +117,80 @@ begin
   delete from auth.users where id = v_user_b;
 end $$;
 
+-- ── 2c) Self-service writes: "Standorte, Team, Ressourcen und
+-- Verfügbarkeit" (0031_self_service_team_resources_availability.sql) ────
+-- A salon owner must now be able to write their own salon's employees,
+-- resources and locations directly (previously admin-only), but still
+-- never another salon's — has_permission() must enforce both halves.
+do $$
+declare
+  v_salon_a uuid; v_salon_b uuid; v_user_b uuid := gen_random_uuid();
+  v_employee_id uuid; v_resource_id uuid; v_location_id uuid;
+  v_salon_a_active_resources_before int;
+  r1 boolean; r2 boolean; r3 boolean; r4 boolean; r5 boolean; r6 boolean;
+begin
+  select id into v_salon_a from salons where slug = 'hair-lounge-milano';
+  select count(*) into v_salon_a_active_resources_before from resources where salon_id = v_salon_a and active;
+
+  insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, is_sso_user, is_anonymous)
+  values ('00000000-0000-0000-0000-000000000000', v_user_b, 'authenticated', 'authenticated', 'tenant-test-b3@example.com', crypt('x', gen_salt('bf')), now(), '{}'::jsonb, '{}'::jsonb, now(), now(), false, false);
+
+  insert into salons (name, slug) values ('Tenant Test Salon B3', 'tenant-test-salon-b3') returning id into v_salon_b;
+  insert into salon_users (salon_id, user_id, role) values (v_salon_b, v_user_b, 'owner');
+
+  perform set_config('request.jwt.claim.sub', v_user_b::text, true);
+  perform set_config('role', 'authenticated', true);
+
+  -- Can create/update/delete own salon's employees, resources and locations.
+  insert into employees (salon_id, first_name) values (v_salon_b, 'Self-Service Test') returning id into v_employee_id;
+  update employees set active = false where id = v_employee_id;
+  select (select count(*) from employees where id = v_employee_id and salon_id = v_salon_b and active = false) = 1 into r1;
+
+  insert into resources (salon_id, name, type) values (v_salon_b, 'Testraum', 'room') returning id into v_resource_id;
+  select (select count(*) from resources where id = v_resource_id and salon_id = v_salon_b) = 1 into r2;
+
+  insert into locations (salon_id, name) values (v_salon_b, 'Zweigstelle Test') returning id into v_location_id;
+  select (select count(*) from locations where id = v_location_id and salon_id = v_salon_b) = 1 into r3;
+  delete from locations where id = v_location_id;
+  select (select count(*) from locations where id = v_location_id) = 0 into r4;
+
+  -- Cannot write into salon A, which this user is not a member of.
+  begin
+    insert into employees (salon_id, first_name) values (v_salon_a, 'Should Not Insert');
+    r5 := false;
+  exception when insufficient_privilege or others then
+    r5 := true;
+  end;
+
+  begin
+    update resources set active = false where salon_id = v_salon_a;
+    -- RLS silently filters rows out of an UPDATE's scope rather than
+    -- raising, so verify nothing actually changed instead of expecting an
+    -- exception here.
+    r6 := true;
+  exception when others then
+    r6 := true;
+  end;
+
+  perform set_config('role', 'postgres', true);
+  perform set_config('request.jwt.claim.sub', '', true);
+
+  insert into test_results values
+    ('self_service_employee_write', case when r1 then 'PASS' else 'FAIL' end),
+    ('self_service_resource_write', case when r2 then 'PASS' else 'FAIL' end),
+    ('self_service_location_write', case when r3 then 'PASS' else 'FAIL' end),
+    ('self_service_location_delete', case when r4 then 'PASS' else 'FAIL' end),
+    ('other_salon_employee_write_blocked', case when r5 then 'PASS' else 'FAIL' end),
+    ('other_salon_resource_write_noop', case when r6 and (
+      select count(*) from resources where salon_id = v_salon_a and active
+    ) = v_salon_a_active_resources_before then 'PASS' else 'FAIL' end);
+
+  delete from resources where salon_id = v_salon_b;
+  delete from employees where salon_id = v_salon_b;
+  delete from salons where id = v_salon_b;
+  delete from auth.users where id = v_user_b;
+end $$;
+
 -- ── 3) Anonymous access ──────────────────────────────────────────────────
 do $$
 declare v_count int;

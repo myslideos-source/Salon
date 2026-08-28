@@ -24,11 +24,29 @@ export default async function OnboardingPage() {
     return <OnboardingWizard templates={templates ?? []} salon={null} />;
   }
 
-  const { data: salon } = await supabase
-    .from("salons")
-    .select("id, name, slug, phone, address, timezone, industry_template_id, onboarding_step, onboarding_draft")
-    .eq("id", salonId)
-    .single();
+  const [{ data: salon }, { data: locations }, { data: businessHours }, { data: employees }, { data: resources }] = await Promise.all([
+    supabase
+      .from("salons")
+      .select("id, name, slug, phone, address, timezone, industry_template_id, onboarding_step, onboarding_draft")
+      .eq("id", salonId)
+      .single(),
+    supabase
+      .from("locations")
+      .select("id, name, address, phone, timezone, active, is_default")
+      .eq("salon_id", salonId)
+      .order("sort_order"),
+    supabase.from("business_hours").select("weekday, is_closed, start_time, end_time").eq("salon_id", salonId).order("weekday"),
+    supabase
+      .from("employees")
+      .select("id, first_name, last_name, color, active, location_id")
+      .eq("salon_id", salonId)
+      .order("sort_order"),
+    supabase
+      .from("resources")
+      .select("id, name, type, description, color, active, location_id")
+      .eq("salon_id", salonId)
+      .order("sort_order"),
+  ]);
 
   if (!salon) redirect("/app/login");
 
@@ -45,6 +63,10 @@ export default async function OnboardingPage() {
         industryTemplateId: salon.industry_template_id,
         onboardingStep: salon.onboarding_step,
         draft: parseOnboardingDraft(salon.onboarding_draft),
+        locations: locations ?? [],
+        businessHours: businessHours ?? [],
+        employees: employees ?? [],
+        resources: resources ?? [],
       }}
     />
   );

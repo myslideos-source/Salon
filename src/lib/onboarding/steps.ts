@@ -3,11 +3,13 @@ import type { OnboardingDraft, DraftItem } from "@/lib/validation/onboarding";
 
 /**
  * Die vollständigen 12 Schritte des Einrichtungsassistenten aus dem
- * HalloMia-Konzept. Nur die ersten drei sind aktuell umgesetzt (siehe
- * `interactive`); die übrigen folgen nach ihren jeweiligen Fachbereichen
- * (Standorte, Öffnungszeiten, Team, Terminarten, KI-Konfiguration,
- * Telefonie) und werden hier bereits als Fortschritts-Vorschau geführt,
- * ohne anklickbar zu sein — keine funktionslosen Buttons.
+ * HalloMia-Konzept. Die ersten sechs sind umgesetzt (siehe `interactive`) —
+ * Unternehmen/Branche/Unternehmensdaten sowie, seit dem Sonderauftrag
+ * "Standorte, Team, Ressourcen und Verfügbarkeit", auch Standort,
+ * Öffnungszeiten und Team & Ressourcen. Die übrigen folgen nach ihren
+ * jeweiligen Fachbereichen (Terminarten, KI-Konfiguration, Telefonie) und
+ * werden hier bereits als Fortschritts-Vorschau geführt, ohne anklickbar zu
+ * sein — keine funktionslosen Buttons.
  */
 export type OnboardingStepDef = {
   step: number;
@@ -20,9 +22,9 @@ export const ONBOARDING_STEPS: OnboardingStepDef[] = [
   { step: 1, title: "Unternehmen", description: "Name und Kurzname festlegen", interactive: true },
   { step: 2, title: "Branche", description: "Passende Vorschläge übernehmen", interactive: true },
   { step: 3, title: "Unternehmensdaten", description: "Kontakt, Adresse, Zeitzone", interactive: true },
-  { step: 4, title: "Standort", description: "Folgt später", interactive: false },
-  { step: 5, title: "Öffnungszeiten", description: "Folgt später", interactive: false },
-  { step: 6, title: "Team & Ressourcen", description: "Folgt später", interactive: false },
+  { step: 4, title: "Standort", description: "Standard-Standort prüfen, weitere Filialen ergänzen", interactive: true },
+  { step: 5, title: "Öffnungszeiten", description: "Reguläre Öffnungszeiten festlegen", interactive: true },
+  { step: 6, title: "Team & Ressourcen", description: "Mitarbeiter, Räume, Fahrzeuge und Geräte anlegen", interactive: true },
   { step: 7, title: "Terminarten & Leistungen", description: "Folgt später", interactive: false },
   { step: 8, title: "Begrüßung & Tonalität", description: "Folgt später", interactive: false },
   { step: 9, title: "Häufige Fragen", description: "Folgt später", interactive: false },
@@ -31,7 +33,7 @@ export const ONBOARDING_STEPS: OnboardingStepDef[] = [
   { step: 12, title: "Mia aktivieren", description: "Folgt später", interactive: false },
 ];
 
-export const LAST_INTERACTIVE_STEP = 3;
+export const LAST_INTERACTIVE_STEP = 6;
 
 export function emptyOnboardingDraft(): OnboardingDraft {
   return { industryKey: null, suggestedServices: [], suggestedQuestions: [], suggestedRequiredFields: [] };

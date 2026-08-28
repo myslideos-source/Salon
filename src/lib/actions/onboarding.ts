@@ -132,6 +132,23 @@ export async function saveCompanyDetailsAction(
   if (error) return { error: error.message };
 
   revalidatePath("/app/onboarding");
-  if (advance) redirect("/app/dashboard?onboarding=in_progress");
   return { ok: true };
+}
+
+// Schritte 4–6 (Standort, Öffnungszeiten, Team & Ressourcen) speichern über
+// ihre eigenen, bereits bestehenden Self-Service-Aktionen (locations.ts,
+// availability-settings.ts, team-resources.ts) — hier wird nach jedem
+// Schritt nur noch der Fortschritts-Zeiger weitergesetzt, analog zum
+// `p_onboarding_step`-Parameter der übrigen Schritte.
+export async function advanceOnboardingStepAction(salonId: string, step: number): Promise<void> {
+  const session = await requireSalonSession();
+  if (resolveActiveSalonId(session) !== salonId) throw new Error("Kein Zugriff auf dieses Unternehmen.");
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_own_salon_onboarding", {
+    target_salon_id: salonId,
+    p_onboarding_step: step,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/app/onboarding");
 }

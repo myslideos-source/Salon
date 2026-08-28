@@ -160,4 +160,96 @@ describe("computeFreeSlots", () => {
     expect(times).toContain(new Date(iso(DATE, "11:00")).toISOString());
     expect(times).toContain(new Date(iso(DATE, "13:00")).toISOString());
   });
+
+  // ── Standorte, Team, Ressourcen und Verfügbarkeit ─────────────────────
+
+  it("never offers a slot for an inactive employee", () => {
+    const slots = computeFreeSlots({ ...baseInput, employeeActive: false });
+    expect(slots).toEqual([]);
+  });
+
+  it("never offers a slot when the required resource is locked/inactive", () => {
+    const slots = computeFreeSlots({
+      ...baseInput,
+      resourceActive: false,
+      resourceWorkingHours: [{ startTime: "09:00:00", endTime: "18:00:00" }],
+    });
+    expect(slots).toEqual([]);
+  });
+
+  it("never offers a slot when the resource has no working hours that day", () => {
+    const slots = computeFreeSlots({
+      ...baseInput,
+      resourceActive: true,
+      resourceWorkingHours: [],
+    });
+    expect(slots).toEqual([]);
+  });
+
+  it("intersects with the resource's own working hours", () => {
+    const slots = computeFreeSlots({
+      ...baseInput,
+      resourceActive: true,
+      resourceWorkingHours: [{ startTime: "09:00:00", endTime: "12:00:00" }],
+    });
+    const times = slots.map((s) => s.toISOString());
+    expect(times).toContain(new Date(iso(DATE, "11:00")).toISOString());
+    expect(times).not.toContain(new Date(iso(DATE, "12:00")).toISOString());
+  });
+
+  it("excludes slots that overlap an existing booking of the same resource", () => {
+    const slots = computeFreeSlots({
+      ...baseInput,
+      resourceActive: true,
+      resourceWorkingHours: [{ startTime: "09:00:00", endTime: "18:00:00" }],
+      resourceBusyBlocks: [{ startAt: iso(DATE, "10:00"), endAt: iso(DATE, "11:00") }],
+    });
+    const times = slots.map((s) => s.toISOString());
+    expect(times).not.toContain(new Date(iso(DATE, "10:00")).toISOString());
+    expect(times).toContain(new Date(iso(DATE, "11:00")).toISOString());
+  });
+
+  it("never offers a slot once the employee already reached the daily appointment cap", () => {
+    const slots = computeFreeSlots({
+      ...baseInput,
+      maxAppointmentsPerDay: 2,
+      appointmentsBookedToday: 2,
+    });
+    expect(slots).toEqual([]);
+  });
+
+  it("still offers slots below the daily appointment cap", () => {
+    const slots = computeFreeSlots({
+      ...baseInput,
+      maxAppointmentsPerDay: 2,
+      appointmentsBookedToday: 1,
+    });
+    expect(slots.length).toBeGreaterThan(0);
+  });
+
+  it("excludes a slot once the company-wide parallel appointment cap is reached", () => {
+    const slots = computeFreeSlots({
+      ...baseInput,
+      maxParallelAppointments: 1,
+      salonWideAppointments: [{ startAt: iso(DATE, "10:00"), endAt: iso(DATE, "11:00") }],
+    });
+    const times = slots.map((s) => s.toISOString());
+    expect(times).not.toContain(new Date(iso(DATE, "10:00")).toISOString());
+    expect(times).toContain(new Date(iso(DATE, "11:00")).toISOString());
+  });
+
+  it("allows overlapping appointments below the parallel cap", () => {
+    const slots = computeFreeSlots({
+      ...baseInput,
+      maxParallelAppointments: 2,
+      salonWideAppointments: [{ startAt: iso(DATE, "10:00"), endAt: iso(DATE, "11:00") }],
+    });
+    const times = slots.map((s) => s.toISOString());
+    expect(times).toContain(new Date(iso(DATE, "10:00")).toISOString());
+  });
+
+  it("is unaffected by resource/parallel/daily-cap fields when they are simply omitted", () => {
+    const slots = computeFreeSlots(baseInput);
+    expect(slots.length).toBe(33);
+  });
 });
