@@ -75,6 +75,48 @@ begin
   delete from auth.users where id = v_user_b;
 end $$;
 
+-- ── 2b) Tenant isolation for the new phase's tables (locations, requests) ─
+-- Every salon gets an implicit default location (0014_locations.sql); a
+-- second salon's member must see only their own salon's location and
+-- requests, never salon A's — same guarantee as above, extended to the
+-- newly introduced tables.
+do $$
+declare
+  v_salon_a uuid; v_salon_b uuid; v_user_b uuid := gen_random_uuid();
+  v_cust_b uuid;
+  r1 boolean; r2 boolean; r3 boolean; r4 boolean;
+begin
+  select id into v_salon_a from salons where slug = 'hair-lounge-milano';
+
+  insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, is_sso_user, is_anonymous)
+  values ('00000000-0000-0000-0000-000000000000', v_user_b, 'authenticated', 'authenticated', 'tenant-test-b2@example.com', crypt('x', gen_salt('bf')), now(), '{}'::jsonb, '{}'::jsonb, now(), now(), false, false);
+
+  insert into salons (name, slug) values ('Tenant Test Salon B2', 'tenant-test-salon-b2') returning id into v_salon_b;
+  insert into salon_users (salon_id, user_id, role) values (v_salon_b, v_user_b, 'owner');
+  insert into customers (salon_id, first_name, last_name, phone) values (v_salon_b, 'Isolated', 'Customer', '+49 000 0001') returning id into v_cust_b;
+  insert into requests (salon_id, customer_id, category, description) values (v_salon_b, v_cust_b, 'general', 'Test-Anfrage B');
+
+  perform set_config('request.jwt.claim.sub', v_user_b::text, true);
+  perform set_config('role', 'authenticated', true);
+
+  select (select count(*) from locations where salon_id = v_salon_b) = 1 into r1;
+  select (select count(*) from locations where salon_id = v_salon_a) = 0 into r2;
+  select (select count(*) from requests where salon_id = v_salon_b) = 1 into r3;
+  select (select count(*) from requests where salon_id = v_salon_a) = 0 into r4;
+
+  perform set_config('role', 'postgres', true);
+  perform set_config('request.jwt.claim.sub', '', true);
+
+  insert into test_results values
+    ('own_location_visible', case when r1 then 'PASS' else 'FAIL' end),
+    ('other_salon_locations_hidden', case when r2 then 'PASS' else 'FAIL' end),
+    ('own_requests_visible', case when r3 then 'PASS' else 'FAIL' end),
+    ('other_salon_requests_hidden', case when r4 then 'PASS' else 'FAIL' end);
+
+  delete from salons where id = v_salon_b;
+  delete from auth.users where id = v_user_b;
+end $$;
+
 -- ── 3) Anonymous access ──────────────────────────────────────────────────
 do $$
 declare v_count int;

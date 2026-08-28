@@ -16,6 +16,94 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointment_answers: {
+        Row: {
+          answer: string | null
+          appointment_id: string
+          created_at: string
+          id: string
+          question: string
+          salon_id: string
+        }
+        Insert: {
+          answer?: string | null
+          appointment_id: string
+          created_at?: string
+          id?: string
+          question: string
+          salon_id: string
+        }
+        Update: {
+          answer?: string | null
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          question?: string
+          salon_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_answers_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_answers_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointment_resources: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          id: string
+          resource_id: string
+          salon_id: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          id?: string
+          resource_id: string
+          salon_id: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          resource_id?: string
+          salon_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_resources_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_resources_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_resources_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_services: {
         Row: {
           appointment_id: string
@@ -75,6 +163,7 @@ export type Database = {
           employee_id: string
           end_at: string
           id: string
+          location_id: string | null
           notes: string | null
           period: unknown
           salon_id: string
@@ -90,6 +179,7 @@ export type Database = {
           employee_id: string
           end_at: string
           id?: string
+          location_id?: string | null
           notes?: string | null
           period?: unknown
           salon_id: string
@@ -105,6 +195,7 @@ export type Database = {
           employee_id?: string
           end_at?: string
           id?: string
+          location_id?: string | null
           notes?: string | null
           period?: unknown
           salon_id?: string
@@ -127,6 +218,13 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
             referencedColumns: ["id"]
           },
           {
@@ -179,12 +277,64 @@ export type Database = {
           },
         ]
       }
+      business_hour_exceptions: {
+        Row: {
+          created_at: string
+          date: string
+          end_time: string | null
+          id: string
+          is_closed: boolean
+          location_id: string | null
+          note: string | null
+          salon_id: string
+          start_time: string | null
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          end_time?: string | null
+          id?: string
+          is_closed?: boolean
+          location_id?: string | null
+          note?: string | null
+          salon_id: string
+          start_time?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          end_time?: string | null
+          id?: string
+          is_closed?: boolean
+          location_id?: string | null
+          note?: string | null
+          salon_id?: string
+          start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_hour_exceptions_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_hour_exceptions_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_hours: {
         Row: {
           created_at: string
           end_time: string | null
           id: string
           is_closed: boolean
+          location_id: string | null
           salon_id: string
           start_time: string | null
           weekday: number
@@ -194,6 +344,7 @@ export type Database = {
           end_time?: string | null
           id?: string
           is_closed?: boolean
+          location_id?: string | null
           salon_id: string
           start_time?: string | null
           weekday: number
@@ -203,11 +354,19 @@ export type Database = {
           end_time?: string | null
           id?: string
           is_closed?: boolean
+          location_id?: string | null
           salon_id?: string
           start_time?: string | null
           weekday?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "business_hours_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "business_hours_salon_id_fkey"
             columns: ["salon_id"]
@@ -281,6 +440,7 @@ export type Database = {
       calls: {
         Row: {
           appointment_id: string | null
+          consent_recording: boolean | null
           created_at: string
           customer_id: string | null
           direction: string
@@ -289,14 +449,20 @@ export type Database = {
           outcome: string | null
           phone_number: string | null
           provider_call_id: string | null
+          recording_url: string | null
+          resolved: boolean
           salon_id: string
+          sentiment: string | null
           started_at: string
           status: string
+          summary: string | null
           topic: string | null
           transcript: Json
+          urgency: string | null
         }
         Insert: {
           appointment_id?: string | null
+          consent_recording?: boolean | null
           created_at?: string
           customer_id?: string | null
           direction?: string
@@ -305,14 +471,20 @@ export type Database = {
           outcome?: string | null
           phone_number?: string | null
           provider_call_id?: string | null
+          recording_url?: string | null
+          resolved?: boolean
           salon_id: string
+          sentiment?: string | null
           started_at?: string
           status?: string
+          summary?: string | null
           topic?: string | null
           transcript?: Json
+          urgency?: string | null
         }
         Update: {
           appointment_id?: string | null
+          consent_recording?: boolean | null
           created_at?: string
           customer_id?: string | null
           direction?: string
@@ -321,11 +493,16 @@ export type Database = {
           outcome?: string | null
           phone_number?: string | null
           provider_call_id?: string | null
+          recording_url?: string | null
+          resolved?: boolean
           salon_id?: string
+          sentiment?: string | null
           started_at?: string
           status?: string
+          summary?: string | null
           topic?: string | null
           transcript?: Json
+          urgency?: string | null
         }
         Relationships: [
           {
@@ -351,9 +528,65 @@ export type Database = {
           },
         ]
       }
+      custom_field_definitions: {
+        Row: {
+          active: boolean
+          created_at: string
+          entity_type: string
+          field_type: string
+          id: string
+          key: string
+          label: string
+          options: Json
+          required: boolean
+          salon_id: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          entity_type: string
+          field_type?: string
+          id?: string
+          key: string
+          label: string
+          options?: Json
+          required?: boolean
+          salon_id: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          entity_type?: string
+          field_type?: string
+          id?: string
+          key?: string
+          label?: string
+          options?: Json
+          required?: boolean
+          salon_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_field_definitions_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
+          address: string | null
+          company: string | null
+          consent_marketing: boolean
+          consent_recording: boolean
           created_at: string
+          custom_fields: Json
+          deleted_at: string | null
           email: string | null
           first_name: string
           id: string
@@ -361,11 +594,20 @@ export type Database = {
           notes: string | null
           phone: string
           preferred_employee_id: string | null
+          preferred_location_id: string | null
           salon_id: string
+          status: string
+          tags: string[]
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          company?: string | null
+          consent_marketing?: boolean
+          consent_recording?: boolean
           created_at?: string
+          custom_fields?: Json
+          deleted_at?: string | null
           email?: string | null
           first_name?: string
           id?: string
@@ -373,11 +615,20 @@ export type Database = {
           notes?: string | null
           phone: string
           preferred_employee_id?: string | null
+          preferred_location_id?: string | null
           salon_id: string
+          status?: string
+          tags?: string[]
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          company?: string | null
+          consent_marketing?: boolean
+          consent_recording?: boolean
           created_at?: string
+          custom_fields?: Json
+          deleted_at?: string | null
           email?: string | null
           first_name?: string
           id?: string
@@ -385,7 +636,10 @@ export type Database = {
           notes?: string | null
           phone?: string
           preferred_employee_id?: string | null
+          preferred_location_id?: string | null
           salon_id?: string
+          status?: string
+          tags?: string[]
           updated_at?: string
         }
         Relationships: [
@@ -394,6 +648,13 @@ export type Database = {
             columns: ["preferred_employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_preferred_location_id_fkey"
+            columns: ["preferred_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
             referencedColumns: ["id"]
           },
           {
@@ -550,6 +811,7 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+          location_id: string | null
           salon_id: string
           sort_order: number
           updated_at: string
@@ -562,6 +824,7 @@ export type Database = {
           first_name: string
           id?: string
           last_name?: string
+          location_id?: string | null
           salon_id: string
           sort_order?: number
           updated_at?: string
@@ -574,13 +837,242 @@ export type Database = {
           first_name?: string
           id?: string
           last_name?: string
+          location_id?: string | null
           salon_id?: string
           sort_order?: number
           updated_at?: string
         }
         Relationships: [
           {
+            foreignKeyName: "employees_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "employees_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faq: {
+        Row: {
+          active: boolean
+          answer: string
+          category: string | null
+          created_at: string
+          id: string
+          question: string
+          salon_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          answer: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          question: string
+          salon_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          answer?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          question?: string
+          salon_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faq_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      industry_templates: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          example_custom_questions: Json
+          example_services: Json
+          id: string
+          key: string
+          name: string
+          sort_order: number
+          terminology: Json
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          example_custom_questions?: Json
+          example_services?: Json
+          id?: string
+          key: string
+          name: string
+          sort_order?: number
+          terminology?: Json
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          example_custom_questions?: Json
+          example_services?: Json
+          id?: string
+          key?: string
+          name?: string
+          sort_order?: number
+          terminology?: Json
+        }
+        Relationships: []
+      }
+      locations: {
+        Row: {
+          active: boolean
+          address: string | null
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          phone: string | null
+          salon_id: string
+          sort_order: number
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          phone?: string | null
+          salon_id: string
+          sort_order?: number
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          phone?: string | null
+          salon_id?: string
+          sort_order?: number
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          channel: string
+          created_at: string
+          enabled: boolean
+          event_type: string
+          id: string
+          salon_id: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          enabled?: boolean
+          event_type: string
+          id?: string
+          salon_id: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          event_type?: string
+          id?: string
+          salon_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          channel: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          read_at: string | null
+          salon_id: string
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          channel?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          read_at?: string | null
+          salon_id: string
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          channel?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          read_at?: string | null
+          salon_id?: string
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_salon_id_fkey"
             columns: ["salon_id"]
             isOneToOne: false
             referencedRelation: "salons"
@@ -602,6 +1094,232 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      requests: {
+        Row: {
+          assigned_employee_id: string | null
+          attachments: Json
+          call_id: string | null
+          category: string
+          created_at: string
+          customer_id: string | null
+          description: string | null
+          desired_callback_from: string | null
+          desired_callback_to: string | null
+          id: string
+          notes: string | null
+          salon_id: string
+          status: string
+          subject: string | null
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          assigned_employee_id?: string | null
+          attachments?: Json
+          call_id?: string | null
+          category?: string
+          created_at?: string
+          customer_id?: string | null
+          description?: string | null
+          desired_callback_from?: string | null
+          desired_callback_to?: string | null
+          id?: string
+          notes?: string | null
+          salon_id: string
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          assigned_employee_id?: string | null
+          attachments?: Json
+          call_id?: string | null
+          category?: string
+          created_at?: string
+          customer_id?: string | null
+          description?: string | null
+          desired_callback_from?: string | null
+          desired_callback_to?: string | null
+          id?: string
+          notes?: string | null
+          salon_id?: string
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requests_assigned_employee_id_fkey"
+            columns: ["assigned_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resource_working_hours: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          resource_id: string
+          salon_id: string
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          resource_id: string
+          salon_id: string
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          resource_id?: string
+          salon_id?: string
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_working_hours_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resource_working_hours_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resources: {
+        Row: {
+          active: boolean
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          location_id: string | null
+          name: string
+          salon_id: string
+          sort_order: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location_id?: string | null
+          name: string
+          salon_id: string
+          sort_order?: number
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location_id?: string | null
+          name?: string
+          salon_id?: string
+          sort_order?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resources_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resources_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      role_permissions: {
+        Row: {
+          allowed: boolean
+          created_at: string
+          id: string
+          permission_key: string
+          role: string
+          salon_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          allowed?: boolean
+          created_at?: string
+          id?: string
+          permission_key: string
+          role: string
+          salon_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allowed?: boolean
+          created_at?: string
+          id?: string
+          permission_key?: string
+          role?: string
+          salon_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sales_leads: {
         Row: {
@@ -685,6 +1403,7 @@ export type Database = {
           created_at: string
           earliest_booking_lead_minutes: number
           id: string
+          industry_template_id: string | null
           logo_url: string | null
           max_advance_booking_days: number
           name: string
@@ -702,6 +1421,7 @@ export type Database = {
           created_at?: string
           earliest_booking_lead_minutes?: number
           id?: string
+          industry_template_id?: string | null
           logo_url?: string | null
           max_advance_booking_days?: number
           name: string
@@ -719,6 +1439,7 @@ export type Database = {
           created_at?: string
           earliest_booking_lead_minutes?: number
           id?: string
+          industry_template_id?: string | null
           logo_url?: string | null
           max_advance_booking_days?: number
           name?: string
@@ -729,55 +1450,125 @@ export type Database = {
           timezone?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "salons_industry_template_id_fkey"
+            columns: ["industry_template_id"]
+            isOneToOne: false
+            referencedRelation: "industry_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_resources: {
+        Row: {
+          resource_id: string
+          salon_id: string
+          service_id: string
+        }
+        Insert: {
+          resource_id: string
+          salon_id: string
+          service_id: string
+        }
+        Update: {
+          resource_id?: string
+          salon_id?: string
+          service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_resources_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_resources_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_resources_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       services: {
         Row: {
           active: boolean
+          bookable_online: boolean
+          bookable_phone: boolean
           buffer_after_minutes: number
           buffer_before_minutes: number
           category: string | null
           color: string
           created_at: string
+          custom_questions: Json
           duration_minutes: number
           id: string
+          location_id: string | null
           name: string
           price_cents: number
+          required_customer_fields: Json
           salon_id: string
           sort_order: number
           updated_at: string
         }
         Insert: {
           active?: boolean
+          bookable_online?: boolean
+          bookable_phone?: boolean
           buffer_after_minutes?: number
           buffer_before_minutes?: number
           category?: string | null
           color?: string
           created_at?: string
+          custom_questions?: Json
           duration_minutes: number
           id?: string
+          location_id?: string | null
           name: string
           price_cents?: number
+          required_customer_fields?: Json
           salon_id: string
           sort_order?: number
           updated_at?: string
         }
         Update: {
           active?: boolean
+          bookable_online?: boolean
+          bookable_phone?: boolean
           buffer_after_minutes?: number
           buffer_before_minutes?: number
           category?: string | null
           color?: string
           created_at?: string
+          custom_questions?: Json
           duration_minutes?: number
           id?: string
+          location_id?: string | null
           name?: string
           price_cents?: number
+          required_customer_fields?: Json
           salon_id?: string
           sort_order?: number
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "services_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "services_salon_id_fkey"
             columns: ["salon_id"]
@@ -831,16 +1622,23 @@ export type Database = {
       }
       voice_settings: {
         Row: {
+          after_hours_behavior: string
+          assistant_name: string
           cancellation_notice_hours: number
           custom_prompt: string | null
           detect_new_customers: boolean
           elevenlabs_agent_id: string | null
           elevenlabs_voice_id: string | null
           emergency_redirect: boolean
+          formality: string
           forwarding_number: string | null
           greeting: string
+          handoff_number: string | null
+          languages: string[]
           mention_cancellation_policy: boolean
           mention_prices: boolean
+          never_mention: string | null
+          notify_after_call: boolean
           offer_alternatives: boolean
           offer_callback: boolean
           personality: string
@@ -853,19 +1651,27 @@ export type Database = {
           salon_id: string
           send_confirmation_sms: boolean
           updated_at: string
+          urgent_keywords: string[]
           voice_id: string
         }
         Insert: {
+          after_hours_behavior?: string
+          assistant_name?: string
           cancellation_notice_hours?: number
           custom_prompt?: string | null
           detect_new_customers?: boolean
           elevenlabs_agent_id?: string | null
           elevenlabs_voice_id?: string | null
           emergency_redirect?: boolean
+          formality?: string
           forwarding_number?: string | null
           greeting?: string
+          handoff_number?: string | null
+          languages?: string[]
           mention_cancellation_policy?: boolean
           mention_prices?: boolean
+          never_mention?: string | null
+          notify_after_call?: boolean
           offer_alternatives?: boolean
           offer_callback?: boolean
           personality?: string
@@ -878,19 +1684,27 @@ export type Database = {
           salon_id: string
           send_confirmation_sms?: boolean
           updated_at?: string
+          urgent_keywords?: string[]
           voice_id?: string
         }
         Update: {
+          after_hours_behavior?: string
+          assistant_name?: string
           cancellation_notice_hours?: number
           custom_prompt?: string | null
           detect_new_customers?: boolean
           elevenlabs_agent_id?: string | null
           elevenlabs_voice_id?: string | null
           emergency_redirect?: boolean
+          formality?: string
           forwarding_number?: string | null
           greeting?: string
+          handoff_number?: string | null
+          languages?: string[]
           mention_cancellation_policy?: boolean
           mention_prices?: boolean
+          never_mention?: string | null
+          notify_after_call?: boolean
           offer_alternatives?: boolean
           offer_callback?: boolean
           personality?: string
@@ -903,6 +1717,7 @@ export type Database = {
           salon_id?: string
           send_confirmation_sms?: boolean
           updated_at?: string
+          urgent_keywords?: string[]
           voice_id?: string
         }
         Relationships: [
@@ -937,6 +1752,7 @@ export type Database = {
           employee_id: string
           end_at: string
           id: string
+          location_id: string | null
           notes: string | null
           period: unknown
           salon_id: string
@@ -952,6 +1768,19 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      current_salon_role: { Args: { target_salon_id: string }; Returns: string }
+      delete_customer_data: {
+        Args: { target_customer_id: string }
+        Returns: undefined
+      }
+      export_customer_data: {
+        Args: { target_customer_id: string }
+        Returns: Json
+      }
+      has_permission: {
+        Args: { p_permission_key: string; target_salon_id: string }
+        Returns: boolean
       }
       is_platform_admin: { Args: never; Returns: boolean }
       is_salon_member: { Args: { target_salon_id: string }; Returns: boolean }

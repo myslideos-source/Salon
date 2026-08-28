@@ -2,11 +2,13 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+export type SalonRole = "owner" | "administrator" | "staff" | "reception" | "calendar_only";
+
 export type SalonMembership = {
   salonId: string;
   salonName: string;
   salonSlug: string;
-  role: "owner" | "staff";
+  role: SalonRole;
 };
 
 export type AppSession = {
@@ -37,7 +39,7 @@ export async function getSession(): Promise<AppSession | null> {
       salonId: (m.salons as unknown as { id: string; name: string; slug: string }).id,
       salonName: (m.salons as unknown as { id: string; name: string; slug: string }).name,
       salonSlug: (m.salons as unknown as { id: string; name: string; slug: string }).slug,
-      role: m.role as "owner" | "staff",
+      role: m.role as SalonRole,
     }));
 
   return {
