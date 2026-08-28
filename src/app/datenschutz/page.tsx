@@ -28,9 +28,10 @@ export default function DatenschutzPage() {
       <section>
         <h2 className="font-display text-lg text-ink">2. Übersicht der Verarbeitungen</h2>
         <p className="mt-2">
-          HalloMia ist eine Software für Friseursalons: ein KI-Telefonassistent nimmt Anrufe entgegen und bucht
-          Termine, die im eigenen Kalender des Salons verwaltet werden. Dabei werden personenbezogene Daten von
-          Kundinnen und Kunden der Salons (Anruferinnen/Anrufer) sowie von Salon-Mitarbeitenden verarbeitet.
+          HalloMia ist eine Software für Unternehmen, die Termine per Telefon vereinbaren: ein KI-Telefonassistent
+          nimmt Anrufe entgegen und bucht Termine, die im eigenen Kalender des Unternehmens verwaltet werden. Dabei
+          werden personenbezogene Daten von Kundinnen und Kunden der Unternehmen (Anruferinnen/Anrufer) sowie von
+          deren Mitarbeitenden verarbeitet.
         </p>
       </section>
 
@@ -40,7 +41,7 @@ export default function DatenschutzPage() {
           <li>Telefonnummer der Anruferin/des Anrufers (zur Kundenerkennung und für Terminbestätigungen)</li>
           <li>Name, gewünschte Leistung, Wunschtermin und Gesprächsinhalt/-verlauf des Anrufs</li>
           <li>Termindaten (Datum, Uhrzeit, gebuchte Leistung, zuständige Mitarbeiterin/zuständiger Mitarbeiter)</li>
-          <li>Login-Daten von Salon-Mitarbeitenden (E-Mail-Adresse) zur Anmeldung im Verwaltungsbereich</li>
+          <li>Login-Daten von Mitarbeitenden des Unternehmens (E-Mail-Adresse) zur Anmeldung im Verwaltungsbereich</li>
         </ul>
       </section>
 
@@ -70,7 +71,7 @@ export default function DatenschutzPage() {
             von EU-Standardvertragsklauseln.
           </li>
           <li>
-            <strong>Browser-Testfunktion (nur für Salon-Betreiber):</strong> OpenAI (USA) wird ausschließlich für
+            <strong>Browser-Testfunktion (nur für Unternehmer:innen):</strong> OpenAI (USA) wird ausschließlich für
             den optionalen Text-Testmodus im Verwaltungsbereich genutzt, nicht für echte Kundenanrufe.
           </li>
         </ul>
@@ -88,7 +89,7 @@ export default function DatenschutzPage() {
       <section>
         <h2 className="font-display text-lg text-ink">6. Speicherdauer</h2>
         <p className="mt-2">
-          Termin- und Kundendaten werden gespeichert, solange eine Geschäftsbeziehung mit dem jeweiligen Salon
+          Termin- und Kundendaten werden gespeichert, solange eine Geschäftsbeziehung mit dem jeweiligen Unternehmen
           besteht bzw. solange gesetzliche Aufbewahrungspflichten bestehen. Anrufmitschnitte/-transkripte werden
           nur so lange vorgehalten, wie es für die Terminabwicklung und etwaige Rückfragen erforderlich ist.
         </p>
@@ -98,8 +99,8 @@ export default function DatenschutzPage() {
         <h2 className="font-display text-lg text-ink">7. Cookies</h2>
         <p className="mt-2">
           Diese Website und der Verwaltungsbereich verwenden ausschließlich technisch notwendige Cookies –
-          konkret ein Session-Cookie, das die Anmeldung im Salon- bzw. Admin-Bereich ermöglicht. Es werden keine
-          Analyse-, Marketing- oder Tracking-Cookies eingesetzt.
+          konkret ein Session-Cookie, das die Anmeldung im Unternehmens- bzw. Admin-Bereich ermöglicht. Es werden
+          keine Analyse-, Marketing- oder Tracking-Cookies eingesetzt.
         </p>
       </section>
 
@@ -109,7 +110,7 @@ export default function DatenschutzPage() {
           Du hast das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16 DSGVO), Löschung (Art. 17 DSGVO),
           Einschränkung der Verarbeitung (Art. 18 DSGVO), Datenübertragbarkeit (Art. 20 DSGVO) sowie Widerspruch
           gegen die Verarbeitung (Art. 21 DSGVO). Wende dich dazu an die oben genannte Kontaktadresse oder direkt
-          an den betreffenden Salon. Zudem besteht ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde.
+          an das betreffende Unternehmen. Zudem besteht ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde.
         </p>
       </section>
     </LegalPageShell>
