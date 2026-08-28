@@ -25,7 +25,7 @@ export const ONBOARDING_STEPS: OnboardingStepDef[] = [
   { step: 4, title: "Standort", description: "Standard-Standort prüfen, weitere Filialen ergänzen", interactive: true },
   { step: 5, title: "Öffnungszeiten", description: "Reguläre Öffnungszeiten festlegen", interactive: true },
   { step: 6, title: "Team & Ressourcen", description: "Mitarbeiter, Räume, Fahrzeuge und Geräte anlegen", interactive: true },
-  { step: 7, title: "Terminarten & Leistungen", description: "Folgt später", interactive: false },
+  { step: 7, title: "Terminarten & Leistungen", description: "Terminarten mit Dauer, Preis und Buchungsfragen anlegen", interactive: true },
   { step: 8, title: "Begrüßung & Tonalität", description: "Folgt später", interactive: false },
   { step: 9, title: "Häufige Fragen", description: "Folgt später", interactive: false },
   { step: 10, title: "Kalender testen", description: "Folgt später", interactive: false },
@@ -33,7 +33,7 @@ export const ONBOARDING_STEPS: OnboardingStepDef[] = [
   { step: 12, title: "Mia aktivieren", description: "Folgt später", interactive: false },
 ];
 
-export const LAST_INTERACTIVE_STEP = 6;
+export const LAST_INTERACTIVE_STEP = 7;
 
 export function emptyOnboardingDraft(): OnboardingDraft {
   return { industryKey: null, suggestedServices: [], suggestedQuestions: [], suggestedRequiredFields: [] };

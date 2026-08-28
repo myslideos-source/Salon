@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireSalonSession, resolveActiveSalonId } from "@/lib/auth/session";
+import { checkPermission } from "@/lib/auth/permissions";
 import { Topbar } from "@/components/layout/topbar";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { formatDuration, formatPrice } from "@/lib/utils";
+import { ServicesManager, type Service } from "@/components/services/services-manager";
+import { parseCustomQuestions, parseRequiredFields } from "@/lib/validation/services";
 import { DEFAULT_COMPANY_LABEL, TERMINOLOGY } from "@/lib/terminology";
 
 export default async function SalonServicesPage() {
@@ -11,43 +11,63 @@ export default async function SalonServicesPage() {
   const salonId = resolveActiveSalonId(session)!;
   const supabase = await createClient();
 
-  const [{ data: services }, { data: settings }] = await Promise.all([
-    supabase.from("services").select("*").eq("salon_id", salonId).order("sort_order").order("name"),
-    supabase.from("voice_settings").select("mention_prices").eq("salon_id", salonId).maybeSingle(),
-  ]);
+  const [{ data: services }, { data: employees }, { data: resources }, { data: locations }, { data: employeeServices }, { data: serviceResources }, canManage] =
+    await Promise.all([
+      supabase.from("services").select("*").eq("salon_id", salonId).order("sort_order").order("name"),
+      supabase.from("employees").select("id, first_name, last_name").eq("salon_id", salonId).eq("active", true).order("sort_order"),
+      supabase.from("resources").select("id, name").eq("salon_id", salonId).eq("active", true).order("sort_order"),
+      supabase.from("locations").select("id, name").eq("salon_id", salonId).eq("active", true).order("sort_order"),
+      supabase.from("employee_services").select("employee_id, service_id").eq("salon_id", salonId),
+      supabase.from("service_resources").select("resource_id, service_id").eq("salon_id", salonId),
+      checkPermission(salonId, "manage_services"),
+    ]);
 
-  const showPrices = settings?.mention_prices ?? true;
+  const employeesByService = new Map<string, string[]>();
+  for (const row of employeeServices ?? []) {
+    employeesByService.set(row.service_id, [...(employeesByService.get(row.service_id) ?? []), row.employee_id]);
+  }
+  const resourcesByService = new Map<string, string[]>();
+  for (const row of serviceResources ?? []) {
+    resourcesByService.set(row.service_id, [...(resourcesByService.get(row.service_id) ?? []), row.resource_id]);
+  }
+
+  const serviceRows: Service[] = (services ?? []).map((s) => ({
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    category: s.category,
+    duration_minutes: s.duration_minutes,
+    has_price: s.has_price,
+    price_cents: s.price_cents,
+    buffer_before_minutes: s.buffer_before_minutes,
+    buffer_after_minutes: s.buffer_after_minutes,
+    color: s.color,
+    location_id: s.location_id,
+    bookable_phone: s.bookable_phone,
+    bookable_online: s.bookable_online,
+    active: s.active,
+    required_customer_fields: parseRequiredFields(s.required_customer_fields),
+    custom_questions: parseCustomQuestions(s.custom_questions),
+    employee_ids: employeesByService.get(s.id) ?? [],
+    resource_ids: resourcesByService.get(s.id) ?? [],
+  }));
 
   return (
     <div>
       <Topbar
         title={TERMINOLOGY.servicePlural}
-        subtitle="Terminarten und Leistungen, die Mia telefonisch anbieten kann."
+        subtitle="Terminarten und Leistungen, die Mia telefonisch und online anbieten kann."
         avatarLabel={session.email ?? DEFAULT_COMPANY_LABEL}
       />
-      <div className="p-4 sm:p-6 lg:p-8 max-w-3xl space-y-3">
-        {(services ?? []).map((s) => (
-          <Card key={s.id} className="flex items-center justify-between gap-3 p-4">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="h-8 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
-              <div className="min-w-0">
-                <p className="truncate font-medium text-ink">
-                  {s.name} {s.category && <span className="text-xs text-ink-faint">· {s.category}</span>}
-                </p>
-                <p className="text-xs text-ink-soft">
-                  {formatDuration(s.duration_minutes)}
-                  {showPrices && ` · ${formatPrice(s.price_cents)}`}
-                </p>
-              </div>
-            </div>
-            <Badge tone={s.active ? "success" : "neutral"} dot className="shrink-0">
-              {s.active ? "Aktiv" : "Inaktiv"}
-            </Badge>
-          </Card>
-        ))}
-        {(services ?? []).length === 0 && (
-          <Card className="p-8 text-center text-sm text-ink-soft">Noch keine Leistungen angelegt.</Card>
-        )}
+      <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
+        <ServicesManager
+          salonId={salonId}
+          services={serviceRows}
+          employees={(employees ?? []).map((e) => ({ id: e.id, name: `${e.first_name} ${e.last_name}`.trim() }))}
+          resources={(resources ?? []).map((r) => ({ id: r.id, name: r.name }))}
+          locations={locations ?? []}
+          canManage={canManage}
+        />
       </div>
     </div>
   );

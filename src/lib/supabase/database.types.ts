@@ -1562,7 +1562,9 @@ export type Database = {
           color: string
           created_at: string
           custom_questions: Json
+          description: string | null
           duration_minutes: number
+          has_price: boolean
           id: string
           location_id: string | null
           name: string
@@ -1582,7 +1584,9 @@ export type Database = {
           color?: string
           created_at?: string
           custom_questions?: Json
+          description?: string | null
           duration_minutes: number
+          has_price?: boolean
           id?: string
           location_id?: string | null
           name: string
@@ -1602,7 +1606,9 @@ export type Database = {
           color?: string
           created_at?: string
           custom_questions?: Json
+          description?: string | null
           duration_minutes?: number
+          has_price?: boolean
           id?: string
           location_id?: string | null
           name?: string

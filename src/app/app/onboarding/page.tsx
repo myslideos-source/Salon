@@ -3,6 +3,8 @@ import { getSession, resolveActiveSalonId } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { parseOnboardingDraft } from "@/lib/onboarding/steps";
+import { parseCustomQuestions, parseRequiredFields } from "@/lib/validation/services";
+import type { Service } from "@/components/services/services-manager";
 
 export default async function OnboardingPage() {
   const session = await getSession();
@@ -24,7 +26,16 @@ export default async function OnboardingPage() {
     return <OnboardingWizard templates={templates ?? []} salon={null} />;
   }
 
-  const [{ data: salon }, { data: locations }, { data: businessHours }, { data: employees }, { data: resources }] = await Promise.all([
+  const [
+    { data: salon },
+    { data: locations },
+    { data: businessHours },
+    { data: employees },
+    { data: resources },
+    { data: services },
+    { data: employeeServices },
+    { data: serviceResources },
+  ] = await Promise.all([
     supabase
       .from("salons")
       .select("id, name, slug, phone, address, timezone, industry_template_id, onboarding_step, onboarding_draft")
@@ -46,9 +57,41 @@ export default async function OnboardingPage() {
       .select("id, name, type, description, color, active, location_id")
       .eq("salon_id", salonId)
       .order("sort_order"),
+    supabase.from("services").select("*").eq("salon_id", salonId).order("sort_order").order("name"),
+    supabase.from("employee_services").select("employee_id, service_id").eq("salon_id", salonId),
+    supabase.from("service_resources").select("resource_id, service_id").eq("salon_id", salonId),
   ]);
 
   if (!salon) redirect("/app/login");
+
+  const employeesByService = new Map<string, string[]>();
+  for (const row of employeeServices ?? []) {
+    employeesByService.set(row.service_id, [...(employeesByService.get(row.service_id) ?? []), row.employee_id]);
+  }
+  const resourcesByService = new Map<string, string[]>();
+  for (const row of serviceResources ?? []) {
+    resourcesByService.set(row.service_id, [...(resourcesByService.get(row.service_id) ?? []), row.resource_id]);
+  }
+  const serviceRows: Service[] = (services ?? []).map((s) => ({
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    category: s.category,
+    duration_minutes: s.duration_minutes,
+    has_price: s.has_price,
+    price_cents: s.price_cents,
+    buffer_before_minutes: s.buffer_before_minutes,
+    buffer_after_minutes: s.buffer_after_minutes,
+    color: s.color,
+    location_id: s.location_id,
+    bookable_phone: s.bookable_phone,
+    bookable_online: s.bookable_online,
+    active: s.active,
+    required_customer_fields: parseRequiredFields(s.required_customer_fields),
+    custom_questions: parseCustomQuestions(s.custom_questions),
+    employee_ids: employeesByService.get(s.id) ?? [],
+    resource_ids: resourcesByService.get(s.id) ?? [],
+  }));
 
   return (
     <OnboardingWizard
@@ -67,6 +110,7 @@ export default async function OnboardingPage() {
         businessHours: businessHours ?? [],
         employees: employees ?? [],
         resources: resources ?? [],
+        services: serviceRows,
       }}
     />
   );

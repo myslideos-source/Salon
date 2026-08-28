@@ -11,12 +11,14 @@ import { DetailsStep } from "@/components/onboarding/details-step";
 import { LocationStep } from "@/components/onboarding/location-step";
 import { HoursStep } from "@/components/onboarding/hours-step";
 import { TeamStep } from "@/components/onboarding/team-step";
+import { ServicesStep } from "@/components/onboarding/services-step";
 import { LAST_INTERACTIVE_STEP } from "@/lib/onboarding/steps";
 import type { OnboardingDraft } from "@/lib/validation/onboarding";
 import type { Tables } from "@/lib/supabase/database.types";
 import type { Location } from "@/components/locations/locations-manager";
 import type { Employee } from "@/components/team/employees-manager";
 import type { Resource } from "@/components/team/resources-manager";
+import type { Service } from "@/components/services/services-manager";
 
 export type OnboardingSalon = {
   id: string;
@@ -32,6 +34,7 @@ export type OnboardingSalon = {
   businessHours: { weekday: number; is_closed: boolean; start_time: string | null; end_time: string | null }[];
   employees: Employee[];
   resources: Resource[];
+  services: Service[];
 };
 
 export function OnboardingWizard({
@@ -113,12 +116,24 @@ export function OnboardingWizard({
               employees={salon.employees}
               resources={salon.resources}
               locations={salon.locations}
+              onSaved={() => advance(7)}
               onBack={() => setActiveStep(5)}
+            />
+          )}
+          {activeStep === 7 && salon && (
+            <ServicesStep
+              salonId={salon.id}
+              services={salon.services}
+              employees={salon.employees.map((e) => ({ id: e.id, name: `${e.first_name} ${e.last_name}`.trim() }))}
+              resources={salon.resources.map((r) => ({ id: r.id, name: r.name }))}
+              locations={salon.locations}
+              draft={salon.draft}
+              onBack={() => setActiveStep(6)}
             />
           )}
         </Card>
         <p className="mt-4 text-center text-xs text-ink-faint">
-          Terminarten, die Konfiguration von Mia und die Telefonanbindung folgen in Kürze.
+          Die Konfiguration von Mia und die Telefonanbindung folgen in Kürze.
         </p>
       </div>
     </div>

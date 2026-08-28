@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmployeesManager, type Employee } from "@/components/team/employees-manager";
 import { ResourcesManager, type Resource } from "@/components/team/resources-manager";
@@ -12,16 +11,16 @@ export function TeamStep({
   employees,
   resources,
   locations,
+  onSaved,
   onBack,
 }: {
   salonId: string;
   employees: Employee[];
   resources: Resource[];
   locations: { id: string; name: string }[];
+  onSaved: () => void;
   onBack: () => void;
 }) {
-  const router = useRouter();
-
   return (
     <div className="space-y-6">
       <p className="text-sm text-ink-soft">
@@ -39,10 +38,10 @@ export function TeamStep({
           variant="bronze"
           onClick={async () => {
             await advanceOnboardingStepAction(salonId, 7);
-            router.push("/app/dashboard?onboarding=in_progress");
+            onSaved();
           }}
         >
-          Fertig für jetzt <Check className="h-4 w-4" />
+          Weiter <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
     </div>
