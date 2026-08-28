@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, CalendarCheck, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,15 +27,16 @@ export function CalendarTestStep({
   timezone,
   employees,
   services,
+  onSaved,
   onBack,
 }: {
   salonId: string;
   timezone: string;
   employees: Employee[];
   services: Service[];
+  onSaved: () => void;
   onBack: () => void;
 }) {
-  const router = useRouter();
   const activeEmployees = employees.filter((e) => e.active);
   const activeServices = services.filter((s) => s.active);
   const date = todayStr();
@@ -107,7 +107,8 @@ export function CalendarTestStep({
   async function finish() {
     setFinishing(true);
     await advanceOnboardingStepAction(salonId, 11);
-    router.push("/app/dashboard?onboarding=in_progress");
+    setFinishing(false);
+    onSaved();
   }
 
   if (activeEmployees.length === 0 || activeServices.length === 0) {

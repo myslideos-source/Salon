@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardHeader } from "@/components/ui/card";
 import { VoiceSettingsForm } from "@/components/admin/voice-settings-form";
 import { ElevenLabsSyncPanel } from "@/components/admin/elevenlabs-sync-panel";
+import { TwilioSyncPanel } from "@/components/admin/twilio-sync-panel";
 
 export default async function AdminAiPage({
   params,
@@ -21,6 +22,7 @@ export default async function AdminAiPage({
         </div>
       </Card>
       <ElevenLabsSyncPanel salonId={salonId} currentAgentId={settings?.elevenlabs_agent_id ?? null} />
+      <TwilioSyncPanel salonId={salonId} currentSid={settings?.twilio_phone_number_sid ?? null} />
     </div>
   );
 }

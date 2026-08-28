@@ -214,3 +214,18 @@ export async function advanceOnboardingStepAction(salonId: string, step: number)
   if (error) throw new Error(error.message);
   revalidatePath("/app/onboarding");
 }
+
+// Schritt 12 "Mia aktivieren" — schließt den Einrichtungsassistenten ab
+// (setzt salons.onboarding_completed_at, das der "Einrichtung
+// unvollständig"-Hinweis im Dashboard prüft). Eigene RPC statt eines
+// weiteren update_own_salon_onboarding-Parameters, siehe Migration 0038.
+export async function completeOnboardingAction(salonId: string): Promise<void> {
+  const session = await requireSalonSession();
+  if (resolveActiveSalonId(session) !== salonId) throw new Error("Kein Zugriff auf dieses Unternehmen.");
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("complete_own_salon_onboarding", { target_salon_id: salonId });
+  if (error) throw new Error(error.message);
+  revalidatePath("/app/onboarding");
+  revalidatePath("/app/dashboard");
+}

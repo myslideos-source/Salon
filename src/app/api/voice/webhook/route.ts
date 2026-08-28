@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { runTool, toolSchemas } from "@/lib/voice/tools";
 import { retellProvider } from "@/lib/voice/providers/retell";
+import { ensureCall, finalizeCall, linkCallAppointment, linkCallCallback, markCallHandoff, normalizeSentiment, deriveUrgency } from "@/lib/voice/call-ingest";
 
 // Webhook entry point for the configured Voice-AI provider (Retell by
 // default). Retell posts to this same URL for two different things: (a)
@@ -52,6 +53,25 @@ function extractCallEnded(body: Json): Json | null {
     return Object.keys(call).length > 0 ? call : body;
   }
   return null;
+}
+
+// Retell's post-call analysis ("call_analyzed" event / call_analysis
+// field). UNVERIFIED exact shape from this environment (see file header) —
+// parsed permissively, same "let a real payload correct this" approach as
+// the rest of this route. custom_analysis_data is whatever the Retell
+// dashboard's "Post-Call Analysis" fields are configured to extract (e.g. a
+// "topic" field) — read defensively since it depends on external
+// dashboard configuration this environment can't inspect.
+function extractCallAnalysis(call: Json): { summary?: string; sentiment?: string; topic?: string; transferred?: boolean } {
+  const analysis = asObject(call.call_analysis);
+  const custom = asObject(analysis.custom_analysis_data);
+  const disconnectionReason = asString(call.disconnection_reason) ?? "";
+  return {
+    summary: asString(analysis.call_summary),
+    sentiment: asString(analysis.user_sentiment),
+    topic: asString(custom.topic) ?? asString(custom.anliegen),
+    transferred: disconnectionReason.includes("transfer"),
+  };
 }
 
 async function resolveSalonId(supabase: ReturnType<typeof createAdminClient>, call: Json) {
@@ -114,7 +134,43 @@ export async function POST(req: Request) {
       args.phone = callerNumber;
     }
 
+    // "Gespräch gestartet"/"eingehender Anruf": the first tool call of a
+    // conversation is the earliest point this webhook sees a live call, so
+    // it doubles as the call-started hook — creates the `calls` row once
+    // (idempotent by provider_call_id) so later tool calls in the same
+    // conversation, and the eventual call_ended event, all land on the
+    // same row instead of only existing from call_ended onward.
+    const providerCallId = asString(call.call_id) ?? asString(call.callId) ?? null;
+    let callDbId: string | null = null;
+    if (providerCallId) {
+      const callRow = await ensureCall(supabase, {
+        salonId,
+        providerCallId,
+        phoneNumber: callerNumber ?? null,
+      });
+      callDbId = callRow.id;
+    }
+
     const result = await runTool(supabase, salonId, name as keyof typeof toolSchemas, args);
+
+    // "Termin angefragt/gebucht" / "Rückruf erstellt": link the outcome
+    // back onto the call so the Gesprächsübersicht can show it without a
+    // separate correlation step.
+    if (callDbId && result.ok) {
+      if (name === "createAppointment") {
+        const appt = result.data as { id: string };
+        await linkCallAppointment(supabase, callDbId, appt.id, "appointment_booked");
+      } else if (name === "rescheduleAppointment") {
+        const appt = result.data as { id: string };
+        await linkCallAppointment(supabase, callDbId, appt.id, "appointment_rescheduled");
+      } else if (name === "cancelAppointment") {
+        const appt = result.data as { id: string };
+        await linkCallAppointment(supabase, callDbId, appt.id, "appointment_cancelled");
+      } else if (name === "createCallbackRequest") {
+        await linkCallCallback(supabase, callDbId);
+      }
+    }
+
     return NextResponse.json(result);
   }
 
@@ -124,9 +180,6 @@ export async function POST(req: Request) {
     if (!salonId) return NextResponse.json({ error: "salon not found for this number" }, { status: 404 });
 
     const durationMs = typeof callEnded.duration_ms === "number" ? callEnded.duration_ms : 0;
-    // Retell fires more than one lifecycle event per call (call_ended,
-    // call_analyzed, ...), each of which matches extractCallEnded. Without
-    // a lookup-then-write, each one inserted a fresh duplicate row.
     const providerCallId = asString(callEnded.call_id) ?? null;
     const transcript = Array.isArray(callEnded.transcript_object)
       ? callEnded.transcript_object
@@ -134,23 +187,33 @@ export async function POST(req: Request) {
         ? callEnded.transcript
         : (asString(callEnded.transcript) ?? null);
 
-    const row = {
-      salon_id: salonId,
-      phone_number: asString(callEnded.from_number) ?? null,
-      duration_seconds: Math.round(durationMs / 1000),
-      status: "completed",
-      provider_call_id: providerCallId,
-      transcript,
-    };
-
-    const existing = providerCallId
-      ? await supabase.from("calls").select("id").eq("provider_call_id", providerCallId).maybeSingle()
-      : null;
-    if (existing?.data) {
-      await supabase.from("calls").update(row).eq("id", existing.data.id);
-    } else {
-      await supabase.from("calls").insert(row);
+    const analysis = extractCallAnalysis(callEnded);
+    if (!providerCallId) {
+      // No call id at all (shouldn't happen for a real call) — nothing to
+      // key an idempotent upsert on, so there's nothing safe to write.
+      return NextResponse.json({ ok: true, note: "no call_id, skipped" });
     }
+
+    const { data: settingsForUrgency } = await supabase
+      .from("voice_settings")
+      .select("urgent_keywords")
+      .eq("salon_id", salonId)
+      .maybeSingle();
+    const urgency = deriveUrgency(`${analysis.summary ?? ""} ${analysis.topic ?? ""}`, settingsForUrgency?.urgent_keywords ?? []);
+
+    const savedCall = await finalizeCall(supabase, {
+      salonId,
+      providerCallId,
+      phoneNumber: asString(callEnded.from_number) ?? null,
+      durationSeconds: durationMs / 1000,
+      transcript,
+      summary: analysis.summary ?? null,
+      topic: analysis.topic ?? null,
+      sentiment: normalizeSentiment(analysis.sentiment),
+      urgency,
+    });
+    if (analysis.transferred) await markCallHandoff(supabase, savedCall.id);
+
     return NextResponse.json({ ok: true });
   }
 

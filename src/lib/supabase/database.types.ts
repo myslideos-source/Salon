@@ -479,6 +479,7 @@ export type Database = {
           direction: string
           duration_seconds: number
           id: string
+          notes: string | null
           outcome: string | null
           phone_number: string | null
           provider_call_id: string | null
@@ -501,6 +502,7 @@ export type Database = {
           direction?: string
           duration_seconds?: number
           id?: string
+          notes?: string | null
           outcome?: string | null
           phone_number?: string | null
           provider_call_id?: string | null
@@ -523,6 +525,7 @@ export type Database = {
           direction?: string
           duration_seconds?: number
           id?: string
+          notes?: string | null
           outcome?: string | null
           phone_number?: string | null
           provider_call_id?: string | null
@@ -1706,10 +1709,12 @@ export type Database = {
           provider: string
           provider_agent_id: string | null
           provider_llm_id: string | null
+          recording_enabled: boolean
           required_documents: string | null
           respect_employee_preference: boolean
           salon_id: string
           send_confirmation_sms: boolean
+          twilio_phone_number_sid: string | null
           updated_at: string
           urgent_keywords: string[]
           voice_id: string
@@ -1739,10 +1744,12 @@ export type Database = {
           provider?: string
           provider_agent_id?: string | null
           provider_llm_id?: string | null
+          recording_enabled?: boolean
           required_documents?: string | null
           respect_employee_preference?: boolean
           salon_id: string
           send_confirmation_sms?: boolean
+          twilio_phone_number_sid?: string | null
           updated_at?: string
           urgent_keywords?: string[]
           voice_id?: string
@@ -1772,10 +1779,12 @@ export type Database = {
           provider?: string
           provider_agent_id?: string | null
           provider_llm_id?: string | null
+          recording_enabled?: boolean
           required_documents?: string | null
           respect_employee_preference?: boolean
           salon_id?: string
           send_confirmation_sms?: boolean
+          twilio_phone_number_sid?: string | null
           updated_at?: string
           urgent_keywords?: string[]
           voice_id?: string
@@ -1829,6 +1838,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      complete_own_salon_onboarding: {
+        Args: { target_salon_id: string }
+        Returns: undefined
+      }
       create_own_salon: {
         Args: { p_name: string; p_slug: string }
         Returns: string
@@ -1854,6 +1867,10 @@ export type Database = {
       }
       toggle_salon_ai: {
         Args: { active: boolean; target_salon_id: string }
+        Returns: undefined
+      }
+      update_call_recording_consent: {
+        Args: { p_recording_enabled: boolean; target_salon_id: string }
         Returns: undefined
       }
       update_own_booking_rules: {

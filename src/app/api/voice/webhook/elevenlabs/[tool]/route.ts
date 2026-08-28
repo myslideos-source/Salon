@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { runTool, toolSchemas } from "@/lib/voice/tools";
 import { elevenLabsProvider } from "@/lib/voice/providers/elevenlabs";
+import { ensureCall, linkCallAppointment, linkCallCallback } from "@/lib/voice/call-ingest";
 
 // Per-tool webhook entry point for ElevenLabs Agents (see providers/
 // elevenlabs.ts): unlike Retell's one shared endpoint with the tool name in
@@ -40,5 +41,31 @@ export async function POST(req: Request, { params }: { params: Promise<{ tool: s
 
   const supabase = createAdminClient();
   const result = await runTool(supabase, salonId, tool as keyof typeof toolSchemas, args);
+
+  // Best-effort call linking: only if ElevenLabs actually sends a
+  // conversation id along with the tool arguments (UNVERIFIED whether it
+  // does — see file header). If it's absent, the post-call webhook still
+  // captures transcript/summary for this conversation on its own; only the
+  // appointment/callback ↔ call link is missed in that case.
+  const argsObj = args && typeof args === "object" ? (args as Record<string, unknown>) : {};
+  const conversationId =
+    typeof argsObj.conversation_id === "string"
+      ? argsObj.conversation_id
+      : typeof argsObj.conversationId === "string"
+        ? argsObj.conversationId
+        : null;
+  if (conversationId && result.ok) {
+    const callRow = await ensureCall(supabase, { salonId, providerCallId: conversationId });
+    if (tool === "createAppointment") {
+      await linkCallAppointment(supabase, callRow.id, (result.data as { id: string }).id, "appointment_booked");
+    } else if (tool === "rescheduleAppointment") {
+      await linkCallAppointment(supabase, callRow.id, (result.data as { id: string }).id, "appointment_rescheduled");
+    } else if (tool === "cancelAppointment") {
+      await linkCallAppointment(supabase, callRow.id, (result.data as { id: string }).id, "appointment_cancelled");
+    } else if (tool === "createCallbackRequest") {
+      await linkCallCallback(supabase, callRow.id);
+    }
+  }
+
   return NextResponse.json(result);
 }

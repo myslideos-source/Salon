@@ -15,6 +15,8 @@ import { ServicesStep } from "@/components/onboarding/services-step";
 import { GreetingStep } from "@/components/onboarding/greeting-step";
 import { FaqStep } from "@/components/onboarding/faq-step";
 import { CalendarTestStep } from "@/components/onboarding/calendar-test-step";
+import { PhoneStep } from "@/components/onboarding/phone-step";
+import { ActivateStep } from "@/components/onboarding/activate-step";
 import { LAST_INTERACTIVE_STEP } from "@/lib/onboarding/steps";
 import type { OnboardingDraft } from "@/lib/validation/onboarding";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -41,6 +43,9 @@ export type OnboardingSalon = {
   description: string;
   voiceSettings: { assistant_name: string; greeting: string; personality: string; formality: string } | null;
   faqs: Tables<"faq">[];
+  phoneNumber: string | null;
+  voiceProvider: string | null;
+  aiActive: boolean;
 };
 
 export function OnboardingWizard({
@@ -159,13 +164,28 @@ export function OnboardingWizard({
               timezone={salon.timezone}
               employees={salon.employees}
               services={salon.services}
+              onSaved={() => advance(11)}
               onBack={() => setActiveStep(9)}
             />
           )}
+          {activeStep === 11 && salon && (
+            <PhoneStep
+              salonId={salon.id}
+              phoneNumber={salon.phoneNumber}
+              provider={salon.voiceProvider}
+              onSaved={() => advance(12)}
+              onBack={() => setActiveStep(10)}
+            />
+          )}
+          {activeStep === 12 && salon && (
+            <ActivateStep
+              salonId={salon.id}
+              phoneConnected={Boolean(salon.phoneNumber)}
+              initialActive={salon.aiActive}
+              onBack={() => setActiveStep(11)}
+            />
+          )}
         </Card>
-        <p className="mt-4 text-center text-xs text-ink-faint">
-          Die Konfiguration von Mia und die Telefonanbindung folgen in Kürze.
-        </p>
       </div>
     </div>
   );

@@ -40,7 +40,7 @@ export default async function OnboardingPage() {
   ] = await Promise.all([
     supabase
       .from("salons")
-      .select("id, name, slug, phone, address, timezone, industry_template_id, onboarding_step, onboarding_draft, description")
+      .select("id, name, slug, phone, address, timezone, industry_template_id, onboarding_step, onboarding_draft, description, ai_active")
       .eq("id", salonId)
       .single(),
     supabase
@@ -62,7 +62,11 @@ export default async function OnboardingPage() {
     supabase.from("services").select("*").eq("salon_id", salonId).order("sort_order").order("name"),
     supabase.from("employee_services").select("employee_id, service_id").eq("salon_id", salonId),
     supabase.from("service_resources").select("resource_id, service_id").eq("salon_id", salonId),
-    supabase.from("voice_settings").select("assistant_name, greeting, personality, formality").eq("salon_id", salonId).maybeSingle(),
+    supabase
+      .from("voice_settings")
+      .select("assistant_name, greeting, personality, formality, phone_number, provider")
+      .eq("salon_id", salonId)
+      .maybeSingle(),
     supabase.from("faq").select("*").eq("salon_id", salonId).order("sort_order"),
   ]);
 
@@ -118,6 +122,9 @@ export default async function OnboardingPage() {
         description: salon.description ?? "",
         voiceSettings: voiceSettings ?? null,
         faqs: faqs ?? [],
+        phoneNumber: voiceSettings?.phone_number ?? null,
+        voiceProvider: voiceSettings?.provider ?? null,
+        aiActive: salon.ai_active,
       }}
     />
   );

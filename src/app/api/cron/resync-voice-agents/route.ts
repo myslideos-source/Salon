@@ -164,5 +164,10 @@ export async function GET(req: Request) {
     }
   }
 
+  // Twilio intentionally not resynced here: unlike Retell's agent prompt
+  // (which embeds "today is <date>" and goes stale, the reason this cron
+  // job exists at all), Twilio's webhook URL doesn't change on its own —
+  // the manual "Erneut verbinden" button on the admin AI page is enough.
+
   return NextResponse.json({ ok: true, resynced: results.length, results });
 }

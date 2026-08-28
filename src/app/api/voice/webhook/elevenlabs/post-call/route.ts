@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { elevenLabsProvider } from "@/lib/voice/providers/elevenlabs";
+import { finalizeCall, normalizeSentiment, deriveUrgency } from "@/lib/voice/call-ingest";
 import type { Json } from "@/lib/supabase/database.types";
 
 // Call-lifecycle logging for ElevenLabs Agents. ElevenLabs fires a separate
@@ -66,23 +67,28 @@ export async function POST(req: Request) {
         : 0;
   const providerCallId = asString(body.conversation_id) ?? asString(body.call_id) ?? null;
   const transcript = (body.transcript ?? null) as unknown as Json;
+  const phoneNumber = asString(asObject(body.metadata).caller_id) ?? asString(body.from_number) ?? null;
 
-  const row = {
-    salon_id: salonId,
-    phone_number: asString(asObject(body.metadata).caller_id) ?? asString(body.from_number) ?? null,
-    duration_seconds: Math.round(durationSeconds),
-    status: "completed",
-    provider_call_id: providerCallId,
-    transcript,
-  };
+  // Post-call analysis. UNVERIFIED exact field names (see file header) —
+  // read permissively, same approach as the rest of this route.
+  const analysis = asObject(body.analysis);
+  const summary = asString(analysis.transcript_summary) ?? asString(analysis.call_summary) ?? asString(body.summary) ?? null;
 
-  const existing = providerCallId
-    ? await supabase.from("calls").select("id").eq("provider_call_id", providerCallId).maybeSingle()
-    : null;
-  if (existing?.data) {
-    await supabase.from("calls").update(row).eq("id", existing.data.id);
-  } else {
-    await supabase.from("calls").insert(row);
+  if (!providerCallId) {
+    return NextResponse.json({ error: "no conversation id", receivedKeys: Object.keys(body) }, { status: 400 });
   }
+
+  const { data: settings } = await supabase.from("voice_settings").select("urgent_keywords").eq("salon_id", salonId).maybeSingle();
+
+  await finalizeCall(supabase, {
+    salonId,
+    providerCallId,
+    phoneNumber,
+    durationSeconds,
+    transcript,
+    summary,
+    sentiment: normalizeSentiment(asString(analysis.user_sentiment) ?? null),
+    urgency: deriveUrgency(summary ?? "", settings?.urgent_keywords ?? []),
+  });
   return NextResponse.json({ ok: true });
 }
