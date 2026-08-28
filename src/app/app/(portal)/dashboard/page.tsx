@@ -21,7 +21,11 @@ export default async function SalonDashboardPage() {
   const salonId = resolveActiveSalonId(session)!;
   const supabase = await createClient();
 
-  const { data: salon } = await supabase.from("salons").select("name").eq("id", salonId).single();
+  const { data: salon } = await supabase
+    .from("salons")
+    .select("name, onboarding_completed_at")
+    .eq("id", salonId)
+    .single();
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -100,6 +104,18 @@ export default async function SalonDashboardPage() {
     <div>
       <Topbar title={`${greeting()}, ${salon?.name}`} subtitle="Hier ist dein Überblick für heute." avatarLabel={session.email ?? DEFAULT_COMPANY_LABEL} />
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+        {!salon?.onboarding_completed_at && (
+          <Link
+            href="/app/onboarding"
+            className="flex items-center justify-between gap-3 rounded-2xl border border-bronze/30 bg-bronze-soft px-5 py-4 transition-colors hover:bg-bronze-soft/80"
+          >
+            <div>
+              <p className="text-sm font-medium text-ink">Einrichtung unvollständig</p>
+              <p className="mt-0.5 text-xs text-ink-soft">Unternehmen, Branche und Unternehmensdaten weiter einrichten.</p>
+            </div>
+            <Badge tone="bronze">Fortsetzen</Badge>
+          </Link>
+        )}
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           <StatCard
             icon={Phone}

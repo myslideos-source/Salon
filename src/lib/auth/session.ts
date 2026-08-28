@@ -61,7 +61,9 @@ export async function requireSalonSession(): Promise<AppSession> {
   const session = await getSession();
   if (!session) redirect("/app/login");
   if (!session.isPlatformAdmin && session.salons.length === 0) {
-    redirect("/app/login?error=no_salon");
+    // Kein Unternehmen hinterlegt: statt eines Fehlers greift hier der
+    // Self-Service-Einrichtungsassistent (Schritt 1 "Unternehmen anlegen").
+    redirect("/app/onboarding");
   }
   return session;
 }

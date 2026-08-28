@@ -909,6 +909,7 @@ export type Database = {
           created_at: string
           description: string | null
           example_custom_questions: Json
+          example_required_fields: Json
           example_services: Json
           id: string
           key: string
@@ -921,6 +922,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           example_custom_questions?: Json
+          example_required_fields?: Json
           example_services?: Json
           id?: string
           key: string
@@ -933,6 +935,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           example_custom_questions?: Json
+          example_required_fields?: Json
           example_services?: Json
           id?: string
           key?: string
@@ -1407,6 +1410,9 @@ export type Database = {
           logo_url: string | null
           max_advance_booking_days: number
           name: string
+          onboarding_completed_at: string | null
+          onboarding_draft: Json
+          onboarding_step: number
           phone: string | null
           slot_granularity_minutes: number
           slug: string
@@ -1425,6 +1431,9 @@ export type Database = {
           logo_url?: string | null
           max_advance_booking_days?: number
           name: string
+          onboarding_completed_at?: string | null
+          onboarding_draft?: Json
+          onboarding_step?: number
           phone?: string | null
           slot_granularity_minutes?: number
           slug: string
@@ -1443,6 +1452,9 @@ export type Database = {
           logo_url?: string | null
           max_advance_booking_days?: number
           name?: string
+          onboarding_completed_at?: string | null
+          onboarding_draft?: Json
+          onboarding_step?: number
           phone?: string | null
           slot_granularity_minutes?: number
           slug?: string
@@ -1769,6 +1781,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_own_salon: {
+        Args: { p_name: string; p_slug: string }
+        Returns: string
+      }
       current_salon_role: { Args: { target_salon_id: string }; Returns: string }
       delete_customer_data: {
         Args: { target_customer_id: string }
@@ -1790,6 +1806,20 @@ export type Database = {
       }
       toggle_salon_ai: {
         Args: { active: boolean; target_salon_id: string }
+        Returns: undefined
+      }
+      update_own_salon_onboarding: {
+        Args: {
+          p_address?: string
+          p_industry_template_id?: string
+          p_name?: string
+          p_onboarding_draft?: Json
+          p_onboarding_step?: number
+          p_phone?: string
+          p_slug?: string
+          p_timezone?: string
+          target_salon_id: string
+        }
         Returns: undefined
       }
       update_voice_settings_customer_fields: {
