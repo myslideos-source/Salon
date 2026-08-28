@@ -12,6 +12,7 @@ import { LocationStep } from "@/components/onboarding/location-step";
 import { HoursStep } from "@/components/onboarding/hours-step";
 import { TeamStep } from "@/components/onboarding/team-step";
 import { ServicesStep } from "@/components/onboarding/services-step";
+import { CalendarTestStep } from "@/components/onboarding/calendar-test-step";
 import { LAST_INTERACTIVE_STEP } from "@/lib/onboarding/steps";
 import type { OnboardingDraft } from "@/lib/validation/onboarding";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -129,6 +130,16 @@ export function OnboardingWizard({
               locations={salon.locations}
               draft={salon.draft}
               onBack={() => setActiveStep(6)}
+              onSaved={() => advance(10)}
+            />
+          )}
+          {activeStep === 10 && salon && (
+            <CalendarTestStep
+              salonId={salon.id}
+              timezone={salon.timezone}
+              employees={salon.employees}
+              services={salon.services}
+              onBack={() => setActiveStep(7)}
             />
           )}
         </Card>

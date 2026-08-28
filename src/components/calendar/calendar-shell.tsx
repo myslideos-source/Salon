@@ -1,31 +1,36 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, BellRing, Bell, BellOff } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, BellRing, Bell, BellOff, Search, X } from "lucide-react";
 import { Topbar } from "@/components/layout/topbar";
 import { DayView } from "./day-view";
 import { WeekGrid } from "./week-grid";
 import { MonthGrid } from "./month-grid";
 import { MobileAgenda } from "./mobile-agenda";
 import { MobileDateStrip } from "./mobile-date-strip";
+import { CalendarListView } from "./calendar-list-view";
 import { MiniMonthCalendar } from "./mini-month-calendar";
 import { TodayAppointmentsCard } from "./today-appointments-card";
 import { WeekStatsCard } from "./week-stats-card";
-import { EmployeeFilter } from "./employee-filter";
+import { MultiSelectFilter } from "./multi-select-filter";
 import { NewAppointmentModal } from "./new-appointment-modal";
 import { CalendarFeedCard } from "@/components/portal/calendar-feed-card";
 import {
   getDayCalendarDataAction,
   getSalonEmployeesAction,
+  getSalonLocationsAction,
   type CalendarAppointment,
   type CalendarEmployee,
+  type CalendarLocation,
 } from "@/lib/actions/calendar-data";
 import { addDaysStr, formatDayLabel, formatMonthLabel, formatWeekRange, startOfWeekStr, todayStr, weekDatesFrom } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { APPOINTMENT_STATUSES } from "@/lib/scheduling/status";
+import { matchesCalendarFilters, type CalendarFilters } from "@/lib/scheduling/calendar-filters";
 
 type Service = { id: string; name: string; duration_minutes: number; price_cents: number; color: string };
-type View = "day" | "week" | "month";
+type View = "day" | "week" | "month" | "list";
 
 export function CalendarShell({
   salonId,
@@ -64,7 +69,16 @@ export function CalendarShell({
   } | null>(null);
   const [mobileDayData, setMobileDayData] = useState<typeof dayData>(null);
   const [employees, setEmployees] = useState<CalendarEmployee[]>([]);
-  const [employeeFilter, setEmployeeFilter] = useState<Set<string>>(new Set());
+  const [locations, setLocations] = useState<CalendarLocation[]>([]);
+  const [employeeIds, setEmployeeIds] = useState<Set<string>>(new Set());
+  const [locationIds, setLocationIds] = useState<Set<string>>(new Set());
+  const [serviceIds, setServiceIds] = useState<Set<string>>(new Set());
+  const [statuses, setStatuses] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const filters: CalendarFilters = { employeeIds, locationIds, serviceIds, statuses, search: search.trim().toLowerCase() };
+  // Kept for the mobile FAB/employee-count checks that predate the generic filter set.
+  const employeeFilter = employeeIds;
   const [showNew, setShowNew] = useState(false);
   const [weekRefreshKey, setWeekRefreshKey] = useState(0);
   const [liveNotice, setLiveNotice] = useState<string | null>(null);
@@ -130,6 +144,7 @@ export function CalendarShell({
 
   useEffect(() => {
     getSalonEmployeesAction(salonId).then(setEmployees);
+    getSalonLocationsAction(salonId).then(setLocations);
   }, [salonId]);
 
   // On mobile, "Woche" renders as an agenda for one selected day within the
@@ -185,7 +200,17 @@ export function CalendarShell({
   }
 
   const dateLabel =
-    view === "day" ? formatDayLabel(date) : view === "week" ? formatWeekRange(weekStart) : formatMonthLabel(date);
+    view === "day"
+      ? formatDayLabel(date)
+      : view === "week"
+        ? formatWeekRange(weekStart)
+        : view === "month"
+          ? formatMonthLabel(date)
+          : `Termine ab ${formatDayLabel(date)}`;
+
+  const serviceOptions = services.map((s) => ({ id: s.id, label: s.name, color: s.color }));
+  const locationOptions = locations.map((l) => ({ id: l.id, label: l.name }));
+  const statusOptions = APPOINTMENT_STATUSES.map((s) => ({ id: s.value, label: s.label }));
 
   return (
     <div className="max-w-full overflow-x-hidden">
@@ -247,7 +272,7 @@ export function CalendarShell({
         </div>
         <div className="flex items-center gap-2">
           <div className="flex rounded-lg border border-border-strong p-0.5">
-            {(["day", "week", "month"] as const).map((v) => (
+            {(["day", "week", "month", "list"] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
@@ -258,12 +283,54 @@ export function CalendarShell({
                     : "text-ink-soft hover:bg-sand"
                 )}
               >
-                {v === "day" ? "Tag" : v === "week" ? "Woche" : "Monat"}
+                {v === "day" ? "Tag" : v === "week" ? "Woche" : v === "month" ? "Monat" : "Liste"}
               </button>
             ))}
           </div>
-          <EmployeeFilter employees={employees} selected={employeeFilter} onChange={setEmployeeFilter} />
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3 sm:px-6 lg:px-8">
+        {searchOpen ? (
+          <div className="flex min-w-[180px] flex-1 items-center gap-2 rounded-lg border border-border-strong bg-cream-soft px-3 py-1.5 sm:flex-none sm:w-64">
+            <Search className="h-3.5 w-3.5 shrink-0 text-ink-faint" />
+            <input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Kunde, Telefon, Leistung, Notiz…"
+              aria-label="Termine durchsuchen"
+              className="min-w-0 flex-1 bg-transparent text-sm text-ink placeholder:text-ink-faint focus:outline-none"
+            />
+            <button
+              onClick={() => {
+                setSearch("");
+                setSearchOpen(false);
+              }}
+              aria-label="Suche schließen"
+              className="shrink-0 text-ink-faint hover:text-ink"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="flex items-center gap-2 rounded-lg border border-border-strong px-3 py-1.5 text-sm font-medium text-ink-soft transition-colors hover:bg-sand"
+          >
+            <Search className="h-3.5 w-3.5" /> Suche
+          </button>
+        )}
+        <MultiSelectFilter
+          label="Mitarbeiter"
+          allLabel="Alle Mitarbeiter"
+          options={employees.map((e) => ({ id: e.id, label: `${e.firstName} ${e.lastName}`.trim(), color: e.color }))}
+          selected={employeeIds}
+          onChange={setEmployeeIds}
+        />
+        <MultiSelectFilter label="Standorte" allLabel="Alle Standorte" options={locationOptions} selected={locationIds} onChange={setLocationIds} />
+        <MultiSelectFilter label="Terminarten" allLabel="Alle Terminarten" options={serviceOptions} selected={serviceIds} onChange={setServiceIds} />
+        <MultiSelectFilter label="Status" allLabel="Alle Status" options={statusOptions} selected={statuses} onChange={setStatuses} />
       </div>
 
       {view === "week" && (
@@ -291,7 +358,9 @@ export function CalendarShell({
                 timezone={dayData.timezone}
                 employees={employeeFilter.size > 0 ? dayData.employees.filter((e) => employeeFilter.has(e.id)) : dayData.employees}
                 services={services}
-                appointments={dayData.appointments}
+                appointments={dayData.appointments.filter((a) =>
+                  matchesCalendarFilters(a, dayData.employees.find((e) => e.id === a.employeeId)?.locationId, filters)
+                )}
                 businessHours={dayData.businessHours}
                 slotGranularity={slotGranularity}
                 canEdit={canEdit}
@@ -311,7 +380,7 @@ export function CalendarShell({
                   slotGranularity={slotGranularity}
                   canEdit={canEdit}
                   revalidatePath={basePath}
-                  employeeFilter={employeeFilter}
+                  filters={filters}
                   refreshKey={weekRefreshKey}
                   onSelectDay={(d) => {
                     setDate(d);
@@ -328,11 +397,9 @@ export function CalendarShell({
                     date={mobileDate}
                     timezone={mobileDayData.timezone}
                     employees={employeeFilter.size > 0 ? mobileDayData.employees.filter((e) => employeeFilter.has(e.id)) : mobileDayData.employees}
-                    appointments={
-                      employeeFilter.size > 0
-                        ? mobileDayData.appointments.filter((a) => employeeFilter.has(a.employeeId))
-                        : mobileDayData.appointments
-                    }
+                    appointments={mobileDayData.appointments.filter((a) =>
+                      matchesCalendarFilters(a, mobileDayData.employees.find((e) => e.id === a.employeeId)?.locationId, filters)
+                    )}
                     canEdit={canEdit}
                     revalidatePath={basePath}
                     onChanged={() => getDayCalendarDataAction(salonId, mobileDate).then(setMobileDayData)}
@@ -350,11 +417,25 @@ export function CalendarShell({
               salonId={salonId}
               monthDate={date}
               refreshKey={weekRefreshKey}
+              filters={filters}
               onSelectDay={(d) => {
                 setDate(d);
                 setMobileDate(d);
                 setView("day");
               }}
+            />
+          )}
+
+          {view === "list" && (
+            <CalendarListView
+              salonId={salonId}
+              fromDate={date}
+              toDate={addDaysStr(date, 30)}
+              filters={filters}
+              canEdit={canEdit}
+              revalidatePath={basePath}
+              refreshKey={weekRefreshKey}
+              onChanged={() => setWeekRefreshKey((k) => k + 1)}
             />
           )}
         </div>

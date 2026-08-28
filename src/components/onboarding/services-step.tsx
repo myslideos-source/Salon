@@ -28,6 +28,7 @@ export function ServicesStep({
   locations,
   draft,
   onBack,
+  onSaved,
 }: {
   salonId: string;
   services: Service[];
@@ -36,6 +37,7 @@ export function ServicesStep({
   locations: { id: string; name: string }[];
   draft: OnboardingDraft;
   onBack: () => void;
+  onSaved: () => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -112,11 +114,11 @@ export function ServicesStep({
           type="button"
           variant="bronze"
           onClick={async () => {
-            await advanceOnboardingStepAction(salonId, 8);
-            router.push("/app/dashboard?onboarding=in_progress");
+            await advanceOnboardingStepAction(salonId, 10);
+            onSaved();
           }}
         >
-          Fertig für jetzt <Check className="h-4 w-4" />
+          Weiter zum Kalendertest <Check className="h-4 w-4" />
         </Button>
       </div>
     </div>

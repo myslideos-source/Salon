@@ -252,4 +252,54 @@ describe("computeFreeSlots", () => {
     const slots = computeFreeSlots(baseInput);
     expect(slots.length).toBe(33);
   });
+
+  // ── Kern-Terminabläufe des Kalenders: erstellen/verschieben (blockiert),
+  // stornieren (gibt frei) und Dauer ändern per Resize (verändert die
+  // verbleibende Kapazität am Tagesende) ────────────────────────────────
+
+  it("create/move: a newly booked appointment blocks its own time range for further bookings", () => {
+    const before = computeFreeSlots(baseInput);
+    const after = computeFreeSlots({
+      ...baseInput,
+      existingAppointments: [{ startAt: iso(DATE, "10:00"), endAt: iso(DATE, "11:00") }],
+    });
+    expect(before.map((s) => s.toISOString())).toContain(new Date(iso(DATE, "10:00")).toISOString());
+    expect(after.map((s) => s.toISOString())).not.toContain(new Date(iso(DATE, "10:00")).toISOString());
+  });
+
+  it("cancel: removing a cancelled appointment from the occupancy list frees its slot again", () => {
+    const occupied = computeFreeSlots({
+      ...baseInput,
+      existingAppointments: [{ startAt: iso(DATE, "10:00"), endAt: iso(DATE, "11:00") }],
+    });
+    // Cancelling means the engine's caller simply stops passing this
+    // appointment as occupancy (mirrors `cancelAppointment` no longer
+    // counting as "booked" for `checkAvailability`'s query).
+    const freedAgain = computeFreeSlots(baseInput);
+    expect(occupied.map((s) => s.toISOString())).not.toContain(new Date(iso(DATE, "10:00")).toISOString());
+    expect(freedAgain.map((s) => s.toISOString())).toContain(new Date(iso(DATE, "10:00")).toISOString());
+  });
+
+  it("resize: lengthening the duration removes start times that no longer fit before closing", () => {
+    const shortSlots = computeFreeSlots({ ...baseInput, serviceDurationMinutes: 60 }).map((s) => s.toISOString());
+    const longSlots = computeFreeSlots({ ...baseInput, serviceDurationMinutes: 180 }).map((s) => s.toISOString());
+    // 17:00 + 60min still fits before 18:00 closing, but 17:00 + 180min does not.
+    expect(shortSlots).toContain(new Date(iso(DATE, "17:00")).toISOString());
+    expect(longSlots).not.toContain(new Date(iso(DATE, "17:00")).toISOString());
+    expect(longSlots[longSlots.length - 1]).toBe(new Date(iso(DATE, "15:00")).toISOString());
+  });
+
+  it("resize: shortening the duration around an existing appointment reopens slots that used to collide", () => {
+    const withExisting = {
+      ...baseInput,
+      existingAppointments: [{ startAt: iso(DATE, "10:00"), endAt: iso(DATE, "11:00") }],
+    };
+    // A 90-minute service starting at 09:00 would run until 10:30, colliding
+    // with the 10:00 appointment.
+    const longService = computeFreeSlots({ ...withExisting, serviceDurationMinutes: 90 }).map((s) => s.toISOString());
+    expect(longService).not.toContain(new Date(iso(DATE, "09:00")).toISOString());
+    // Resized down to 60 minutes, 09:00 no longer overlaps 10:00 and is free again.
+    const shortService = computeFreeSlots({ ...withExisting, serviceDurationMinutes: 60 }).map((s) => s.toISOString());
+    expect(shortService).toContain(new Date(iso(DATE, "09:00")).toISOString());
+  });
 });

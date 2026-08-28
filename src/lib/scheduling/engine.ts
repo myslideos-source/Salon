@@ -339,6 +339,58 @@ export async function rescheduleAppointment(supabase: DbClient, params: Reschedu
   return data;
 }
 
+export interface ResizeAppointmentParams {
+  salonId: string;
+  appointmentId: string;
+  /** New total duration in minutes - the start time stays fixed, only `end_at` moves. */
+  newDurationMinutes: number;
+}
+
+/**
+ * Changes an appointment's duration by dragging/keying in a new `end_at`,
+ * keeping `start_at` fixed. Collision-safety comes from the same DB
+ * exclusion constraint that guards `createAppointment`/`rescheduleAppointment`
+ * (`appointments_no_overlap`) - the update is rejected atomically if the
+ * longer/shorter window would now overlap another booked appointment for
+ * the same employee, even under concurrent edits.
+ */
+export async function resizeAppointment(supabase: DbClient, params: ResizeAppointmentParams) {
+  const { salonId, appointmentId, newDurationMinutes } = params;
+  if (!Number.isFinite(newDurationMinutes) || newDurationMinutes < 5) {
+    throw new SchedulingError("invalid_input", "Die Dauer muss mindestens 5 Minuten betragen.");
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("appointments")
+    .select("id, start_at, status")
+    .eq("id", appointmentId)
+    .eq("salon_id", salonId)
+    .single();
+  if (fetchError || !existing) throw new SchedulingError("not_found", "Termin wurde nicht gefunden.");
+  if (existing.status !== "booked") {
+    throw new SchedulingError("invalid_input", "Nur gebuchte Termine können in der Dauer geändert werden.");
+  }
+
+  const newEndAt = new Date(new Date(existing.start_at).getTime() + newDurationMinutes * 60_000).toISOString();
+
+  const { data, error } = await supabase
+    .from("appointments")
+    .update({ end_at: newEndAt, updated_at: new Date().toISOString() })
+    .eq("id", appointmentId)
+    .eq("salon_id", salonId)
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === "23P01") {
+      throw new SchedulingError("slot_unavailable", "Dieser Zeitraum ist nicht verfügbar.");
+    }
+    throw new SchedulingError("invalid_input", error.message);
+  }
+
+  return data;
+}
+
 async function getServiceIdsForAppointment(supabase: DbClient, appointmentId: string): Promise<string[]> {
   const { data } = await supabase
     .from("appointment_services")

@@ -10,7 +10,9 @@ export function AppointmentCard({
   style,
   onClick,
   onPointerDown,
+  onResizePointerDown,
   dragging,
+  resizing,
   timezone,
   colorOverride,
   showEmployeeName,
@@ -19,7 +21,10 @@ export function AppointmentCard({
   style: React.CSSProperties;
   onClick?: () => void;
   onPointerDown?: (e: React.PointerEvent) => void;
+  /** Bottom-edge drag handle for changing duration - omit to disable resizing entirely (e.g. read-only calendars). */
+  onResizePointerDown?: (e: React.PointerEvent) => void;
   dragging?: boolean;
+  resizing?: boolean;
   timezone: string;
   /** Week view colors by employee instead of by service - the column no
    * longer implies who the appointment belongs to. */
@@ -31,6 +36,7 @@ export function AppointmentCard({
     ? `${appointment.customer.firstName} ${appointment.customer.lastName}`.trim()
     : "Kunde";
   const serviceNames = appointment.services.map((s) => s.name).join(", ");
+  const cancelled = appointment.status === "cancelled";
 
   return (
     <div
@@ -39,8 +45,9 @@ export function AppointmentCard({
       onPointerDown={onPointerDown}
       className={cn(
         "absolute left-1 right-1 overflow-hidden rounded-lg border-l-[3px] px-2 py-1 text-left shadow-sm cursor-grab active:cursor-grabbing transition-shadow",
-        dragging ? "z-20 shadow-lg ring-2 ring-bronze/40 opacity-90" : "hover:shadow-md",
-        appointment.status === "no_show" && "opacity-50"
+        (dragging || resizing) ? "z-20 shadow-lg ring-2 ring-bronze/40 opacity-90" : "hover:shadow-md",
+        appointment.status === "no_show" && "opacity-50",
+        cancelled && "opacity-40 line-through decoration-1"
       )}
     >
       <p className="truncate text-[11px] font-semibold text-ink leading-tight">
@@ -59,6 +66,17 @@ export function AppointmentCard({
         >
           <Sparkles className="h-3 w-3" />
         </span>
+      )}
+      {onResizePointerDown && (
+        <div
+          onPointerDown={onResizePointerDown}
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Dauer ändern"
+          role="button"
+          className="absolute inset-x-0 bottom-0 flex h-2.5 cursor-ns-resize items-end justify-center touch-none"
+        >
+          <span className="mb-0.5 h-0.5 w-6 rounded-full bg-ink/25" />
+        </div>
       )}
     </div>
   );

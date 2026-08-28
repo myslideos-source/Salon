@@ -5,7 +5,7 @@ import { initials } from "@/lib/utils";
 import { AppointmentCard } from "./appointment-card";
 import { AppointmentDetailModal } from "./appointment-detail-modal";
 import { NewAppointmentModal } from "./new-appointment-modal";
-import { rescheduleAppointmentAction } from "@/lib/actions/appointments";
+import { rescheduleAppointmentAction, resizeAppointmentAction } from "@/lib/actions/appointments";
 import type { CalendarAppointment, CalendarEmployee } from "@/lib/actions/calendar-data";
 
 const PX_PER_HOUR = 64;
@@ -58,6 +58,7 @@ export function DayView({
 
   const columnRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [drag, setDrag] = useState<{ id: string; deltaMinutes: number; employeeId: string } | null>(null);
+  const [resize, setResize] = useState<{ id: string; deltaMinutes: number } | null>(null);
   const [detail, setDetail] = useState<CalendarAppointment | null>(null);
   const [newAppt, setNewAppt] = useState<{ employeeId: string; startAt: string } | null>(null);
   const [now, setNow] = useState(new Date());
@@ -137,6 +138,43 @@ export function DayView({
     window.addEventListener("pointerup", onUp);
   }
 
+  function handleResizePointerDown(e: React.PointerEvent, appt: CalendarAppointment) {
+    if (!canEdit || appt.status !== "booked") return;
+    e.preventDefault();
+    e.stopPropagation();
+    const startY = e.clientY;
+    const originalMinutes = apptMinutes(appt.endAt) - apptMinutes(appt.startAt);
+    let currentDelta = 0;
+    setResize({ id: appt.id, deltaMinutes: 0 });
+
+    function onMove(ev: PointerEvent) {
+      const deltaPx = ev.clientY - startY;
+      const rawDelta = deltaPx / PX_PER_MIN;
+      const rounded = Math.round(rawDelta / slotGranularity) * slotGranularity;
+      // Never let a drag shrink the appointment below one slot's duration.
+      currentDelta = Math.max(rounded, slotGranularity - originalMinutes);
+      setResize({ id: appt.id, deltaMinutes: currentDelta });
+    }
+
+    async function onUp() {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      setResize(null);
+      if (currentDelta === 0) return;
+      const result = await resizeAppointmentAction({
+        salonId,
+        appointmentId: appt.id,
+        newDurationMinutes: originalMinutes + currentDelta,
+        revalidate: revalidatePath,
+      });
+      if (!result.ok) alert(result.error || "Dieser Zeitraum ist nicht verfügbar.");
+      onChanged();
+    }
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
   function handleColumnClick(e: React.MouseEvent, employeeId: string) {
     if (!canEdit) return;
     const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
@@ -205,8 +243,9 @@ export function DayView({
                 .filter((a) => (drag?.id === a.id ? drag.employeeId : a.employeeId) === emp.id)
                 .map((a) => {
                   const isDragging = drag?.id === a.id;
+                  const isResizing = resize?.id === a.id;
                   const startMin = apptMinutes(a.startAt) + (isDragging ? drag.deltaMinutes : 0);
-                  const endMin = apptMinutes(a.endAt) + (isDragging ? drag.deltaMinutes : 0);
+                  const endMin = apptMinutes(a.endAt) + (isDragging ? drag.deltaMinutes : 0) + (isResizing ? resize.deltaMinutes : 0);
                   const top = (startMin - windowStart) * PX_PER_MIN;
                   const height = Math.max((endMin - startMin) * PX_PER_MIN - 2, 18);
                   return (
@@ -215,10 +254,12 @@ export function DayView({
                       appointment={a}
                       timezone={timezone}
                       dragging={isDragging}
+                      resizing={isResizing}
                       style={{ top, height }}
                       onPointerDown={(e) => handlePointerDown(e, a)}
+                      onResizePointerDown={canEdit && a.status === "booked" ? (e) => handleResizePointerDown(e, a) : undefined}
                       onClick={() => {
-                        if (!drag) setDetail(a);
+                        if (!drag && !resize) setDetail(a);
                       }}
                     />
                   );

@@ -28,12 +28,12 @@ export const ONBOARDING_STEPS: OnboardingStepDef[] = [
   { step: 7, title: "Terminarten & Leistungen", description: "Terminarten mit Dauer, Preis und Buchungsfragen anlegen", interactive: true },
   { step: 8, title: "Begrüßung & Tonalität", description: "Folgt später", interactive: false },
   { step: 9, title: "Häufige Fragen", description: "Folgt später", interactive: false },
-  { step: 10, title: "Kalender testen", description: "Folgt später", interactive: false },
+  { step: 10, title: "Kalender testen", description: "Testtermin buchen und wieder stornieren", interactive: true },
   { step: 11, title: "Telefonnummer verbinden", description: "Folgt später", interactive: false },
   { step: 12, title: "Mia aktivieren", description: "Folgt später", interactive: false },
 ];
 
-export const LAST_INTERACTIVE_STEP = 7;
+export const LAST_INTERACTIVE_STEP = 10;
 
 export function emptyOnboardingDraft(): OnboardingDraft {
   return { industryKey: null, suggestedServices: [], suggestedQuestions: [], suggestedRequiredFields: [] };

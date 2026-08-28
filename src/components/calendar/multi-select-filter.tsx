@@ -3,14 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { CalendarEmployee } from "@/lib/actions/calendar-data";
 
-export function EmployeeFilter({
-  employees,
+export type FilterOption = { id: string; label: string; color?: string };
+
+/** Generic multi-select dropdown used for the calendar's Mitarbeiter-,
+ * Standort-, Terminart- and Status-Filter — same interaction, same look. */
+export function MultiSelectFilter({
+  label,
+  allLabel,
+  options,
   selected,
   onChange,
 }: {
-  employees: CalendarEmployee[];
+  label: string;
+  allLabel: string;
+  options: FilterOption[];
   selected: Set<string>;
   onChange: (next: Set<string>) => void;
 }) {
@@ -32,9 +39,14 @@ export function EmployeeFilter({
     onChange(next);
   }
 
-  const label = selected.size === 0 ? "Alle Mitarbeiter" : selected.size === 1
-    ? employees.find((e) => e.id === [...selected][0])?.firstName ?? "1 Mitarbeiter"
-    : `${selected.size} Mitarbeiter`;
+  const buttonLabel =
+    selected.size === 0
+      ? allLabel
+      : selected.size === 1
+        ? (options.find((o) => o.id === [...selected][0])?.label ?? `1 ${label}`)
+        : `${selected.size} ${label}`;
+
+  if (options.length === 0) return null;
 
   return (
     <div ref={ref} className="relative">
@@ -47,30 +59,30 @@ export function EmployeeFilter({
             : "border-border-strong text-ink-soft hover:bg-sand"
         )}
       >
-        {label}
+        {buttonLabel}
         <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-30 mt-2 w-56 rounded-xl border border-border bg-cream-soft p-1.5 shadow-lg">
+        <div className="absolute right-0 top-full z-30 mt-2 w-56 max-h-72 overflow-y-auto scroll-thin rounded-xl border border-border bg-cream-soft p-1.5 shadow-lg">
           <button
             onClick={() => onChange(new Set())}
             className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-sm text-ink-soft hover:bg-sand"
           >
-            Alle Mitarbeiter
+            {allLabel}
             {selected.size === 0 && <Check className="h-3.5 w-3.5 text-bronze" />}
           </button>
           <div className="my-1 border-t border-border" />
-          {employees.map((e) => (
+          {options.map((o) => (
             <button
-              key={e.id}
-              onClick={() => toggle(e.id)}
+              key={o.id}
+              onClick={() => toggle(o.id)}
               className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-sm text-ink hover:bg-sand"
             >
-              <span className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: e.color }} />
-                {e.firstName} {e.lastName}
+              <span className="flex items-center gap-2 truncate">
+                {o.color && <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: o.color }} />}
+                <span className="truncate">{o.label}</span>
               </span>
-              {selected.has(e.id) && <Check className="h-3.5 w-3.5 text-bronze" />}
+              {selected.has(o.id) && <Check className="h-3.5 w-3.5 shrink-0 text-bronze" />}
             </button>
           ))}
         </div>

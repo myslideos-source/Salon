@@ -1,33 +1,50 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getWeekOverviewAction } from "@/lib/actions/calendar-data";
+import { getWeekOverviewAction, type MonthEntry } from "@/lib/actions/calendar-data";
 import { isSameMonth, monthGridDates, todayStr } from "@/lib/date";
 import { cn } from "@/lib/utils";
+import { matchesCalendarFilters, type CalendarFilters } from "@/lib/scheduling/calendar-filters";
 
 const WEEKDAY_LABELS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-
-type Entry = { id: string; employeeColor: string; customerName: string };
 
 export function MonthGrid({
   salonId,
   monthDate,
+  filters,
   onSelectDay,
   refreshKey,
 }: {
   salonId: string;
   monthDate: string;
+  filters: CalendarFilters;
   onSelectDay: (date: string) => void;
   refreshKey?: number;
 }) {
   const dates = monthGridDates(monthDate);
-  const [data, setData] = useState<Record<string, Entry[]>>({});
+  const [data, setData] = useState<Record<string, MonthEntry[]>>({});
   const today = todayStr();
 
   useEffect(() => {
-    getWeekOverviewAction(salonId, dates).then((res) => setData(res as Record<string, Entry[]>));
+    getWeekOverviewAction(salonId, dates).then(setData);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [salonId, dates.join(","), refreshKey]);
+
+  function visibleEntries(entries: MonthEntry[]): MonthEntry[] {
+    return entries.filter((en) =>
+      matchesCalendarFilters(
+        {
+          employeeId: en.employeeId,
+          status: en.status,
+          notes: null,
+          customer: en.customerName ? { firstName: en.customerName, lastName: "", phone: "" } : null,
+          services: en.serviceIds.map((id, i) => ({ id, name: en.serviceNames[i] ?? "" })),
+        },
+        en.employeeLocationId,
+        filters
+      )
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -38,7 +55,7 @@ export function MonthGrid({
           </div>
         ))}
         {dates.map((date) => {
-          const entries = data[date] ?? [];
+          const entries = visibleEntries(data[date] ?? []);
           const inMonth = isSameMonth(date, monthDate);
           const isToday = date === today;
           return (

@@ -4,10 +4,11 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { AppointmentCard } from "./appointment-card";
 import { AppointmentDetailModal } from "./appointment-detail-modal";
 import { NewAppointmentModal } from "./new-appointment-modal";
-import { rescheduleAppointmentAction } from "@/lib/actions/appointments";
+import { rescheduleAppointmentAction, resizeAppointmentAction } from "@/lib/actions/appointments";
 import { getWeekCalendarDataAction, type CalendarAppointment, type CalendarEmployee, type CalendarBusinessHours } from "@/lib/actions/calendar-data";
 import { formatWeekdayShort, formatDayNum, todayStr } from "@/lib/date";
 import { cn } from "@/lib/utils";
+import { matchesCalendarFilters, type CalendarFilters } from "@/lib/scheduling/calendar-filters";
 
 const PX_PER_HOUR = 56;
 const PX_PER_MIN = PX_PER_HOUR / 60;
@@ -72,7 +73,7 @@ export function WeekGrid({
   slotGranularity,
   canEdit,
   revalidatePath,
-  employeeFilter,
+  filters,
   refreshKey,
   onSelectDay,
 }: {
@@ -83,8 +84,7 @@ export function WeekGrid({
   slotGranularity: number;
   canEdit: boolean;
   revalidatePath: string;
-  /** Empty set = show all employees. */
-  employeeFilter: Set<string>;
+  filters: CalendarFilters;
   refreshKey?: number;
   onSelectDay: (date: string) => void;
 }) {
@@ -137,6 +137,7 @@ export function WeekGrid({
 
   const columnRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [drag, setDrag] = useState<{ id: string; date: string; deltaMinutes: number } | null>(null);
+  const [resize, setResize] = useState<{ id: string; deltaMinutes: number } | null>(null);
   const [detail, setDetail] = useState<CalendarAppointment | null>(null);
   const [newAppt, setNewAppt] = useState<{ date: string; employeeId: string; startAt: string } | null>(null);
   const [now, setNow] = useState(new Date());
@@ -174,8 +175,7 @@ export function WeekGrid({
   function appointmentsForDate(date: string) {
     return (data?.appointments ?? []).filter((a) => {
       if (localDateOf(a.startAt) !== date) return false;
-      if (employeeFilter.size > 0 && !employeeFilter.has(a.employeeId)) return false;
-      return true;
+      return matchesCalendarFilters(a, employeesById.get(a.employeeId)?.locationId, filters);
     });
   }
 
@@ -215,13 +215,49 @@ export function WeekGrid({
     window.addEventListener("pointerup", onUp);
   }
 
+  function handleResizePointerDown(e: React.PointerEvent, appt: CalendarAppointment) {
+    if (!canEdit || appt.status !== "booked") return;
+    e.preventDefault();
+    e.stopPropagation();
+    const startY = e.clientY;
+    const originalMinutes = apptMinutes(appt.endAt) - apptMinutes(appt.startAt);
+    let currentDelta = 0;
+    setResize({ id: appt.id, deltaMinutes: 0 });
+
+    function onMove(ev: PointerEvent) {
+      const deltaPx = ev.clientY - startY;
+      const rawDelta = deltaPx / PX_PER_MIN;
+      const rounded = Math.round(rawDelta / slotGranularity) * slotGranularity;
+      currentDelta = Math.max(rounded, slotGranularity - originalMinutes);
+      setResize({ id: appt.id, deltaMinutes: currentDelta });
+    }
+
+    async function onUp() {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      setResize(null);
+      if (currentDelta === 0) return;
+      const result = await resizeAppointmentAction({
+        salonId,
+        appointmentId: appt.id,
+        newDurationMinutes: originalMinutes + currentDelta,
+        revalidate: revalidatePath,
+      });
+      if (!result.ok) alert(result.error || "Dieser Zeitraum ist nicht verfügbar.");
+      load();
+    }
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
   function handleColumnClick(e: React.MouseEvent, date: string) {
     if (!canEdit || !data || data.employees.length === 0) return;
     const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
     const y = e.clientY - rect.top;
     const minutes = windowStart + Math.round(y / PX_PER_MIN / slotGranularity) * slotGranularity;
     const [h, m] = [Math.floor(minutes / 60), minutes % 60];
-    const employeeId = employeeFilter.size === 1 ? [...employeeFilter][0] : data.employees[0].id;
+    const employeeId = filters.employeeIds.size === 1 ? [...filters.employeeIds][0] : data.employees[0].id;
     setNewAppt({ date, employeeId, startAt: `${date}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00` });
   }
 
@@ -313,13 +349,14 @@ export function WeekGrid({
                   const dayAppts = appointmentsForDate(date);
                   const withMinutes = dayAppts.map((a) => {
                     const isDragging = drag?.id === a.id && drag.date === date;
+                    const isResizing = resize?.id === a.id;
                     const startMin = apptMinutes(a.startAt) + (isDragging ? drag.deltaMinutes : 0);
-                    const endMin = apptMinutes(a.endAt) + (isDragging ? drag.deltaMinutes : 0);
-                    return { a, isDragging, startMin, endMin };
+                    const endMin = apptMinutes(a.endAt) + (isDragging ? drag.deltaMinutes : 0) + (isResizing ? resize.deltaMinutes : 0);
+                    return { a, isDragging, isResizing, startMin, endMin };
                   });
                   const layout = layoutOverlaps(withMinutes.map((w) => ({ id: w.a.id, start: w.startMin, end: w.endMin })));
 
-                  return withMinutes.map(({ a, isDragging, startMin, endMin }) => {
+                  return withMinutes.map(({ a, isDragging, isResizing, startMin, endMin }) => {
                     const top = (startMin - windowStart) * PX_PER_MIN;
                     const height = Math.max((endMin - startMin) * PX_PER_MIN - 2, 16);
                     const emp = employeesById.get(a.employeeId);
@@ -331,6 +368,7 @@ export function WeekGrid({
                         appointment={a}
                         timezone={timezone}
                         dragging={isDragging}
+                        resizing={isResizing}
                         style={{
                           top,
                           height,
@@ -341,8 +379,9 @@ export function WeekGrid({
                         colorOverride={emp?.color}
                         showEmployeeName={emp?.firstName}
                         onPointerDown={(e) => handlePointerDown(e, a, date)}
+                        onResizePointerDown={canEdit && a.status === "booked" ? (e) => handleResizePointerDown(e, a) : undefined}
                         onClick={() => {
-                          if (!drag) setDetail(a);
+                          if (!drag && !resize) setDetail(a);
                         }}
                       />
                     );

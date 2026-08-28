@@ -6,6 +6,7 @@ import {
   checkAvailability,
   createAppointment,
   rescheduleAppointment,
+  resizeAppointment,
   cancelAppointment,
   getServiceCombo,
   SchedulingError,
@@ -142,6 +143,22 @@ export async function rescheduleAppointmentAction(params: {
   const supabase = await createClient();
   try {
     const appt = await rescheduleAppointment(supabase, params);
+    revalidatePath(params.revalidate);
+    return { ok: true, data: { id: (appt as { id: string }).id } };
+  } catch (e) {
+    return { ok: false, error: e instanceof SchedulingError ? e.message : "Unbekannter Fehler" };
+  }
+}
+
+export async function resizeAppointmentAction(params: {
+  salonId: string;
+  appointmentId: string;
+  newDurationMinutes: number;
+  revalidate: string;
+}): Promise<ActionResult<{ id: string }>> {
+  const supabase = await createClient();
+  try {
+    const appt = await resizeAppointment(supabase, params);
     revalidatePath(params.revalidate);
     return { ok: true, data: { id: (appt as { id: string }).id } };
   } catch (e) {

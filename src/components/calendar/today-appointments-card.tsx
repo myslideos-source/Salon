@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
-import { getWeekOverviewAction } from "@/lib/actions/calendar-data";
+import { getWeekOverviewAction, type MonthEntry } from "@/lib/actions/calendar-data";
 import { formatTime, todayStr } from "@/lib/date";
 
-type Entry = { id: string; startAt: string; employeeColor: string; customerName: string; serviceName: string; source: string };
+type Entry = MonthEntry;
 
 export function TodayAppointmentsCard({
   salonId,
@@ -23,7 +23,7 @@ export function TodayAppointmentsCard({
   const today = todayStr();
 
   useEffect(() => {
-    getWeekOverviewAction(salonId, [today]).then((res) => setEntries((res[today] ?? []) as Entry[]));
+    getWeekOverviewAction(salonId, [today]).then((res) => setEntries((res[today] ?? []).filter((e) => e.status !== "cancelled")));
   }, [salonId, today, refreshKey]);
 
   return (
@@ -41,7 +41,7 @@ export function TodayAppointmentsCard({
                 {e.customerName}
                 {e.source === "voice_ai" && <Sparkles className="h-3 w-3 shrink-0 text-gold" />}
               </p>
-              <p className="truncate text-xs text-ink-faint">{e.serviceName}</p>
+              <p className="truncate text-xs text-ink-faint">{e.serviceNames.join(", ")}</p>
             </div>
           </div>
         ))}
