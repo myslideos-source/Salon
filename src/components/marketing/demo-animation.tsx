@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Phone, Sparkles, Scissors, User, Calendar, Search, CheckCircle2 } from "lucide-react";
+import { Phone, Sparkles, Search, Calendar, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { icon: Phone, label: "Julia ruft an", detail: "„Ich brauche Freitag Nachmittag einen Termin zum Schneiden.“" },
-  { icon: Sparkles, label: "Anfrage verstanden", detail: "Die KI erkennt Anliegen, Kundin und Wunschzeit." },
-  { icon: Scissors, label: "Damen Schnitt", detail: "Leistung wird erkannt · 60 Minuten" },
-  { icon: User, label: "Anna", detail: "Bevorzugter Mitarbeiter wird berücksichtigt" },
-  { icon: Search, label: "Kalender wird geprüft", detail: "HalloMia prüft Annas echten Terminkalender" },
-  { icon: Calendar, label: "15:30 Uhr verfügbar", detail: "Freitag, 15:30–16:30 Uhr" },
-  { icon: CheckCircle2, label: "Termin gebucht ✓", detail: "Erscheint sofort im Salon-Kalender" },
+  { icon: Phone, label: "Kundin ruft an", detail: "„Ich hätte gerne einen Termin am Donnerstag.“" },
+  { icon: Sparkles, label: "Anliegen verstanden", detail: "Die KI erkennt Anliegen und Wunschzeit." },
+  { icon: Search, label: "Kalender wird geprüft", detail: "HalloMia prüft die echte Verfügbarkeit." },
+  { icon: Calendar, label: "Donnerstag, 14:00 Uhr frei", detail: "Passender Termin gefunden." },
+  { icon: CheckCircle2, label: "Termin gebucht ✓", detail: "Erscheint sofort im Kalender." },
 ];
 
 export function DemoAnimation() {

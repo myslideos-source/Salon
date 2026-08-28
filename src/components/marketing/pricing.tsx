@@ -16,18 +16,18 @@ const PLANS = [
     callsPerDay: "5",
     minutes: "300",
     overagePrice: "0,30",
-    description: "Für kleine Salons, die loslegen wollen.",
+    description: "Für kleine Unternehmen, die loslegen wollen.",
     features: ["1 Mitarbeiter im Kalender", "KI-Telefonassistent", "Terminverwaltung", "Kundenverwaltung"],
     highlighted: false,
   },
   {
     id: "salon",
-    name: "Salon",
+    name: "Business",
     price: "299",
     callsPerDay: "10",
     minutes: "600",
     overagePrice: "0,28",
-    description: "Der Standard für die meisten Salons.",
+    description: "Der Standard für die meisten Unternehmen.",
     features: ["Bis zu 5 Mitarbeiter", "KI-Telefonassistent", "Anrufhistorie & Rückrufe", "Prioritäts-Support"],
     highlighted: true,
   },
@@ -69,8 +69,8 @@ function SignupForm({ plan, onSent }: { plan: string; onSent: () => void }) {
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="plan" value={plan} />
       <div>
-        <Label htmlFor="salon_name">Salonname</Label>
-        <Input id="salon_name" name="salon_name" required placeholder="Hair Lounge Milano" />
+        <Label htmlFor="salon_name">Unternehmensname</Label>
+        <Input id="salon_name" name="salon_name" required placeholder="z. B. Mustermann GmbH" />
       </div>
       <div>
         <Label htmlFor="contact_name">Dein Name</Label>
@@ -79,7 +79,7 @@ function SignupForm({ plan, onSent }: { plan: string; onSent: () => void }) {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor="email">E-Mail</Label>
-          <Input id="email" name="email" type="email" required placeholder="du@salon.de" />
+          <Input id="email" name="email" type="email" required placeholder="du@unternehmen.de" />
         </div>
         <div>
           <Label htmlFor="phone">Telefon (optional)</Label>
