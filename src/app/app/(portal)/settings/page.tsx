@@ -2,10 +2,13 @@ import Link from "next/link";
 import { ClipboardList, UsersRound, Sparkles, ChevronRight, MapPin, CalendarClock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireSalonSession, resolveActiveSalonId } from "@/lib/auth/session";
+import { checkPermission } from "@/lib/auth/permissions";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AiToggle } from "@/components/layout/ai-toggle";
+import { CustomFieldDefinitionsManager } from "@/components/shared/custom-field-definitions-manager";
+import type { CustomFieldDefinition } from "@/lib/validation/custom-fields";
 import { DEFAULT_COMPANY_LABEL, TERMINOLOGY } from "@/lib/terminology";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -27,7 +30,16 @@ export default async function SalonSettingsPage() {
   const salonId = resolveActiveSalonId(session)!;
   const supabase = await createClient();
 
-  const { data: salon } = await supabase.from("salons").select("id, name, timezone, status, ai_active").eq("id", salonId).single();
+  const [{ data: salon }, { data: customerFields }, canManageSettings] = await Promise.all([
+    supabase.from("salons").select("id, name, timezone, status, ai_active").eq("id", salonId).single(),
+    supabase
+      .from("custom_field_definitions")
+      .select("*")
+      .eq("salon_id", salonId)
+      .eq("entity_type", "customer")
+      .order("sort_order"),
+    checkPermission(salonId, "manage_settings"),
+  ]);
 
   return (
     <div>
@@ -63,6 +75,18 @@ export default async function SalonSettingsPage() {
                 <ChevronRight className="h-4 w-4 shrink-0 text-ink-faint" />
               </Link>
             ))}
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader title="Individuelle Kundenfelder" subtitle="Zusätzliche Felder, die dein Unternehmen selbst braucht (z. B. Kennzeichen)." />
+          <div className="p-5 pt-4">
+            <CustomFieldDefinitionsManager
+              salonId={salonId}
+              entityType="customer"
+              fields={(customerFields ?? []) as CustomFieldDefinition[]}
+              canManage={canManageSettings}
+            />
           </div>
         </Card>
       </div>

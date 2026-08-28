@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NewCustomerButton } from "./new-customer-button";
 import { initials } from "@/lib/utils";
+import { CUSTOMER_STATUS_LABEL, CUSTOMER_STATUS_TONE, type CustomerStatus } from "@/lib/validation/customers";
+import type { CustomFieldDefinition } from "@/lib/validation/custom-fields";
 
 export async function CustomersView({
   salonId,
@@ -18,13 +20,21 @@ export async function CustomersView({
   avatarImageUrl?: string;
 }) {
   const supabase = await createClient();
-  const [{ data: customers }, { data: employees }] = await Promise.all([
+  const [{ data: customers }, { data: employees }, { data: customFieldDefinitions }] = await Promise.all([
     supabase
       .from("customers")
-      .select("id, first_name, last_name, phone, email, created_at")
+      .select("id, first_name, last_name, phone, email, status, tags, created_at")
       .eq("salon_id", salonId)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false }),
     supabase.from("employees").select("id, first_name, last_name").eq("salon_id", salonId).eq("active", true),
+    supabase
+      .from("custom_field_definitions")
+      .select("*")
+      .eq("salon_id", salonId)
+      .eq("entity_type", "customer")
+      .eq("active", true)
+      .order("sort_order"),
   ]);
 
   const ids = (customers ?? []).map((c) => c.id);
@@ -53,7 +63,14 @@ export async function CustomersView({
         subtitle={`${(customers ?? []).length} Kunden insgesamt`}
         avatarLabel={avatarLabel}
         avatarImageUrl={avatarImageUrl}
-        right={<NewCustomerButton salonId={salonId} redirectPath={basePath} employees={employees ?? []} />}
+        right={
+          <NewCustomerButton
+            salonId={salonId}
+            redirectPath={basePath}
+            employees={employees ?? []}
+            customFieldDefinitions={(customFieldDefinitions ?? []) as CustomFieldDefinition[]}
+          />
+        }
       />
       <div className="p-4 sm:p-6 lg:p-8 space-y-2">
         {(customers ?? []).map((c) => {
@@ -71,11 +88,23 @@ export async function CustomersView({
                       {c.first_name} {c.last_name}
                     </p>
                     <p className="truncate text-xs text-ink-soft">{c.phone}{c.email ? ` · ${c.email}` : ""}</p>
+                    {(c.tags ?? []).length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {(c.tags ?? []).map((t) => (
+                          <span key={t} className="rounded-full bg-sand px-2 py-0.5 text-[10px] text-ink-soft">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="hidden sm:flex items-center gap-4 text-xs text-ink-soft shrink-0">
                   <span>Letzter Termin: {fmt(s?.last)}</span>
                   <span>Nächster: {fmt(s?.next)}</span>
+                  <Badge tone={CUSTOMER_STATUS_TONE[c.status as CustomerStatus] ?? "neutral"}>
+                    {CUSTOMER_STATUS_LABEL[c.status as CustomerStatus] ?? c.status}
+                  </Badge>
                   <Badge tone={isNew ? "bronze" : "neutral"}>{isNew ? "Neukunde" : `${s?.count ?? 0} Termine`}</Badge>
                 </div>
               </Card>
