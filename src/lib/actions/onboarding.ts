@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSession, requireSalonSession, resolveActiveSalonId } from "@/lib/auth/session";
-import { onboardingCompanySchema, onboardingDetailsSchema, onboardingDraftSchema } from "@/lib/validation/onboarding";
+import { onboardingCompanySchema, onboardingDetailsSchema, onboardingDraftSchema, onboardingGreetingSchema } from "@/lib/validation/onboarding";
 
 export type OnboardingActionState = { error?: string; ok?: boolean } | null;
 
@@ -130,6 +130,68 @@ export async function saveCompanyDetailsAction(
     p_onboarding_step: advance ? 4 : 3,
   });
   if (error) return { error: error.message };
+
+  revalidatePath("/app/onboarding");
+  return { ok: true };
+}
+
+// Schritt 8 — Begrüßung & Tonalität. Die self-service-RPC für voice_settings
+// (update_voice_settings_customer_fields) erwartet den vollständigen
+// Feldsatz - hier werden nur die vier im Onboarding sichtbaren Felder
+// verändert, alle übrigen unverändert aus der bestehenden Zeile
+// übernommen (dieselbe Zeile, die create_own_salon in Schritt 1 bereits
+// mit sinnvollen Defaults angelegt hat).
+export async function saveGreetingStepAction(
+  salonId: string,
+  _prev: OnboardingActionState,
+  formData: FormData
+): Promise<OnboardingActionState> {
+  const session = await requireSalonSession();
+  if (resolveActiveSalonId(session) !== salonId) return { error: "Kein Zugriff auf dieses Unternehmen." };
+
+  const parsed = onboardingGreetingSchema.safeParse(fd(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Ungültige Eingabe" };
+
+  const supabase = await createClient();
+  const { data: current } = await supabase.from("voice_settings").select("*").eq("salon_id", salonId).maybeSingle();
+  if (!current) return { error: "KI-Einstellungen wurden noch nicht angelegt." };
+
+  const { error } = await supabase.rpc("update_voice_settings_customer_fields", {
+    target_salon_id: salonId,
+    p_greeting: parsed.data.greeting,
+    p_personality: parsed.data.personality,
+    // Nullable `text`-Spalten aus der bestehenden Zeile - die generierten
+    // RPC-Parametertypen kennen kein DEFAULT und erwarten daher `string`,
+    // Postgres akzeptiert hier aber `null` genauso wie bei den anderen
+    // Self-Service-Aktionen (siehe salon-voice-settings.ts).
+    p_custom_prompt: current.custom_prompt as string,
+    p_mention_prices: current.mention_prices,
+    p_offer_alternatives: current.offer_alternatives,
+    p_respect_employee_preference: current.respect_employee_preference,
+    p_offer_callback: current.offer_callback,
+    p_detect_new_customers: current.detect_new_customers,
+    p_send_confirmation_sms: current.send_confirmation_sms,
+    p_emergency_redirect: current.emergency_redirect,
+    p_mention_cancellation_policy: current.mention_cancellation_policy,
+    p_cancellation_notice_hours: current.cancellation_notice_hours,
+    p_required_documents: current.required_documents as string,
+    p_assistant_name: parsed.data.assistant_name,
+    p_formality: parsed.data.formality,
+    p_languages: current.languages,
+    p_never_mention: current.never_mention as string,
+    p_after_hours_behavior: current.after_hours_behavior,
+    p_handoff_number: current.handoff_number as string,
+    p_urgent_keywords: current.urgent_keywords,
+    p_notify_after_call: current.notify_after_call,
+  });
+  if (error) return { error: error.message };
+
+  const { error: descriptionError } = await supabase.rpc("update_own_salon_onboarding", {
+    target_salon_id: salonId,
+    p_description: parsed.data.description || "",
+    p_onboarding_step: 9,
+  });
+  if (descriptionError) return { error: descriptionError.message };
 
   revalidatePath("/app/onboarding");
   return { ok: true };

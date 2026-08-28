@@ -12,6 +12,7 @@ export const toolJsonSchemas: Record<ToolName, Record<string, unknown>> = {
   getOpeningHours: { type: "object", properties: {}, additionalProperties: false },
   getEmployees: { type: "object", properties: {}, additionalProperties: false },
   getServices: { type: "object", properties: {}, additionalProperties: false },
+  getFaq: { type: "object", properties: {}, additionalProperties: false },
   findCustomer: {
     type: "object",
     properties: { phone: { type: "string", description: "Telefonnummer der Anruferin/des Anrufers" } },
@@ -106,6 +107,7 @@ export const toolDescriptions: Record<ToolName, string> = {
   getOpeningHours: "Liefert die tatsächlichen Öffnungszeiten des Salons je Wochentag.",
   getEmployees: "Liefert die Liste der aktiven Mitarbeiter des Salons.",
   getServices: "Liefert die Liste der buchbaren Leistungen mit Dauer und Preis.",
+  getFaq: "Liefert die vom Unternehmen hinterlegten häufigen Fragen mit Antworten. Vor einer allgemeinen Frage zuerst hier nachsehen, statt selbst zu antworten.",
   findCustomer: "Sucht eine Kundin/einen Kunden anhand der Telefonnummer, um sie/ihn zu erkennen.",
   createCustomer: "Legt eine neue Kundin/einen neuen Kunden mit Namen und Telefonnummer an.",
   checkAvailability:

@@ -12,6 +12,8 @@ import { LocationStep } from "@/components/onboarding/location-step";
 import { HoursStep } from "@/components/onboarding/hours-step";
 import { TeamStep } from "@/components/onboarding/team-step";
 import { ServicesStep } from "@/components/onboarding/services-step";
+import { GreetingStep } from "@/components/onboarding/greeting-step";
+import { FaqStep } from "@/components/onboarding/faq-step";
 import { CalendarTestStep } from "@/components/onboarding/calendar-test-step";
 import { LAST_INTERACTIVE_STEP } from "@/lib/onboarding/steps";
 import type { OnboardingDraft } from "@/lib/validation/onboarding";
@@ -36,6 +38,9 @@ export type OnboardingSalon = {
   employees: Employee[];
   resources: Resource[];
   services: Service[];
+  description: string;
+  voiceSettings: { assistant_name: string; greeting: string; personality: string; formality: string } | null;
+  faqs: Tables<"faq">[];
 };
 
 export function OnboardingWizard({
@@ -130,8 +135,23 @@ export function OnboardingWizard({
               locations={salon.locations}
               draft={salon.draft}
               onBack={() => setActiveStep(6)}
-              onSaved={() => advance(10)}
+              onSaved={() => advance(8)}
             />
+          )}
+          {activeStep === 8 && salon && (
+            <GreetingStep
+              salonId={salon.id}
+              initialAssistantName={salon.voiceSettings?.assistant_name ?? "Mia"}
+              initialGreeting={salon.voiceSettings?.greeting ?? ""}
+              initialPersonality={salon.voiceSettings?.personality ?? "freundlich"}
+              initialFormality={salon.voiceSettings?.formality ?? "sie"}
+              initialDescription={salon.description}
+              onSaved={() => advance(9)}
+              onBack={() => setActiveStep(7)}
+            />
+          )}
+          {activeStep === 9 && salon && (
+            <FaqStep salonId={salon.id} faqs={salon.faqs} onSaved={() => advance(10)} onBack={() => setActiveStep(8)} />
           )}
           {activeStep === 10 && salon && (
             <CalendarTestStep
@@ -139,7 +159,7 @@ export function OnboardingWizard({
               timezone={salon.timezone}
               employees={salon.employees}
               services={salon.services}
-              onBack={() => setActiveStep(7)}
+              onBack={() => setActiveStep(9)}
             />
           )}
         </Card>

@@ -21,9 +21,17 @@ const RULES: { key: keyof Pick<Tables<"voice_settings">, "mention_prices" | "off
   { key: "emergency_redirect", label: "Bei Notfällen auf Notruf/Notdienst hinweisen" },
 ];
 
-export function AiSettingsForm({ settings }: { settings: Tables<"voice_settings"> | null }) {
+export function AiSettingsForm({
+  settings,
+  description,
+}: {
+  settings: Tables<"voice_settings"> | null;
+  description: string | null;
+}) {
   const [state, formAction, pending] = useActionState<AiSettingsActionState, FormData>(updateSalonVoiceSettingsAction, null);
   const [showCancellationHours, setShowCancellationHours] = useState(settings?.mention_cancellation_policy ?? false);
+  const [afterHours, setAfterHours] = useState(settings?.after_hours_behavior ?? "offer_callback");
+  const [primaryLanguage, ...otherLanguages] = settings?.languages && settings.languages.length > 0 ? settings.languages : ["de"];
 
   const [retryPending, startRetry] = useTransition();
   const [retryError, setRetryError] = useState<string | null>(null);
@@ -47,19 +55,78 @@ export function AiSettingsForm({ settings }: { settings: Tables<"voice_settings"
   return (
     <div className="space-y-6">
       <form action={formAction} className="space-y-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="assistant_name">Name der Assistentin</Label>
+            <input
+              id="assistant_name"
+              name="assistant_name"
+              defaultValue={settings?.assistant_name ?? "Mia"}
+              required
+              maxLength={60}
+              className="w-full rounded-lg border border-border-strong bg-sand px-3 h-10 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/30 focus:border-bronze"
+            />
+          </div>
+          <div>
+            <Label htmlFor="formality">Ansprache</Label>
+            <Select id="formality" name="formality" defaultValue={settings?.formality ?? "sie"}>
+              <option value="sie">Sie (förmlich)</option>
+              <option value="du">Du (locker)</option>
+            </Select>
+          </div>
+        </div>
+
         <div>
           <Label htmlFor="greeting">Begrüßung</Label>
           <Textarea id="greeting" name="greeting" rows={3} defaultValue={settings?.greeting ?? ""} required />
         </div>
 
         <div>
-          <Label htmlFor="personality">Persönlichkeit</Label>
+          <Label htmlFor="personality">Tonalität</Label>
           <Select id="personality" name="personality" defaultValue={settings?.personality ?? "freundlich"}>
-            <option value="freundlich">Freundlich</option>
+            <option value="freundlich">Freundlich und locker</option>
             <option value="professionell">Professionell</option>
-            <option value="locker">Locker</option>
-            <option value="elegant">Elegant</option>
+            <option value="locker">Herzlich</option>
+            <option value="elegant">Seriös</option>
           </Select>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="primary_language">Hauptsprache</Label>
+            <Select id="primary_language" name="primary_language" defaultValue={primaryLanguage}>
+              <option value="de">Deutsch</option>
+              <option value="en">Englisch</option>
+              <option value="fr">Französisch</option>
+              <option value="it">Italienisch</option>
+              <option value="es">Spanisch</option>
+              <option value="tr">Türkisch</option>
+              <option value="pl">Polnisch</option>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="other_languages">Weitere Sprachen (optional)</Label>
+            <input
+              id="other_languages"
+              name="other_languages"
+              defaultValue={otherLanguages.join(", ")}
+              placeholder="z. B. en, tr"
+              className="w-full rounded-lg border border-border-strong bg-sand px-3 h-10 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-bronze/30 focus:border-bronze"
+            />
+            <p className="mt-1.5 text-xs text-ink-faint">Sprachcodes durch Komma getrennt, z. B. „en, tr“ für Englisch und Türkisch.</p>
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="description">Unternehmensbeschreibung</Label>
+          <Textarea
+            id="description"
+            name="description"
+            rows={3}
+            defaultValue={description ?? ""}
+            placeholder="Kurze Beschreibung deines Unternehmens, die Mia als Grundlage nennen darf."
+            maxLength={1000}
+          />
         </div>
 
         <div>
@@ -131,6 +198,65 @@ export function AiSettingsForm({ settings }: { settings: Tables<"voice_settings"
           />
           <p className="mt-1.5 text-xs text-ink-faint">Wird bei jeder Buchung freundlich erwähnt, wenn ausgefüllt.</p>
         </div>
+
+        <div>
+          <Label htmlFor="never_mention">Informationen, die Mia niemals nennen darf (optional)</Label>
+          <Textarea
+            id="never_mention"
+            name="never_mention"
+            rows={2}
+            defaultValue={settings?.never_mention ?? ""}
+            placeholder="z. B. interne Preiskalkulation, Lieferantennamen, private Kontaktdaten"
+            maxLength={500}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="after_hours_behavior">Verhalten außerhalb der Öffnungszeiten</Label>
+          <Select
+            id="after_hours_behavior"
+            name="after_hours_behavior"
+            value={afterHours}
+            onChange={(e) => setAfterHours(e.target.value as typeof afterHours)}
+          >
+            <option value="offer_callback">Rückruf anbieten</option>
+            <option value="voicemail">Nachricht aufnehmen (kein Rückruf versprechen)</option>
+            <option value="info_only">Nur allgemeine Informationen geben</option>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="handoff_number">Weiterleitung bei dringenden Fällen (optional)</Label>
+            <input
+              id="handoff_number"
+              name="handoff_number"
+              defaultValue={settings?.handoff_number ?? ""}
+              placeholder="+49 30 1234567"
+              className="w-full rounded-lg border border-border-strong bg-sand px-3 h-10 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-bronze/30 focus:border-bronze"
+            />
+          </div>
+          <div>
+            <Label htmlFor="urgent_keywords">Anzeichen für dringende Fälle (optional)</Label>
+            <input
+              id="urgent_keywords"
+              name="urgent_keywords"
+              defaultValue={(settings?.urgent_keywords ?? []).join(", ")}
+              placeholder="z. B. Notfall, Wasserschaden, akute Schmerzen"
+              className="w-full rounded-lg border border-border-strong bg-sand px-3 h-10 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-bronze/30 focus:border-bronze"
+            />
+          </div>
+        </div>
+
+        <label className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-ink-soft">
+          <input
+            type="checkbox"
+            name="notify_after_call"
+            defaultChecked={settings?.notify_after_call ?? true}
+            className="rounded border-border-strong"
+          />
+          Nach jedem Gespräch benachrichtigt werden
+        </label>
 
         <FieldError>{state?.error}</FieldError>
         <div className="flex items-center gap-3">

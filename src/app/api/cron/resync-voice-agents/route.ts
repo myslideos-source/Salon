@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   const { data: rows, error } = await supabase
     .from("voice_settings")
     .select(
-      "salon_id, provider_agent_id, provider_llm_id, elevenlabs_agent_id, elevenlabs_voice_id, greeting, personality, voice_id, phone_number, forwarding_number, mention_prices, offer_alternatives, respect_employee_preference, offer_callback, detect_new_customers, send_confirmation_sms, custom_prompt, emergency_redirect, mention_cancellation_policy, cancellation_notice_hours, required_documents, salons(name, timezone)"
+      "salon_id, provider_agent_id, provider_llm_id, elevenlabs_agent_id, elevenlabs_voice_id, greeting, personality, voice_id, phone_number, forwarding_number, mention_prices, offer_alternatives, respect_employee_preference, offer_callback, detect_new_customers, send_confirmation_sms, custom_prompt, emergency_redirect, mention_cancellation_policy, cancellation_notice_hours, required_documents, assistant_name, formality, languages, never_mention, after_hours_behavior, handoff_number, urgent_keywords, notify_after_call, salons(name, timezone, description)"
     )
     .or("provider_agent_id.not.is.null,elevenlabs_agent_id.not.is.null");
 
@@ -75,6 +75,18 @@ export async function GET(req: Request) {
         webhookUrl: `${appUrl}/api/voice/webhook`,
         boostedKeywords,
         customPrompt: row.custom_prompt,
+        assistantName: row.assistant_name,
+        formality: row.formality === "du" ? "du" : "sie",
+        languages: row.languages.length > 0 ? row.languages : ["de"],
+        neverMention: row.never_mention,
+        afterHoursBehavior:
+          row.after_hours_behavior === "voicemail" || row.after_hours_behavior === "info_only"
+            ? row.after_hours_behavior
+            : "offer_callback",
+        handoffNumber: row.handoff_number,
+        urgentKeywords: row.urgent_keywords,
+        notifyAfterCall: row.notify_after_call,
+        businessDescription: salon.description,
       },
       { agentId: row.provider_agent_id, llmId: row.provider_llm_id }
     );
@@ -125,6 +137,18 @@ export async function GET(req: Request) {
         webhookUrl: `${appUrl}/api/voice/webhook/elevenlabs`,
         boostedKeywords,
         customPrompt: row.custom_prompt,
+        assistantName: row.assistant_name,
+        formality: row.formality === "du" ? "du" : "sie",
+        languages: row.languages.length > 0 ? row.languages : ["de"],
+        neverMention: row.never_mention,
+        afterHoursBehavior:
+          row.after_hours_behavior === "voicemail" || row.after_hours_behavior === "info_only"
+            ? row.after_hours_behavior
+            : "offer_callback",
+        handoffNumber: row.handoff_number,
+        urgentKeywords: row.urgent_keywords,
+        notifyAfterCall: row.notify_after_call,
+        businessDescription: salon.description,
       },
       { agentId: row.elevenlabs_agent_id }
     );

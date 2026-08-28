@@ -11,7 +11,7 @@ import { computeBoostedKeywords } from "./boosted-keywords";
 // this base and add their own.
 export async function loadVoiceAgentContext(supabase: SupabaseClient<Database>, salonId: string) {
   const [{ data: salon }, { data: settings }] = await Promise.all([
-    supabase.from("salons").select("name, timezone").eq("id", salonId).single(),
+    supabase.from("salons").select("name, timezone, description").eq("id", salonId).single(),
     supabase.from("voice_settings").select("*").eq("salon_id", salonId).maybeSingle(),
   ]);
 
@@ -42,6 +42,18 @@ export async function loadVoiceAgentContext(supabase: SupabaseClient<Database>, 
     requiredDocuments: settings.required_documents,
     boostedKeywords,
     customPrompt: settings.custom_prompt,
+    assistantName: settings.assistant_name,
+    formality: settings.formality === "du" ? "du" : "sie",
+    languages: settings.languages.length > 0 ? settings.languages : ["de"],
+    neverMention: settings.never_mention,
+    afterHoursBehavior:
+      settings.after_hours_behavior === "voicemail" || settings.after_hours_behavior === "info_only"
+        ? settings.after_hours_behavior
+        : "offer_callback",
+    handoffNumber: settings.handoff_number,
+    urgentKeywords: settings.urgent_keywords,
+    notifyAfterCall: settings.notify_after_call,
+    businessDescription: salon.description,
   };
 
   return { ok: true as const, salon, settings: settings as Tables<"voice_settings">, configBase };

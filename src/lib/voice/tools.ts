@@ -68,20 +68,34 @@ export async function getEmployees(supabase: DbClient, salonId: string) {
 export async function getServices(supabase: DbClient, salonId: string) {
   const { data, error } = await supabase
     .from("services")
-    .select("id, name, category, duration_minutes, price_cents")
+    .select("id, name, category, duration_minutes, price_cents, has_price")
     .eq("salon_id", salonId)
     .eq("active", true)
     .order("sort_order");
   if (error) return fail(error.message);
   return ok(
+    // Grundregel "Preise nur nennen, wenn sie hinterlegt sind": ohne
+    // has_price gibt es keinen verlässlichen Preis für dieses Unternehmen -
+    // priceEuro bleibt dann null statt eines irreführenden 0/Platzhalterwerts.
     (data ?? []).map((s) => ({
       id: s.id,
       name: s.name,
       category: s.category,
       durationMinutes: s.duration_minutes,
-      priceEuro: s.price_cents / 100,
+      priceEuro: s.has_price ? s.price_cents / 100 : null,
     }))
   );
+}
+
+export async function getFaq(supabase: DbClient, salonId: string) {
+  const { data, error } = await supabase
+    .from("faq")
+    .select("question, answer, category")
+    .eq("salon_id", salonId)
+    .eq("active", true)
+    .order("sort_order");
+  if (error) return fail(error.message);
+  return ok((data ?? []).map((f) => ({ question: f.question, answer: f.answer, category: f.category })));
 }
 
 export async function findCustomer(supabase: DbClient, salonId: string, phone: string) {
@@ -307,6 +321,7 @@ export const toolSchemas = {
   getOpeningHours: z.object({}),
   getEmployees: z.object({}),
   getServices: z.object({}),
+  getFaq: z.object({}),
   findCustomer: z.object({ phone: z.string() }),
   createCustomer: z.object({ firstName: z.string(), lastName: z.string().optional(), phone: z.string() }),
   checkAvailability: z.object({
@@ -354,6 +369,8 @@ export async function runTool(supabase: DbClient, salonId: string, tool: ToolNam
       return getEmployees(supabase, salonId);
     case "getServices":
       return getServices(supabase, salonId);
+    case "getFaq":
+      return getFaq(supabase, salonId);
     case "findCustomer":
       return findCustomer(supabase, salonId, (args as { phone: string }).phone);
     case "createCustomer":

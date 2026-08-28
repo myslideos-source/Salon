@@ -44,3 +44,15 @@ export const onboardingDetailsSchema = z.object({
   timezone: z.string().min(1, "Zeitzone ist erforderlich").max(60),
 });
 export type OnboardingDetailsInput = z.infer<typeof onboardingDetailsSchema>;
+
+// Schritt 8 — Begrüßung & Tonalität. Bewusst nur die im Onboarding
+// relevante Teilmenge der "Meine Mia"-Felder (vollständig unter
+// /app/ai editierbar) - Regeln, Sprachen etc. folgen dort.
+export const onboardingGreetingSchema = z.object({
+  assistant_name: z.string().min(1, "Name ist erforderlich").max(60),
+  greeting: z.string().min(1, "Begrüßung ist erforderlich"),
+  personality: z.enum(["freundlich", "professionell", "locker", "elegant"]),
+  formality: z.enum(["du", "sie"]),
+  description: z.string().max(1000).optional().or(z.literal("")),
+});
+export type OnboardingGreetingInput = z.infer<typeof onboardingGreetingSchema>;

@@ -14,6 +14,24 @@ export interface VoiceAgentConfig {
   voiceId: string;
   phoneNumber: string | null;
   forwardingNumber: string | null;
+  /** Name, unter dem sich die KI-Assistentin am Telefon vorstellt (Konzeptabschnitt "Meine Mia"). */
+  assistantName: string;
+  /** Du- oder Sie-Ansprache. */
+  formality: "du" | "sie";
+  /** Hauptsprache zuerst, danach weitere unterstützte Sprachen (ISO-639-1, z. B. "de", "en"). */
+  languages: string[];
+  /** Freitext: Informationen, die Mia niemals nennen darf. */
+  neverMention: string | null;
+  /** Verhalten außerhalb der Öffnungszeiten des Unternehmens. */
+  afterHoursBehavior: "offer_callback" | "voicemail" | "info_only";
+  /** Nummer, an die bei dringenden/kritischen Anliegen weitergeleitet werden soll. */
+  handoffNumber: string | null;
+  /** Schlagworte, die ein Anliegen als dringend kennzeichnen (z. B. "Notfall", "Wasserschaden"). */
+  urgentKeywords: string[];
+  /** Ob das Unternehmen nach jedem Gespräch benachrichtigt werden möchte (steuert die Nachbearbeitung, nicht den Prompt selbst). */
+  notifyAfterCall: boolean;
+  /** Frei formulierte Unternehmensbeschreibung, die Mia als Grundlage nennen darf. */
+  businessDescription: string | null;
   rules: {
     mentionPrices: boolean;
     offerAlternatives: boolean;

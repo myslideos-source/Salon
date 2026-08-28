@@ -3,13 +3,13 @@ import type { OnboardingDraft, DraftItem } from "@/lib/validation/onboarding";
 
 /**
  * Die vollständigen 12 Schritte des Einrichtungsassistenten aus dem
- * HalloMia-Konzept. Die ersten sechs sind umgesetzt (siehe `interactive`) —
- * Unternehmen/Branche/Unternehmensdaten sowie, seit dem Sonderauftrag
- * "Standorte, Team, Ressourcen und Verfügbarkeit", auch Standort,
- * Öffnungszeiten und Team & Ressourcen. Die übrigen folgen nach ihren
- * jeweiligen Fachbereichen (Terminarten, KI-Konfiguration, Telefonie) und
- * werden hier bereits als Fortschritts-Vorschau geführt, ohne anklickbar zu
- * sein — keine funktionslosen Buttons.
+ * HalloMia-Konzept. Die ersten zehn sind umgesetzt (siehe `interactive`) —
+ * Unternehmen/Branche/Unternehmensdaten, Standort, Öffnungszeiten, Team &
+ * Ressourcen, Terminarten & Leistungen, Begrüßung & Tonalität, Häufige
+ * Fragen sowie der Kalendertest. Die übrigen zwei (Telefonnummer
+ * verbinden, Mia aktivieren) folgen mit der Telefonie-Integration und
+ * werden hier bereits als Fortschritts-Vorschau geführt, ohne anklickbar
+ * zu sein — keine funktionslosen Buttons.
  */
 export type OnboardingStepDef = {
   step: number;
@@ -26,8 +26,8 @@ export const ONBOARDING_STEPS: OnboardingStepDef[] = [
   { step: 5, title: "Öffnungszeiten", description: "Reguläre Öffnungszeiten festlegen", interactive: true },
   { step: 6, title: "Team & Ressourcen", description: "Mitarbeiter, Räume, Fahrzeuge und Geräte anlegen", interactive: true },
   { step: 7, title: "Terminarten & Leistungen", description: "Terminarten mit Dauer, Preis und Buchungsfragen anlegen", interactive: true },
-  { step: 8, title: "Begrüßung & Tonalität", description: "Folgt später", interactive: false },
-  { step: 9, title: "Häufige Fragen", description: "Folgt später", interactive: false },
+  { step: 8, title: "Begrüßung & Tonalität", description: "Name, Begrüßung und Ansprache von Mia festlegen", interactive: true },
+  { step: 9, title: "Häufige Fragen", description: "Fragen und Antworten für Mia hinterlegen", interactive: true },
   { step: 10, title: "Kalender testen", description: "Testtermin buchen und wieder stornieren", interactive: true },
   { step: 11, title: "Telefonnummer verbinden", description: "Folgt später", interactive: false },
   { step: 12, title: "Mia aktivieren", description: "Folgt später", interactive: false },

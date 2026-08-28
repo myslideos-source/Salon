@@ -1437,6 +1437,7 @@ export type Database = {
           ai_active: boolean
           calendar_feed_token: string | null
           created_at: string
+          description: string | null
           earliest_booking_lead_minutes: number
           id: string
           industry_template_id: string | null
@@ -1460,6 +1461,7 @@ export type Database = {
           ai_active?: boolean
           calendar_feed_token?: string | null
           created_at?: string
+          description?: string | null
           earliest_booking_lead_minutes?: number
           id?: string
           industry_template_id?: string | null
@@ -1483,6 +1485,7 @@ export type Database = {
           ai_active?: boolean
           calendar_feed_token?: string | null
           created_at?: string
+          description?: string | null
           earliest_booking_lead_minutes?: number
           id?: string
           industry_template_id?: string | null
@@ -1867,6 +1870,7 @@ export type Database = {
       update_own_salon_onboarding: {
         Args: {
           p_address?: string
+          p_description?: string
           p_industry_template_id?: string
           p_name?: string
           p_onboarding_draft?: Json
@@ -1880,19 +1884,27 @@ export type Database = {
       }
       update_voice_settings_customer_fields: {
         Args: {
+          p_after_hours_behavior: string
+          p_assistant_name: string
           p_cancellation_notice_hours: number
           p_custom_prompt: string
           p_detect_new_customers: boolean
           p_emergency_redirect: boolean
+          p_formality: string
           p_greeting: string
+          p_handoff_number: string
+          p_languages: string[]
           p_mention_cancellation_policy: boolean
           p_mention_prices: boolean
+          p_never_mention: string
+          p_notify_after_call: boolean
           p_offer_alternatives: boolean
           p_offer_callback: boolean
           p_personality: string
           p_required_documents: string
           p_respect_employee_preference: boolean
           p_send_confirmation_sms: boolean
+          p_urgent_keywords: string[]
           target_salon_id: string
         }
         Returns: undefined

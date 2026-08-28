@@ -35,10 +35,12 @@ export default async function OnboardingPage() {
     { data: services },
     { data: employeeServices },
     { data: serviceResources },
+    { data: voiceSettings },
+    { data: faqs },
   ] = await Promise.all([
     supabase
       .from("salons")
-      .select("id, name, slug, phone, address, timezone, industry_template_id, onboarding_step, onboarding_draft")
+      .select("id, name, slug, phone, address, timezone, industry_template_id, onboarding_step, onboarding_draft, description")
       .eq("id", salonId)
       .single(),
     supabase
@@ -60,6 +62,8 @@ export default async function OnboardingPage() {
     supabase.from("services").select("*").eq("salon_id", salonId).order("sort_order").order("name"),
     supabase.from("employee_services").select("employee_id, service_id").eq("salon_id", salonId),
     supabase.from("service_resources").select("resource_id, service_id").eq("salon_id", salonId),
+    supabase.from("voice_settings").select("assistant_name, greeting, personality, formality").eq("salon_id", salonId).maybeSingle(),
+    supabase.from("faq").select("*").eq("salon_id", salonId).order("sort_order"),
   ]);
 
   if (!salon) redirect("/app/login");
@@ -111,6 +115,9 @@ export default async function OnboardingPage() {
         employees: employees ?? [],
         resources: resources ?? [],
         services: serviceRows,
+        description: salon.description ?? "",
+        voiceSettings: voiceSettings ?? null,
+        faqs: faqs ?? [],
       }}
     />
   );

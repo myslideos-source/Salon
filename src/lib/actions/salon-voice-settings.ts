@@ -16,9 +16,30 @@ export type AiSettingsActionState = { error?: string; ok?: boolean; syncWarning?
 // greeting, personality, rule toggles and their own free-text prompt
 // addition - never the technical/infrastructure fields (phone numbers,
 // provider choice, voice IDs) which stay admin-controlled.
+// Sprachcode-Liste (z. B. "de, en, tr") als kommagetrenntes Freitextfeld im
+// Formular - hier in ein bereinigtes, dedupliziertes text[] verwandelt.
+// Leer -> ["de"], damit Mia nie ganz ohne Sprache dasteht.
+function parseLanguageCodes(raw: string): string[] {
+  const codes = raw
+    .split(",")
+    .map((c) => c.trim().toLowerCase())
+    .filter(Boolean);
+  const unique = [...new Set(codes)];
+  return unique.length > 0 ? unique : ["de"];
+}
+
+function parseKeywordList(raw: string): string[] {
+  return [...new Set(raw.split(",").map((c) => c.trim()).filter(Boolean))];
+}
+
 const schema = z.object({
+  assistant_name: z.string().min(1).max(60),
   greeting: z.string().min(1),
   personality: z.enum(["freundlich", "professionell", "locker", "elegant"]),
+  formality: z.enum(["du", "sie"]),
+  primary_language: z.string().min(2).max(5),
+  other_languages: z.string().max(200).optional().or(z.literal("")),
+  description: z.string().max(1000).optional().or(z.literal("")),
   custom_prompt: z.string().max(4000).optional().or(z.literal("")),
   mention_prices: z.coerce.boolean(),
   offer_alternatives: z.coerce.boolean(),
@@ -30,6 +51,11 @@ const schema = z.object({
   mention_cancellation_policy: z.coerce.boolean(),
   cancellation_notice_hours: z.coerce.number().int().min(1).max(168),
   required_documents: z.string().max(500).optional().or(z.literal("")),
+  never_mention: z.string().max(500).optional().or(z.literal("")),
+  after_hours_behavior: z.enum(["offer_callback", "voicemail", "info_only"]),
+  handoff_number: z.string().max(30).optional().or(z.literal("")),
+  urgent_keywords: z.string().max(300).optional().or(z.literal("")),
+  notify_after_call: z.coerce.boolean(),
 });
 
 // Saves the settings and immediately pushes them live in one step - a
@@ -65,9 +91,25 @@ export async function updateSalonVoiceSettingsAction(_prev: AiSettingsActionStat
     p_cancellation_notice_hours: parsed.data.cancellation_notice_hours,
     // Same null-vs-string generated-type mismatch as p_custom_prompt above.
     p_required_documents: (parsed.data.required_documents || null) as string,
+    p_assistant_name: parsed.data.assistant_name,
+    p_formality: parsed.data.formality,
+    p_languages: [parsed.data.primary_language, ...parseLanguageCodes(parsed.data.other_languages ?? "")].filter(
+      (code, index, all) => all.indexOf(code) === index
+    ),
+    p_never_mention: (parsed.data.never_mention || null) as string,
+    p_after_hours_behavior: parsed.data.after_hours_behavior,
+    p_handoff_number: (parsed.data.handoff_number || null) as string,
+    p_urgent_keywords: parseKeywordList(parsed.data.urgent_keywords ?? ""),
+    p_notify_after_call: parsed.data.notify_after_call,
   });
 
   if (error) return { error: error.message };
+
+  const { error: descriptionError } = await supabase.rpc("update_own_salon_onboarding", {
+    target_salon_id: salonId,
+    p_description: parsed.data.description || "",
+  });
+  if (descriptionError) return { error: descriptionError.message };
 
   const syncResult = await performSync(supabase, salonId);
   revalidatePath("/app/ai");
